@@ -1,26 +1,18 @@
 {
   "name": "movieclub",
   "version": "1.0.0",
-  "description": "MovieClub - Plataforma de reseñas de cine estilo Fight Club",
+  "description": "MovieClub - App de reseñas de cine",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest --runInBand --detectOpenHandles"
   },
-  "keywords": [
-    "movieclub",
-    "express",
-    "poo",
-    "commonjs",
-    "rest-api"
-  ],
-  "author": "Equipo 05",
-  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
