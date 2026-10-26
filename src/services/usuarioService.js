@@ -5,14 +5,15 @@ const { ValidationError, UnauthorizedError } = require('../utils/errors');
 class UsuarioService {
   #usuarioRepository;
 
-  constructor({ usuarioRepository }) {
-    if (!usuarioRepository) {
+  constructor(options = {}) {
+    const repository = options?.usuarioRepository || options;
+    if (!repository || (typeof repository.leer !== 'function' && typeof repository.findByEmail !== 'function')) {
       throw new Error('usuarioRepository es requerido');
     }
-    this.#usuarioRepository = usuarioRepository;
+    this.#usuarioRepository = repository;
   }
 
-  async login({ email, password }) {
+  async login({ email, password } = {}) {
     if (!email || typeof email !== 'string' || email.trim() === '') {
       throw new ValidationError('El email es obligatorio');
     }
@@ -21,17 +22,23 @@ class UsuarioService {
       throw new ValidationError('La contraseña es obligatoria');
     }
 
-    const usuarios = await this.#usuarioRepository.leer();
     const emailNormalizado = email.trim().toLowerCase();
-    const usuarioData = usuarios.find(
-      (u) => typeof u.email === 'string' && u.email.toLowerCase() === emailNormalizado
-    );
+    let usuarioData = null;
+
+    if (typeof this.#usuarioRepository.leer === 'function') {
+      const usuarios = await this.#usuarioRepository.leer();
+      usuarioData = usuarios.find(
+        (u) => typeof u.email === 'string' && u.email.trim().toLowerCase() === emailNormalizado
+      );
+    } else if (typeof this.#usuarioRepository.findByEmail === 'function') {
+      usuarioData = await this.#usuarioRepository.findByEmail(emailNormalizado);
+    }
 
     if (!usuarioData) {
       throw new UnauthorizedError('Credenciales inválidas');
     }
 
-    const usuario = Usuario.fromJSON(usuarioData);
+    const usuario = usuarioData instanceof Usuario ? usuarioData : Usuario.fromJSON(usuarioData);
     const passwordValido = await bcrypt.compare(password, usuario.passwordHash);
 
     if (!passwordValido) {
