@@ -68,23 +68,27 @@
       }
 
       try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ nombre, email, password })
-        });
+        if (typeof API !== 'undefined' && typeof API.register === 'function') {
+          await API.register({ nombre, email, password });
+        } else {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre, email, password })
+          });
 
-        const data = await res.json().catch(() => ({}));
+          const data = await res.json().catch(() => ({}));
 
-        if (!res.ok) {
-          throw new Error(data.error || 'Ocurrió un error al registrar la cuenta');
+          if (!res.ok) {
+            throw new Error(data.error || 'Ocurrió un error al registrar la cuenta');
+          }
+
+          const nombreUsuario = data.nombre || data.email || 'Usuario';
+          localStorage.setItem('usuarioNombre', nombreUsuario);
+          localStorage.setItem('usuario', JSON.stringify(data));
         }
-
-        const nombreUsuario = data.nombre || data.email || 'Usuario';
-        localStorage.setItem('usuarioNombre', nombreUsuario);
-        localStorage.setItem('usuario', JSON.stringify(data));
 
         window.location.assign('/');
       } catch (err) {

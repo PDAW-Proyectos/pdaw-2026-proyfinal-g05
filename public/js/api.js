@@ -79,6 +79,32 @@ const API = {
     return data;
   },
 
+  async register({ nombre, email, password } = {}) {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ nombre, email, password })
+    });
+
+    if (!response.ok) {
+      let mensaje = 'Error al registrar la cuenta';
+      try {
+        const errorData = await response.json();
+        if (errorData && (errorData.error || errorData.message)) {
+          mensaje = errorData.error || errorData.message;
+        }
+      } catch (e) { }
+      throw new Error(mensaje);
+    }
+
+    const data = await response.json();
+    const usuario = data.usuario || data.user || data;
+    this.guardarSesion(usuario);
+    return data;
+  },
+
   async logout() {
     try {
       const response = await fetch('/api/auth/logout', {
