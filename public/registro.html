@@ -89,30 +89,6 @@
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="rol" class="form-label text-secondary small text-uppercase fw-bold mb-1" style="letter-spacing: 0.06em;">
-              Rol en el Club
-            </label>
-            <div class="auth-input-wrapper">
-              <i class="bi bi-shield-check input-icon"></i>
-              <select class="form-select" id="rol" name="rol" required>
-                <option value="Espectador" selected>Espectador</option>
-                <option value="Critico">Crítico de Cine</option>
-                <option value="Moderador">Moderador</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="mb-4 d-none" id="campo-medio-prensa">
-            <label for="medioDePrensa" class="form-label text-secondary small text-uppercase fw-bold mb-1" style="letter-spacing: 0.06em;">
-              Medio de Prensa
-            </label>
-            <div class="auth-input-wrapper">
-              <i class="bi bi-newspaper input-icon"></i>
-              <input type="text" class="form-control" id="medioDePrensa" name="medioDePrensa" placeholder="Ej. Revista Rolling Stone, La Nación">
-            </div>
-          </div>
-
           <button type="submit" class="btn btn-pink w-100 py-2.5 mt-2">
             Crear Cuenta
           </button>
@@ -143,18 +119,6 @@
         }
       });
     });
-
-    const selectRol = document.getElementById('rol');
-    const campoMedio = document.getElementById('campo-medio-prensa');
-    if (selectRol && campoMedio) {
-      selectRol.addEventListener('change', () => {
-        if (selectRol.value === 'Critico') {
-          campoMedio.classList.remove('d-none');
-        } else {
-          campoMedio.classList.add('d-none');
-        }
-      });
-    }
   </script>
 </body>
 </html>

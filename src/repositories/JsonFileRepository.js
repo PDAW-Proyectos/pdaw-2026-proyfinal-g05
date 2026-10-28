@@ -43,15 +43,34 @@ class JsonFileRepository {
     }
   }
 
+  async findByEmail(email) {
+    const todos = await this.leer();
+    return todos.find((u) => typeof u.email === 'string' && u.email.toLowerCase() === email.toLowerCase()) || null;
+  }
+
+  async findById(id) {
+    const todos = await this.leer();
+    return todos.find((u) => u.id === id) || null;
+  }
+
   async guardar(datos) {
+    let arreglo = datos;
     if (!Array.isArray(datos)) {
-      throw new TypeError('Los datos a persistir deben ser un arreglo.');
+      const actuales = await this.leer();
+      const raw = datos && typeof datos.toJSON === 'function' ? datos.toJSON() : datos;
+      const idx = actuales.findIndex((item) => item.id === raw.id);
+      if (idx !== -1) {
+        actuales[idx] = raw;
+      } else {
+        actuales.push(raw);
+      }
+      arreglo = actuales;
     }
 
     await this.#asegurarDirectorio();
 
     const tempPath = `${this.#filePath}.${Date.now()}-${Math.random().toString(36).slice(2, 8)}.tmp`;
-    const jsonString = JSON.stringify(datos, null, 2);
+    const jsonString = JSON.stringify(arreglo, null, 2);
 
     try {
       await fs.writeFile(tempPath, jsonString, 'utf-8');
