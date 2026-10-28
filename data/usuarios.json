@@ -1,0 +1,12 @@
+[
+  {
+    "id": "usr-1",
+    "nombre": "Maxi Martinez",
+    "email": "maxi@movieclub.com",
+    "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
+    "rol": "Espectador",
+    "watchlist": [],
+    "top4": [],
+    "fechaRegistro": "2026-10-25T23:00:00.000Z"
+  }
+]

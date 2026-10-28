@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const errorHandler = require('./middlewares/errorHandler');
+const createAuthRoutes = require('./routes/authRoutes');
 const createUsuarioRoutes = require('./routes/usuarioRoutes');
 const createResenaRoutes = require('./routes/resenaRoutes');
 
@@ -28,6 +29,7 @@ function createApp({ config, services } = {}) {
     res.status(200).json({ status: 'ok', service: 'MovieClub API' });
   });
 
+  app.use('/api/auth', createAuthRoutes({ usuarioService: services?.usuarioService }));
   app.use('/api/usuarios', createUsuarioRoutes({ usuarioService: services?.usuarioService }));
   app.use('/api/resenas', createResenaRoutes({ resenaService: services?.resenaService }));
 
