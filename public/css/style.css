@@ -183,6 +183,18 @@ h4,
   max-width: 1240px;
 }
 
+.hero-header {
+  position: relative;
+  background-image: 
+    linear-gradient(to right, rgba(16, 21, 25, 0.96) 0%, rgba(16, 21, 25, 0.88) 42%, rgba(16, 21, 25, 0.45) 75%, rgba(16, 21, 25, 0.12) 100%),
+    linear-gradient(to top, var(--bg-main) 0%, transparent 18%),
+    linear-gradient(to bottom, var(--bg-main) 0%, transparent 12%),
+    url('/img/imgBgIndex.jpg');
+  background-size: cover;
+  background-position: right top;
+  background-repeat: no-repeat;
+}
+
 .hero-title {
   font-family: var(--font-display) !important;
   font-size: clamp(2.8rem, 5.6vw, 5.4rem);
@@ -295,6 +307,10 @@ h4,
   justify-content: space-between;
   padding: 3.5rem;
   overflow: hidden;
+}
+
+.auth-visual-panel-register {
+  background-image: url('/img/imgRegister.webp');
 }
 
 .auth-visual-overlay {
