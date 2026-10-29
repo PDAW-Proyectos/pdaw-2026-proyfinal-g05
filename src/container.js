@@ -1,4 +1,5 @@
 const JsonFileRepository = require('./repositories/JsonFileRepository');
+const UsuarioService = require('./services/usuarioService');
 
 function createContainer({ config }) {
   const repos = {
@@ -6,7 +7,9 @@ function createContainer({ config }) {
     resenaRepository: new JsonFileRepository(config.data.resenasFile)
   };
 
-  const services = {};
+  const services = {
+    usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository })
+  };
 
   return {
     repos,

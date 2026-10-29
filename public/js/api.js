@@ -1,3 +1,5 @@
+'use strict';
+
 function normalizarHeaders(headersInput = {}) {
   const result = {};
   if (typeof Headers !== 'undefined' && headersInput instanceof Headers) {
@@ -135,37 +137,12 @@ const API = {
   fetch: apiFetch,
   apiFetch: apiFetch,
 
-  async login({ email, password } = {}, { signal } = {}) {
-    const response = await apiFetch('/api/auth/login', {
+  async register({ nombre, email, password } = {}, { signal } = {}) {
+    const response = await apiFetch('/api/auth/register', {
       method: 'POST',
-      body: { email, password },
+      body: { nombre, email, password },
       signal
     });
 
     const data = await response.json();
-    const usuario = data.usuario || data.user || data;
-    this.guardarSesion(usuario);
-    return data;
-  },
-
-  async logout({ signal } = {}) {
-    try {
-      const response = await apiFetch('/api/auth/logout', {
-        method: 'POST',
-        signal
-      });
-      return response;
-    } finally {
-      this.limpiarSesion();
-    }
-  }
-};
-
-if (typeof window !== 'undefined') {
-  window.API = API;
-  window.apiFetch = apiFetch;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = API;
-}
+    const usuario = data.usuario || data
