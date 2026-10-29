@@ -1,5 +1,6 @@
 const JsonFileRepository = require('./repositories/JsonFileRepository');
 const UsuarioService = require('./services/usuarioService');
+const TmdbService = require('./services/tmdbService');
 
 function createContainer({ config }) {
   const repos = {
@@ -8,7 +9,8 @@ function createContainer({ config }) {
   };
 
   const services = {
-    usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository })
+    usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository }),
+    tmdbService: new TmdbService({ config })
   };
 
   return {

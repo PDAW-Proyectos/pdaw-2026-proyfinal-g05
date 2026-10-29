@@ -145,4 +145,43 @@ const API = {
     });
 
     const data = await response.json();
-    const usuario = data.usuario || data
+    const usuario = data.usuario || data.user || data;
+    this.guardarSesion(usuario);
+    return data;
+  },
+
+  async login({ email, password } = {}, { signal } = {}) {
+    const response = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: { email, password },
+      signal
+    });
+
+    const data = await response.json();
+    const usuario = data.usuario || data.user || data;
+    this.guardarSesion(usuario);
+    return data;
+  },
+
+  async logout({ signal } = {}) {
+    try {
+      const response = await apiFetch('/api/auth/logout', {
+        method: 'POST',
+        signal
+      });
+      return response;
+    } finally {
+      this.limpiarSesion();
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.API = API;
+  window.apiFetch = apiFetch;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = API;
+}
+
