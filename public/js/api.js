@@ -1,5 +1,86 @@
 'use strict';
 
+function normalizarHeaders(headersInput = {}) {
+  const result = {};
+  if (typeof Headers !== 'undefined' && headersInput instanceof Headers) {
+    headersInput.forEach((value, key) => {
+      result[key] = value;
+    });
+  } else if (headersInput && typeof headersInput === 'object') {
+    Object.assign(result, headersInput);
+  }
+  return result;
+}
+
+function tieneHeader(headersObj, headerName) {
+  const target = headerName.toLowerCase();
+  return Object.keys(headersObj).some((key) => key.toLowerCase() === target);
+}
+
+async function apiFetch(url, options = {}) {
+  const {
+    method = 'GET',
+    headers: headersInput = {},
+    body,
+    signal,
+    credentials = 'same-origin',
+    ...restOptions
+  } = options;
+
+  const headers = normalizarHeaders(headersInput);
+
+  const userId = API.getUserId();
+  if (userId && !tieneHeader(headers, 'x-user-id')) {
+    headers['x-user-id'] = userId;
+  }
+
+  let finalBody = body;
+  if (body !== undefined && body !== null) {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+    const isBlob = typeof Blob !== 'undefined' && body instanceof Blob;
+    const isSearchParams = typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams;
+    const isString = typeof body === 'string';
+
+    if (!isFormData && !isBlob && !isSearchParams && !isString && typeof body === 'object') {
+      finalBody = JSON.stringify(body);
+      if (!tieneHeader(headers, 'content-type')) {
+        headers['Content-Type'] = 'application/json';
+      }
+    }
+  }
+
+  const fetchConfig = {
+    method,
+    headers,
+    credentials,
+    signal,
+    ...restOptions
+  };
+
+  if (finalBody !== undefined) {
+    fetchConfig.body = finalBody;
+  }
+
+  const response = await fetch(url, fetchConfig);
+
+  if (!response.ok) {
+    let mensaje = `Error HTTP ${response.status}`;
+    try {
+      const errorData = await response.clone().json();
+      if (errorData && (errorData.error || errorData.message)) {
+        mensaje = errorData.error || errorData.message;
+      }
+    } catch (_) { }
+
+    const error = new Error(mensaje);
+    error.status = response.status;
+    error.response = response;
+    throw error;
+  }
+
+  return response;
+}
+
 const API = {
   getUserId() {
     try {
@@ -53,74 +134,15 @@ const API = {
     }
   },
 
-  async login({ email, password } = {}) {
-    const response = await fetch('/api/auth/login', {
+  fetch: apiFetch,
+  apiFetch: apiFetch,
+
+  async register({ nombre, email, password } = {}, { signal } = {}) {
+    const response = await apiFetch('/api/auth/register', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
+      body: { nombre, email, password },
+      signal
     });
 
-    if (!response.ok) {
-      let mensaje = 'Error al iniciar sesión';
-      try {
-        const errorData = await response.json();
-        if (errorData && (errorData.error || errorData.message)) {
-          mensaje = errorData.error || errorData.message;
-        }
-      } catch (e) { }
-      throw new Error(mensaje);
-    }
-
     const data = await response.json();
-    const usuario = data.usuario || data.user || data;
-    this.guardarSesion(usuario);
-    return data;
-  },
-
-  async register({ nombre, email, password } = {}) {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ nombre, email, password })
-    });
-
-    if (!response.ok) {
-      let mensaje = 'Error al registrar la cuenta';
-      try {
-        const errorData = await response.json();
-        if (errorData && (errorData.error || errorData.message)) {
-          mensaje = errorData.error || errorData.message;
-        }
-      } catch (e) { }
-      throw new Error(mensaje);
-    }
-
-    const data = await response.json();
-    const usuario = data.usuario || data.user || data;
-    this.guardarSesion(usuario);
-    return data;
-  },
-
-  async logout() {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST'
-      });
-      return response;
-    } finally {
-      this.limpiarSesion();
-    }
-  }
-};
-
-if (typeof window !== 'undefined') {
-  window.API = API;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = API;
-}
+    const usuario = data.usuario || data
