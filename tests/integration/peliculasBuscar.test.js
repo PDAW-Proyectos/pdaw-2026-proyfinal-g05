@@ -3,6 +3,7 @@ const { createApp } = require('../../src/app');
 const PeliculasController = require('../../src/controllers/PeliculasController');
 const createPeliculasRoutes = require('../../src/routes/peliculasRoutes');
 const { createContainer } = require('../../src/container');
+const { AppError } = require('../../src/utils/errors');
 
 describe('GET /api/peliculas/buscar (Integration)', () => {
   let app;
@@ -65,6 +66,28 @@ describe('GET /api/peliculas/buscar (Integration)', () => {
         calificacion: 8.4
       }
     ]);
+  });
+
+  test('retorna 502 estructurado ante caída o error de conexión con la API externa', async () => {
+    mockTmdbService.buscarPeliculas.mockRejectedValue(
+      new AppError('Error al conectar con TMDB: Network failure', 502)
+    );
+
+    const res = await request(app).get('/api/peliculas/buscar?q=fight');
+
+    expect(res.status).toBe(502);
+    expect(res.body).toEqual({ error: 'Error al conectar con TMDB: Network failure' });
+  });
+
+  test('retorna 500 estructurado ante error interno no controlado', async () => {
+    mockTmdbService.buscarPeliculas.mockRejectedValue(
+      new Error('Fallo inesperado no controlado')
+    );
+
+    const res = await request(app).get('/api/peliculas/buscar?q=fight');
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: 'Ocurrió un error interno en el servidor' });
   });
 
   test('contenedor registra peliculasController y peliculasRoutes', () => {
