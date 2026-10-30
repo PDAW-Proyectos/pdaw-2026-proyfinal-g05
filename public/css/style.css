@@ -659,3 +659,103 @@ h4,
 .hover-pink:hover {
   color: var(--accent-pink) !important;
 }
+
+.modal-custom-dark {
+  background-color: #242c34 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+.item-pelicula {
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.item-pelicula:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.border-pink-selected {
+  outline: 2px solid var(--accent-pink) !important;
+  background-color: rgba(232, 154, 170, 0.12) !important;
+}
+
+.btn-modal-back {
+  background-color: #3f4e5e !important;
+  color: #cdd9e5 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  padding: 0.25rem 0.65rem !important;
+  border-radius: 4px !important;
+}
+
+.btn-modal-back:hover {
+  background-color: #4f6276 !important;
+  color: #fff !important;
+}
+
+.resena-textarea {
+  background-color: #c9d7e3 !important;
+  color: #1a2228 !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 4px !important;
+  resize: vertical;
+}
+
+.resena-textarea::placeholder {
+  color: #6c7c8c !important;
+}
+
+.resena-tags-input {
+  background-color: #c9d7e3 !important;
+  color: #1a2228 !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 4px !important;
+  font-size: 0.85rem !important;
+}
+
+.resena-tags-input::placeholder {
+  color: #6c7c8c !important;
+}
+
+.btn-save-resena {
+  background-color: var(--accent-pink) !important;
+  color: #101519 !important;
+  font-weight: 700 !important;
+  border-radius: 20px !important;
+  padding: 0.35rem 1.4rem !important;
+  border: none !important;
+  transition: all 0.15s ease;
+}
+
+.btn-save-resena:hover {
+  background-color: #f0aab8 !important;
+  box-shadow: 0 4px 14px rgba(232, 154, 170, 0.4);
+}
+
+.estrella-rating {
+  font-size: 1.4rem;
+  color: #4f6276;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.estrella-rating.activa,
+.estrella-rating:hover {
+  color: var(--accent-pink) !important;
+}
+
+.icono-like {
+  font-size: 1.4rem;
+  color: #4f6276;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.icono-like.activo {
+  color: var(--accent-pink) !important;
+}
+
+

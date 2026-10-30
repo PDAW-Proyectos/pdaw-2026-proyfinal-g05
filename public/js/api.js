@@ -137,6 +137,15 @@ const API = {
   fetch: apiFetch,
   apiFetch: apiFetch,
 
+  async buscarPeliculas(query, { signal } = {}) {
+    const termino = encodeURIComponent(String(query || '').trim());
+    const response = await apiFetch(`/api/peliculas/buscar?q=${termino}`, {
+      method: 'GET',
+      signal
+    });
+    return await response.json();
+  },
+
   async register({ nombre, email, password } = {}, { signal } = {}) {
     const response = await apiFetch('/api/auth/register', {
       method: 'POST',
