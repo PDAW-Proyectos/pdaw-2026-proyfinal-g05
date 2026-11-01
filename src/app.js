@@ -32,6 +32,9 @@ function createApp({ config, services } = {}) {
   app.use('/api/auth', createAuthRoutes({ usuarioService: services?.usuarioService }));
   app.use('/api/usuarios', createUsuarioRoutes({ usuarioService: services?.usuarioService }));
   app.use('/api/resenas', createResenaRoutes({ resenaService: services?.resenaService }));
+  if (services?.peliculasRoutes) {
+    app.use('/api/peliculas', services.peliculasRoutes);
+  }
 
   app.use((req, res) => {
     res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
