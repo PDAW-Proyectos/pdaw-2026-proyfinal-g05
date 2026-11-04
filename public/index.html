@@ -149,9 +149,10 @@
           UNITE AL CINE SIN FILTROS
         </h2>
 
-        <form class="footer-subscribe-form mx-auto" onsubmit="event.preventDefault(); alert('¡Bienvenido al club!');">
+        <form id="form-suscripcion" class="footer-subscribe-form mx-auto">
           <div class="footer-input-group">
-            <input type="email" class="form-control footer-input" placeholder="Ingresá tu correo electrónico..." required autocomplete="email">
+            <label for="footer-email" class="visually-hidden">Correo electrónico para suscripción</label>
+            <input type="email" class="form-control footer-input" id="footer-email" name="email" placeholder="Ingresá tu correo electrónico..." required autocomplete="email" aria-describedby="footer-terms">
             <button type="submit" class="btn footer-btn">
               Suscribirse
             </button>
@@ -193,6 +194,7 @@
         </div>
         <div class="modal-body p-4">
           <div class="position-relative">
+            <label for="input-buscar-pelicula" class="visually-hidden">Buscar película</label>
             <input type="text" id="input-buscar-pelicula" class="form-control form-control-lg bg-white text-dark py-2 px-3 fs-6" placeholder="Buscar película..." autocomplete="off">
             <div id="spinner-busqueda" class="spinner-border spinner-border-sm text-secondary position-absolute top-50 end-0 translate-middle-y me-3 d-none" role="status">
               <span class="visually-hidden">Cargando...</span>
@@ -255,6 +257,7 @@
               </div>
 
               <div class="mb-3">
+                <label for="modal-resena-texto" class="visually-hidden">Escribí tu reseña</label>
                 <textarea id="modal-resena-texto" class="form-control resena-textarea p-3" rows="5" placeholder="Escribí tu reseña..."></textarea>
               </div>
 
@@ -274,18 +277,20 @@
                       <span class="text-secondary small fw-bold">Calificación</span>
                       <span id="label-rating-resena" class="text-secondary ms-2" style="font-size: 0.75rem;">0 de 5</span>
                     </div>
-                    <div id="contenedor-estrellas" class="d-flex gap-1">
-                      <i class="bi bi-star estrella-rating" data-valor="1"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="2"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="3"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="4"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="5"></i>
+                    <div id="contenedor-estrellas" class="d-flex gap-1" role="group" aria-label="Calificación de la película">
+                      <i class="bi bi-star estrella-rating" data-valor="1" role="button" tabindex="0" aria-label="1 estrella"></i>
+                      <i class="bi bi-star estrella-rating" data-valor="2" role="button" tabindex="0" aria-label="2 estrellas"></i>
+                      <i class="bi bi-star estrella-rating" data-valor="3" role="button" tabindex="0" aria-label="3 estrellas"></i>
+                      <i class="bi bi-star estrella-rating" data-valor="4" role="button" tabindex="0" aria-label="4 estrellas"></i>
+                      <i class="bi bi-star estrella-rating" data-valor="5" role="button" tabindex="0" aria-label="5 estrellas"></i>
                     </div>
                   </div>
 
                   <div>
                     <div class="text-secondary small fw-bold mb-1">Favorita</div>
-                    <i id="btn-like-resena" class="bi bi-heart-fill icono-like"></i>
+                    <button type="button" id="btn-like-resena" class="btn p-0 border-0 bg-transparent" aria-label="Marcar como favorita">
+                      <i class="bi bi-heart-fill icono-like"></i>
+                    </button>
                   </div>
                 </div>
               </div>

@@ -63,8 +63,9 @@
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-envelope input-icon"></i>
-              <input type="email" class="form-control" id="email" name="email" required placeholder="nombre@ejemplo.com" autocomplete="email">
+              <input type="email" class="form-control" id="email" name="email" required placeholder="nombre@ejemplo.com" autocomplete="email" aria-describedby="error-email">
             </div>
+            <div id="error-email" class="invalid-feedback" role="alert"></div>
           </div>
 
           <div class="mb-3">
@@ -73,11 +74,12 @@
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-lock input-icon"></i>
-              <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+              <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••" autocomplete="current-password" aria-describedby="error-password">
               <button type="button" class="btn-toggle-password" aria-label="Mostrar u ocultar contraseña">
                 <i class="bi bi-eye"></i>
               </button>
             </div>
+            <div id="error-password" class="invalid-feedback" role="alert"></div>
           </div>
 
           <div class="d-flex justify-content-between align-items-center mb-4">
