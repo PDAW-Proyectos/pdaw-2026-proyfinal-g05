@@ -1,8 +1,8 @@
 class PeliculasController {
-  #tmdbService;
+  #tmdbAdapter;
 
-  constructor({ tmdbService }) {
-    this.#tmdbService = tmdbService;
+  constructor({ tmdbAdapter }) {
+    this.#tmdbAdapter = tmdbAdapter;
   }
 
   async buscar(req, res, next) {
@@ -13,17 +13,7 @@ class PeliculasController {
         return res.status(400).json({ error: 'El parámetro de búsqueda (q) es obligatorio' });
       }
 
-      const respuesta = await this.#tmdbService.buscarPeliculas(query);
-      const resultadosTMDB = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
-
-      const peliculas = resultadosTMDB.map(p => ({
-        id: p.id,
-        titulo: p.title,
-        sinopsis: p.overview || '',
-        posterPath: p.poster_path || null,
-        fechaEstreno: p.release_date || null,
-        calificacion: p.vote_average || 0
-      }));
+      const peliculas = await this.#tmdbAdapter.buscarPeliculas(query);
 
       return res.status(200).json(peliculas);
     } catch (error) {

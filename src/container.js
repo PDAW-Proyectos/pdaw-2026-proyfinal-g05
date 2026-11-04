@@ -1,6 +1,7 @@
 const JsonFileRepository = require('./repositories/JsonFileRepository');
 const UsuarioService = require('./services/usuarioService');
 const TmdbService = require('./services/tmdbService');
+const TmdbAdapter = require('./services/tmdbAdapter');
 const PeliculasController = require('./controllers/PeliculasController');
 const createPeliculasRoutes = require('./routes/peliculasRoutes');
 
@@ -15,8 +16,10 @@ function createContainer({ config }) {
     tmdbService: new TmdbService({ config })
   };
 
+  const tmdbAdapter = new TmdbAdapter({ tmdbService: services.tmdbService });
+
   const peliculasController = new PeliculasController({
-    tmdbService: services.tmdbService
+    tmdbAdapter: tmdbAdapter
   });
 
   services.peliculasController = peliculasController;
