@@ -1,18 +1,18 @@
 const PeliculasController = require('../../src/controllers/PeliculasController');
 
 describe('PeliculasController (Unit)', () => {
-  let mockTmdbService;
+  let mockTmdbAdapter;
   let controller;
   let req;
   let res;
   let next;
 
   beforeEach(() => {
-    mockTmdbService = {
+    mockTmdbAdapter = {
       buscarPeliculas: jest.fn()
     };
 
-    controller = new PeliculasController({ tmdbService: mockTmdbService });
+    controller = new PeliculasController({ tmdbAdapter: mockTmdbAdapter });
 
     req = {
       query: {}
@@ -31,7 +31,7 @@ describe('PeliculasController (Unit)', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'El parámetro de búsqueda (q) es obligatorio' });
-    expect(mockTmdbService.buscarPeliculas).not.toHaveBeenCalled();
+    expect(mockTmdbAdapter.buscarPeliculas).not.toHaveBeenCalled();
   });
 
   test('retorna 400 si el parámetro q es un string vacío o solo espacios', async () => {
@@ -40,41 +40,14 @@ describe('PeliculasController (Unit)', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'El parámetro de búsqueda (q) es obligatorio' });
-    expect(mockTmdbService.buscarPeliculas).not.toHaveBeenCalled();
+    expect(mockTmdbAdapter.buscarPeliculas).not.toHaveBeenCalled();
   });
 
   test('retorna 200 con películas mapeadas correctamente a formato estandarizado', async () => {
     req.query.q = 'Matrix';
-    const mockTMDBResponse = {
-      results: [
-        {
-          id: 603,
-          title: 'The Matrix',
-          overview: 'Un hacker aprende la verdad sobre su realidad.',
-          poster_path: '/matrix.jpg',
-          release_date: '1999-03-30',
-          vote_average: 8.7
-        },
-        {
-          id: 604,
-          title: 'The Matrix Reloaded',
-          overview: null,
-          poster_path: null,
-          release_date: null,
-          vote_average: null
-        }
-      ]
-    };
-
-    mockTmdbService.buscarPeliculas.mockResolvedValue(mockTMDBResponse);
-
-    await controller.buscar(req, res, next);
-
-    expect(mockTmdbService.buscarPeliculas).toHaveBeenCalledWith('Matrix');
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith([
+    const mockPeliculas = [
       {
-        id: 603,
+        id: '603',
         titulo: 'The Matrix',
         sinopsis: 'Un hacker aprende la verdad sobre su realidad.',
         posterPath: '/matrix.jpg',
@@ -82,20 +55,28 @@ describe('PeliculasController (Unit)', () => {
         calificacion: 8.7
       },
       {
-        id: 604,
+        id: '604',
         titulo: 'The Matrix Reloaded',
         sinopsis: '',
         posterPath: null,
         fechaEstreno: null,
         calificacion: 0
       }
-    ]);
+    ];
+
+    mockTmdbAdapter.buscarPeliculas.mockResolvedValue(mockPeliculas);
+
+    await controller.buscar(req, res, next);
+
+    expect(mockTmdbAdapter.buscarPeliculas).toHaveBeenCalledWith('Matrix');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(mockPeliculas);
   });
 
   test('llama a next con error si el servicio tmdbService falla', async () => {
     req.query.q = 'Avatar';
     const errorSimulado = new Error('TMDB connection error');
-    mockTmdbService.buscarPeliculas.mockRejectedValue(errorSimulado);
+    mockTmdbAdapter.buscarPeliculas.mockRejectedValue(errorSimulado);
 
     await controller.buscar(req, res, next);
 

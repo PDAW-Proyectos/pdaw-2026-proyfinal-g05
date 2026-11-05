@@ -1,5 +1,6 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app');
+const TmdbAdapter = require('../../src/services/tmdbAdapter');
 const PeliculasController = require('../../src/controllers/PeliculasController');
 const createPeliculasRoutes = require('../../src/routes/peliculasRoutes');
 const { createContainer } = require('../../src/container');
@@ -14,7 +15,8 @@ describe('GET /api/peliculas/buscar (Integration)', () => {
       buscarPeliculas: jest.fn()
     };
 
-    const peliculasController = new PeliculasController({ tmdbService: mockTmdbService });
+    const tmdbAdapter = new TmdbAdapter({ tmdbService: mockTmdbService });
+    const peliculasController = new PeliculasController({ tmdbAdapter });
     const peliculasRoutes = createPeliculasRoutes({ peliculasController });
 
     app = createApp({
@@ -58,7 +60,7 @@ describe('GET /api/peliculas/buscar (Integration)', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       {
-        id: 550,
+        id: '550',
         titulo: 'Fight Club',
         sinopsis: 'Un oficinista insomne...',
         posterPath: '/poster.jpg',
