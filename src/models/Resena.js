@@ -8,6 +8,9 @@ class Resena {
   #puntuacion;
   #texto;
   #contieneSpoilers;
+  #vistaPreviamente;
+  #esFavorita;
+  #fechaVisionado;
   #fechaCreacion;
   #likes;
   #esDestacada;
@@ -19,6 +22,10 @@ class Resena {
     puntuacion,
     texto,
     contieneSpoilers = false,
+    vistaPreviamente = false,
+    esFavorita = false,
+    favorita,
+    fechaVisionado = null,
     esDestacada = false,
     destacada,
     fechaCreacion,
@@ -29,8 +36,11 @@ class Resena {
     this.#autorId = Resena.#validarAutorId(autorId);
     this.#puntuacion = Resena.#validarPuntuacion(puntuacion);
     this.#texto = Resena.#validarTexto(texto);
-    this.#contieneSpoilers = Boolean(contieneSpoilers);
-    this.#esDestacada = Boolean(esDestacada ?? destacada ?? false);
+    this.#contieneSpoilers = Resena.#normalizarBooleano(contieneSpoilers);
+    this.#vistaPreviamente = Resena.#normalizarBooleano(vistaPreviamente);
+    this.#esFavorita = Resena.#normalizarBooleano(esFavorita ?? favorita ?? false);
+    this.#fechaVisionado = Resena.#validarFechaVisionado(fechaVisionado);
+    this.#esDestacada = Resena.#normalizarBooleano(esDestacada ?? destacada ?? false);
     this.#fechaCreacion = Resena.#validarFecha(fechaCreacion);
     this.#likes = Resena.#validarLikes(likes);
   }
@@ -112,6 +122,42 @@ class Resena {
     return trimmed;
   }
 
+  static #normalizarBooleano(valor) {
+    if (typeof valor === 'string') {
+      const limpio = valor.trim().toLowerCase();
+      return limpio === 'true' || limpio === '1' || limpio === 'on';
+    }
+    return Boolean(valor);
+  }
+
+  static #validarFechaVisionado(fechaVisionado) {
+    if (
+      fechaVisionado === undefined ||
+      fechaVisionado === null ||
+      String(fechaVisionado).trim() === ''
+    ) {
+      return null;
+    }
+    const raw = String(fechaVisionado).trim();
+    const isoCandidate = /^\d{4}-\d{2}-\d{2}$/.test(raw)
+      ? `${raw}T00:00:00.000Z`
+      : raw;
+    const fecha = new Date(isoCandidate);
+    if (Number.isNaN(fecha.getTime())) {
+      throw new ValidationError(
+        'Proporcione una fecha de visionado en formato ISO 8601 válido.',
+      );
+    }
+    const finDeHoyUTC = new Date();
+    finDeHoyUTC.setUTCHours(23, 59, 59, 999);
+    if (fecha.getTime() > finDeHoyUTC.getTime()) {
+      throw new ValidationError(
+        'La fecha en que viste la película no puede ser futura.',
+      );
+    }
+    return fecha.toISOString();
+  }
+
   static #validarFecha(fechaCreacion) {
     if (fechaCreacion === undefined || fechaCreacion === null) {
       return new Date().toISOString();
@@ -160,6 +206,22 @@ class Resena {
     return this.#contieneSpoilers;
   }
 
+  get vistaPreviamente() {
+    return this.#vistaPreviamente;
+  }
+
+  get esFavorita() {
+    return this.#esFavorita;
+  }
+
+  get favorita() {
+    return this.#esFavorita;
+  }
+
+  get fechaVisionado() {
+    return this.#fechaVisionado;
+  }
+
   get fechaCreacion() {
     return this.#fechaCreacion;
   }
@@ -180,7 +242,14 @@ class Resena {
     return this.#esDestacada;
   }
 
-  actualizar({ puntuacion, texto, contieneSpoilers } = {}) {
+  actualizar({
+    puntuacion,
+    texto,
+    contieneSpoilers,
+    vistaPreviamente,
+    esFavorita,
+    fechaVisionado,
+  } = {}) {
     if (puntuacion !== undefined) {
       this.#puntuacion = Resena.#validarPuntuacion(puntuacion);
     }
@@ -188,7 +257,16 @@ class Resena {
       this.#texto = Resena.#validarTexto(texto);
     }
     if (contieneSpoilers !== undefined) {
-      this.#contieneSpoilers = Boolean(contieneSpoilers);
+      this.#contieneSpoilers = Resena.#normalizarBooleano(contieneSpoilers);
+    }
+    if (vistaPreviamente !== undefined) {
+      this.#vistaPreviamente = Resena.#normalizarBooleano(vistaPreviamente);
+    }
+    if (esFavorita !== undefined) {
+      this.#esFavorita = Resena.#normalizarBooleano(esFavorita);
+    }
+    if (fechaVisionado !== undefined) {
+      this.#fechaVisionado = Resena.#validarFechaVisionado(fechaVisionado);
     }
   }
 
@@ -219,6 +297,10 @@ class Resena {
       puntuacion: this.#puntuacion,
       texto: this.#texto,
       contieneSpoilers: this.#contieneSpoilers,
+      vistaPreviamente: this.#vistaPreviamente,
+      esFavorita: this.#esFavorita,
+      favorita: this.#esFavorita,
+      fechaVisionado: this.#fechaVisionado,
       esDestacada: this.#esDestacada,
       destacada: this.#esDestacada,
       fechaCreacion: this.#fechaCreacion,
@@ -234,6 +316,10 @@ class Resena {
       puntuacion: this.#puntuacion,
       texto: this.#texto,
       contieneSpoilers: this.#contieneSpoilers,
+      vistaPreviamente: this.#vistaPreviamente,
+      esFavorita: this.#esFavorita,
+      favorita: this.#esFavorita,
+      fechaVisionado: this.#fechaVisionado,
       esDestacada: this.#esDestacada,
       destacada: this.#esDestacada,
       fechaCreacion: this.#fechaCreacion,
@@ -255,6 +341,9 @@ class Resena {
       puntuacion: data.puntuacion,
       texto: data.texto,
       contieneSpoilers: data.contieneSpoilers,
+      vistaPreviamente: data.vistaPreviamente ?? false,
+      esFavorita: data.esFavorita ?? data.favorita ?? false,
+      fechaVisionado: data.fechaVisionado ?? null,
       esDestacada: data.esDestacada ?? data.destacada ?? false,
       fechaCreacion: data.fechaCreacion,
       likes: data.likes,

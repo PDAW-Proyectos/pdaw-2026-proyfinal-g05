@@ -18,8 +18,17 @@ class ResenaController {
           .json({ error: 'El encabezado x-user-id es obligatorio' });
       }
 
-      const { puntuacion, texto, peliculaId, idPelicula, contieneSpoilers } =
-        req.body || {};
+      const {
+        puntuacion,
+        texto,
+        peliculaId,
+        idPelicula,
+        contieneSpoilers,
+        vistaPreviamente,
+        esFavorita,
+        favorita,
+        fechaVisionado,
+      } = req.body || {};
 
       if (
         puntuacion === undefined ||
@@ -28,18 +37,19 @@ class ResenaController {
         (typeof puntuacion === 'string' && puntuacion.trim() === '')
       ) {
         return res.status(400).json({
-          error: 'La puntuación es obligatoria y debe ser un número entre 1 y 5',
+          error: 'La puntuación es obligatoria y debe ser un número entre 0.5 y 5',
         });
       }
 
       const numPuntuacion = Number(puntuacion);
       if (
         Number.isNaN(numPuntuacion) ||
-        numPuntuacion < 1 ||
-        numPuntuacion > 5
+        numPuntuacion < 0.5 ||
+        numPuntuacion > 5 ||
+        !Number.isInteger(numPuntuacion * 2)
       ) {
         return res.status(400).json({
-          error: 'La puntuación debe ser un número entre 1 y 5',
+          error: 'La puntuación debe ser un número entre 0.5 y 5 en pasos de 0.5',
         });
       }
 
@@ -49,6 +59,13 @@ class ResenaController {
         puntuacion: numPuntuacion,
         texto,
         contieneSpoilers: Boolean(contieneSpoilers),
+        ...(vistaPreviamente !== undefined
+          ? { vistaPreviamente: Boolean(vistaPreviamente) }
+          : {}),
+        ...(fechaVisionado !== undefined ? { fechaVisionado } : {}),
+        ...(esFavorita !== undefined || favorita !== undefined
+          ? { esFavorita: Boolean(esFavorita ?? favorita) }
+          : {}),
       };
 
       if (
@@ -95,13 +112,28 @@ class ResenaController {
           .json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
       }
 
-      const { puntuacion, texto, contieneSpoilers } = req.body || {};
+      const {
+        puntuacion,
+        texto,
+        contieneSpoilers,
+        vistaPreviamente,
+        esFavorita,
+        favorita,
+        fechaVisionado,
+      } = req.body || {};
 
       const resenaActualizada = await this.#resenaService.actualizar(id, {
         autorId: userId.trim(),
         puntuacion,
         texto,
         contieneSpoilers,
+        ...(vistaPreviamente !== undefined
+          ? { vistaPreviamente: Boolean(vistaPreviamente) }
+          : {}),
+        ...(fechaVisionado !== undefined ? { fechaVisionado } : {}),
+        ...(esFavorita !== undefined || favorita !== undefined
+          ? { esFavorita: Boolean(esFavorita ?? favorita) }
+          : {}),
       });
 
       const respuesta =

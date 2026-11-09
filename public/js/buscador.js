@@ -11,16 +11,26 @@
     const mensajeSinResultados = document.getElementById('mensaje-sin-resultados');
     const templateItem = document.getElementById('template-item-pelicula');
 
+    const formResena = document.getElementById('form-resena');
+    const alertaResena = document.getElementById('alerta-resena');
+    const inputPeliculaId = document.getElementById('input-resena-pelicula-id');
+    const inputPuntuacion = document.getElementById('input-resena-puntuacion');
+    const inputFavorita = document.getElementById('input-resena-favorita');
     const btnBackResena = document.getElementById('btn-back-resena');
     const modalResenaPoster = document.getElementById('modal-resena-poster');
     const modalResenaTitulo = document.getElementById('modal-resena-titulo');
     const modalResenaAnio = document.getElementById('modal-resena-anio');
     const labelWatchedDate = document.getElementById('label-watched-date');
+    const inputWatchedDate = document.getElementById('input-watched-date');
+    const checkWatchedOn = document.getElementById('check-watched-on');
+    const checkWatchedBefore = document.getElementById('check-watched-before');
+    const labelWatchedBefore = document.getElementById('label-watched-before');
     const labelRatingResena = document.getElementById('label-rating-resena');
     const contenedorEstrellas = document.getElementById('contenedor-estrellas');
     const btnLikeResena = document.getElementById('btn-like-resena');
     const modalResenaTexto = document.getElementById('modal-resena-texto');
     const checkContieneSpoilers = document.getElementById('check-contiene-spoilers');
+    const btnSaveResena = document.getElementById('btn-save-resena');
 
     if (!inputBuscar || !listaResultados || !templateItem) {
       return;
@@ -40,6 +50,8 @@
 
     const cacheBusquedas = new Map();
     let activeAbortController = null;
+    let resenaAbortController = null;
+    let cierreModalTimeoutId = null;
 
     function debounce(callback, delay = 400) {
       let timeoutId = null;
@@ -206,20 +218,129 @@
       return hoy.toLocaleDateString('es-ES', opciones);
     }
 
-    function resetearFormularioResena() {
-      ratingActual = 0;
-      if (modalResenaTexto) modalResenaTexto.value = '';
-      if (checkContieneSpoilers) checkContieneSpoilers.checked = false;
-      if (labelRatingResena) labelRatingResena.textContent = '0 de 5';
-      if (contenedorEstrellas) {
-        contenedorEstrellas.querySelectorAll('.estrella-rating').forEach((star) => {
-          star.classList.remove('activa', 'bi-star-fill');
+    function obtenerFechaHoyISO() {
+      const hoy = new Date();
+      const anio = hoy.getFullYear();
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      return `${anio}-${mes}-${dia}`;
+    }
+
+    function ocultarFeedbackResena() {
+      if (!alertaResena) return;
+      alertaResena.classList.add('d-none');
+      alertaResena.classList.remove('alerta-fightclub-error', 'alerta-fightclub-exito');
+      alertaResena.textContent = '';
+    }
+
+    function mostrarFeedbackResena(tipo, mensaje) {
+      if (!alertaResena) return;
+      alertaResena.textContent = String(mensaje || '');
+      alertaResena.classList.remove('d-none', 'alerta-fightclub-error', 'alerta-fightclub-exito');
+      if (tipo === 'exito') {
+        alertaResena.classList.add('alerta-fightclub-exito');
+      } else {
+        alertaResena.classList.add('alerta-fightclub-error');
+      }
+    }
+
+    function calcularValorEstrella(starElement, clientX) {
+      const rawValor = parseFloat(starElement.dataset.valor);
+      const base = parseInt(starElement.dataset.estrella || starElement.dataset.valor, 10) || 1;
+      const rect = typeof starElement.getBoundingClientRect === 'function'
+        ? starElement.getBoundingClientRect()
+        : null;
+
+      if (rect && rect.width > 0 && typeof clientX === 'number' && clientX > 0) {
+        const offsetX = clientX - rect.left;
+        if (offsetX < rect.width / 2) {
+          return base - 0.5;
+        }
+        return base;
+      }
+
+      return !Number.isNaN(rawValor) ? rawValor : base;
+    }
+
+    function renderizarEstrellas(valor) {
+      if (!contenedorEstrellas) return;
+      const numValor = Number(valor) || 0;
+      contenedorEstrellas.querySelectorAll('.estrella-rating').forEach((star) => {
+        const estrellaIdx = parseInt(star.dataset.estrella || star.dataset.valor, 10) || 0;
+        star.classList.remove('activa', 'bi-star-fill', 'bi-star-half', 'bi-star');
+
+        if (estrellaIdx <= numValor) {
+          star.classList.add('activa', 'bi-star-fill');
+        } else if (estrellaIdx - 0.5 === numValor) {
+          star.classList.add('activa', 'bi-star-half');
+        } else {
           star.classList.add('bi-star');
-        });
+        }
+      });
+    }
+
+    function fijarCalificacion(valor) {
+      const numValor = Number(valor) || 0;
+      ratingActual = numValor;
+      if (inputPuntuacion) {
+        inputPuntuacion.value = String(numValor);
       }
+      if (labelRatingResena) {
+        labelRatingResena.textContent = `${numValor} de 5`;
+      }
+      renderizarEstrellas(numValor);
+    }
+
+    function fijarFavorita(activo) {
+      const esActiva = Boolean(activo);
       if (btnLikeResena) {
-        btnLikeResena.classList.remove('activo');
+        btnLikeResena.classList.toggle('activo', esActiva);
+        btnLikeResena.setAttribute('aria-pressed', String(esActiva));
+        const icono = btnLikeResena.querySelector('.icono-like');
+        if (icono) {
+          icono.classList.toggle('activo', esActiva);
+        }
       }
+      if (inputFavorita) {
+        inputFavorita.value = String(esActiva);
+      }
+    }
+
+    function resetearFormularioResena() {
+      if (cierreModalTimeoutId) {
+        clearTimeout(cierreModalTimeoutId);
+        cierreModalTimeoutId = null;
+      }
+      if (resenaAbortController) {
+        resenaAbortController.abort();
+        resenaAbortController = null;
+      }
+      fijarCalificacion(0);
+      fijarFavorita(false);
+      if (modalResenaTexto) {
+        modalResenaTexto.value = '';
+        modalResenaTexto.disabled = false;
+      }
+      if (checkContieneSpoilers) checkContieneSpoilers.checked = false;
+      if (checkWatchedBefore) {
+        checkWatchedBefore.checked = false;
+      }
+      if (labelWatchedBefore) {
+        labelWatchedBefore.classList.remove('text-light');
+        labelWatchedBefore.classList.add('text-secondary');
+      }
+      if (checkWatchedOn) checkWatchedOn.checked = true;
+      if (inputWatchedDate) {
+        const hoyIso = obtenerFechaHoyISO();
+        inputWatchedDate.max = hoyIso;
+        inputWatchedDate.value = hoyIso;
+        inputWatchedDate.disabled = false;
+      }
+      if (btnSaveResena) {
+        btnSaveResena.disabled = false;
+        btnSaveResena.textContent = 'Publicar Reseña';
+      }
+      ocultarFeedbackResena();
     }
 
     function abrirModalResena({ id, titulo, anio, poster }) {
@@ -239,8 +360,27 @@
 
       resetearFormularioResena();
 
+      const cleanId = id ? String(id).trim() : '';
       if (modalResenaElement) {
-        modalResenaElement.dataset.peliculaId = id || '';
+        modalResenaElement.dataset.peliculaId = cleanId;
+      }
+      if (inputPeliculaId) {
+        inputPeliculaId.value = cleanId;
+      }
+
+      if (cleanId) {
+        try {
+          const storedUserRaw = localStorage.getItem('usuario');
+          if (storedUserRaw) {
+            const parsedUser = JSON.parse(storedUserRaw);
+            if (parsedUser && Array.isArray(parsedUser.favoritas)) {
+              const yaEsFavorita = parsedUser.favoritas.map(String).includes(cleanId);
+              if (yaEsFavorita) {
+                fijarFavorita(true);
+              }
+            }
+          }
+        } catch (_) {}
       }
 
       if (bsModalBuscador) {
@@ -271,30 +411,242 @@
     }
 
     if (contenedorEstrellas) {
+      contenedorEstrellas.addEventListener('mousemove', (e) => {
+        const star = e.target.closest('.estrella-rating');
+        if (!star) return;
+        const valorPreview = calcularValorEstrella(star, e.clientX);
+        renderizarEstrellas(valorPreview);
+        if (labelRatingResena) {
+          labelRatingResena.textContent = `${valorPreview} de 5`;
+        }
+      });
+
+      contenedorEstrellas.addEventListener('mouseleave', () => {
+        renderizarEstrellas(ratingActual);
+        if (labelRatingResena) {
+          labelRatingResena.textContent = `${ratingActual} de 5`;
+        }
+      });
+
       contenedorEstrellas.addEventListener('click', (e) => {
         const star = e.target.closest('.estrella-rating');
         if (!star) return;
-        const valor = parseInt(star.dataset.valor, 10) || 0;
-        ratingActual = valor;
-        if (labelRatingResena) {
-          labelRatingResena.textContent = `${valor} de 5`;
-        }
-        contenedorEstrellas.querySelectorAll('.estrella-rating').forEach((s) => {
-          const val = parseInt(s.dataset.valor, 10) || 0;
-          if (val <= valor) {
-            s.classList.add('activa', 'bi-star-fill');
-            s.classList.remove('bi-star');
-          } else {
-            s.classList.remove('activa', 'bi-star-fill');
-            s.classList.add('bi-star');
+        const valorSeleccionado = calcularValorEstrella(star, e.clientX);
+        fijarCalificacion(valorSeleccionado);
+      });
+    }
+
+    if (checkWatchedOn && inputWatchedDate) {
+      checkWatchedOn.addEventListener('change', () => {
+        if (checkWatchedOn.checked) {
+          inputWatchedDate.disabled = false;
+          if (!inputWatchedDate.value) {
+            inputWatchedDate.value = obtenerFechaHoyISO();
           }
-        });
+        } else {
+          inputWatchedDate.disabled = true;
+        }
+      });
+    }
+
+    if (checkWatchedBefore && labelWatchedBefore) {
+      checkWatchedBefore.addEventListener('change', () => {
+        labelWatchedBefore.classList.toggle('text-light', checkWatchedBefore.checked);
+        labelWatchedBefore.classList.toggle('text-secondary', !checkWatchedBefore.checked);
       });
     }
 
     if (btnLikeResena) {
       btnLikeResena.addEventListener('click', () => {
-        btnLikeResena.classList.toggle('activo');
+        const nuevoEstado = !btnLikeResena.classList.contains('activo');
+        fijarFavorita(nuevoEstado);
+      });
+    }
+
+    if (formResena) {
+      formResena.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        ocultarFeedbackResena();
+
+        const formData = new FormData(formResena);
+        const peliculaId = String(
+          formData.get('peliculaId') ||
+          (inputPeliculaId && inputPeliculaId.value) ||
+          (modalResenaElement && modalResenaElement.dataset.peliculaId) ||
+          ''
+        ).trim();
+
+        const puntuacionRaw = (inputPuntuacion && inputPuntuacion.value !== '0')
+          ? inputPuntuacion.value
+          : (ratingActual || formData.get('puntuacion'));
+        const puntuacion = parseFloat(puntuacionRaw);
+
+        const texto = String(
+          (modalResenaTexto ? modalResenaTexto.value : formData.get('texto')) || ''
+        ).trim();
+
+        const contieneSpoilers = Boolean(
+          checkContieneSpoilers ? checkContieneSpoilers.checked : formData.get('contieneSpoilers')
+        );
+
+        const vistaPreviamente = Boolean(
+          checkWatchedBefore ? checkWatchedBefore.checked : formData.get('vistaPreviamente')
+        );
+
+        const esFavorita = Boolean(
+          (btnLikeResena && btnLikeResena.classList.contains('activo')) ||
+          formData.get('esFavorita') === 'true'
+        );
+
+        const marcoFechaVisionado = checkWatchedOn ? checkWatchedOn.checked : true;
+        let fechaVisionado = null;
+
+        if (!peliculaId) {
+          mostrarFeedbackResena('error', 'Seleccioná una película válida para asociar a la reseña.');
+          return;
+        }
+
+        if (marcoFechaVisionado) {
+          const fechaRaw = String(
+            (inputWatchedDate ? inputWatchedDate.value : formData.get('fechaVisionado')) || ''
+          ).trim();
+
+          if (!fechaRaw || !/^\d{4}-\d{2}-\d{2}$/.test(fechaRaw)) {
+            mostrarFeedbackResena('error', 'Seleccioná una fecha válida en la que viste la película.');
+            if (inputWatchedDate) inputWatchedDate.focus();
+            return;
+          }
+
+          if (fechaRaw > obtenerFechaHoyISO()) {
+            mostrarFeedbackResena('error', 'La fecha en que viste la película no puede ser futura.');
+            if (inputWatchedDate) inputWatchedDate.focus();
+            return;
+          }
+
+          fechaVisionado = new Date(`${fechaRaw}T00:00:00.000Z`).toISOString();
+        }
+
+        if (
+          Number.isNaN(puntuacion) ||
+          puntuacion < 0.5 ||
+          puntuacion > 5 ||
+          !Number.isInteger(puntuacion * 2)
+        ) {
+          mostrarFeedbackResena('error', 'Seleccioná una calificación entre 0.5 y 5 estrellas');
+          return;
+        }
+
+        if (texto.length < 10 || texto.length > 2000) {
+          mostrarFeedbackResena('error', 'Escribí una reseña que contenga entre 10 y 2000 caracteres.');
+          if (modalResenaTexto) modalResenaTexto.focus();
+          return;
+        }
+
+        if (resenaAbortController) {
+          resenaAbortController.abort();
+        }
+        resenaAbortController = new AbortController();
+
+        if (btnSaveResena) {
+          btnSaveResena.disabled = true;
+          btnSaveResena.textContent = 'Publicando...';
+        }
+
+        const payload = {
+          peliculaId,
+          puntuacion,
+          texto,
+          contieneSpoilers,
+          vistaPreviamente,
+          fechaVisionado,
+          esFavorita
+        };
+
+        try {
+          const headers = {
+            'Content-Type': 'application/json'
+          };
+
+          try {
+            const storedUserId = localStorage.getItem('userId');
+            const storedUserRaw = localStorage.getItem('usuario');
+            let fallbackUserId = storedUserId;
+            if (!fallbackUserId && storedUserRaw) {
+              const parsedUser = JSON.parse(storedUserRaw);
+              if (parsedUser && parsedUser.id) {
+                fallbackUserId = String(parsedUser.id);
+              }
+            }
+            if (fallbackUserId) {
+              headers['x-user-id'] = fallbackUserId;
+            }
+          } catch (_) { }
+
+          const response = await fetch('/api/resenas', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+            credentials: 'same-origin',
+            signal: resenaAbortController.signal
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            const mensajeError =
+              data.detail ||
+              data.error ||
+              (response.status === 401
+                ? 'Debés iniciar sesión para publicar una reseña.'
+                : 'No se pudo publicar la reseña. Intentá nuevamente.');
+            mostrarFeedbackResena('error', mensajeError);
+            if (btnSaveResena) {
+              btnSaveResena.disabled = false;
+              btnSaveResena.textContent = 'Publicar Reseña';
+            }
+            return;
+          }
+
+          if (esFavorita && peliculaId) {
+            try {
+              const storedUserRaw = localStorage.getItem('usuario');
+              if (storedUserRaw) {
+                const parsedUser = JSON.parse(storedUserRaw);
+                if (parsedUser && typeof parsedUser === 'object') {
+                  const favs = Array.isArray(parsedUser.favoritas)
+                    ? parsedUser.favoritas.map(String)
+                    : [];
+                  if (!favs.includes(peliculaId)) {
+                    favs.push(peliculaId);
+                  }
+                  parsedUser.favoritas = favs;
+                  localStorage.setItem('usuario', JSON.stringify(parsedUser));
+                }
+              }
+            } catch (_) {}
+          }
+
+          mostrarFeedbackResena('exito', 'Reseña publicada con éxito en MovieClub!');
+
+          cierreModalTimeoutId = setTimeout(() => {
+            if (bsModalResena) {
+              bsModalResena.hide();
+            }
+            resetearFormularioResena();
+          }, 1200);
+        } catch (err) {
+          if (err && err.name === 'AbortError') {
+            return;
+          }
+          mostrarFeedbackResena(
+            'error',
+            err?.message || 'Error de conexión al intentar publicar la reseña.'
+          );
+          if (btnSaveResena) {
+            btnSaveResena.disabled = false;
+            btnSaveResena.textContent = 'Publicar Reseña';
+          }
+        }
       });
     }
 
@@ -331,6 +683,18 @@
         }
       });
     }
+
+    if (modalResenaElement) {
+      modalResenaElement.addEventListener('hidden.bs.modal', () => {
+        if (resenaAbortController) {
+          resenaAbortController.abort();
+          resenaAbortController = null;
+        }
+        if (cierreModalTimeoutId) {
+          clearTimeout(cierreModalTimeoutId);
+          cierreModalTimeoutId = null;
+        }
+      });
+    }
   });
 })();
-

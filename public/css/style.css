@@ -751,11 +751,76 @@ h4,
   font-size: 1.4rem;
   color: #4f6276;
   cursor: pointer;
-  transition: color 0.15s ease;
+  display: inline-block;
+  transition: color 0.15s ease, transform 0.15s ease;
 }
 
+#btn-like-resena:hover .icono-like {
+  color: #ff99bb;
+}
+
+#btn-like-resena.activo .icono-like,
 .icono-like.activo {
   color: var(--accent-pink) !important;
+  transform: scale(1.15);
 }
+
+.check-fightclub {
+  background-color: #121212 !important;
+  border: 1px solid #4f6276 !important;
+  cursor: pointer;
+}
+
+.check-fightclub:checked {
+  background-color: var(--accent-pink) !important;
+  border-color: var(--accent-pink) !important;
+}
+
+.check-fightclub:focus {
+  border-color: var(--accent-pink) !important;
+  box-shadow: 0 0 0 0.2rem rgba(255, 102, 153, 0.25) !important;
+}
+
+.input-fecha-fightclub {
+  color-scheme: dark;
+  background-color: #121212 !important;
+  color: #f1f1f1 !important;
+  border: 1px solid rgba(255, 102, 153, 0.35) !important;
+  border-radius: 4px !important;
+  font-size: 0.78rem !important;
+  padding: 0.2rem 0.5rem !important;
+  width: auto !important;
+  max-width: 145px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.input-fecha-fightclub:focus {
+  border-color: #ff6699 !important;
+  box-shadow: 0 0 0 0.15rem rgba(255, 102, 153, 0.25) !important;
+  outline: none !important;
+}
+
+.input-fecha-fightclub:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.alerta-fightclub-error {
+  background-color: rgba(255, 102, 153, 0.12) !important;
+  color: #ff6699 !important;
+  border-left: 4px solid #ff6699 !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.alerta-fightclub-exito {
+  background-color: rgba(232, 154, 170, 0.18) !important;
+  color: #ffffff !important;
+  border-left: 4px solid var(--accent-pink) !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 
 

@@ -7,6 +7,7 @@ class Usuario {
   #passwordHash;
   #rol;
   #watchlist;
+  #favoritas;
   #top4;
   #fechaRegistro;
 
@@ -17,6 +18,7 @@ class Usuario {
     passwordHash,
     rol,
     watchlist = [],
+    favoritas = [],
     top4 = [],
     fechaRegistro,
   }) {
@@ -56,6 +58,10 @@ class Usuario {
       throw new ValidationError("La watchlist debe ser un arreglo");
     }
 
+    if (!Array.isArray(favoritas)) {
+      throw new ValidationError("Las películas favoritas deben ser un arreglo");
+    }
+
     if (!Array.isArray(top4) || top4.length > 4) {
       throw new ValidationError(
         "El Top 4 debe ser un arreglo de hasta 4 elementos",
@@ -68,6 +74,9 @@ class Usuario {
     this.#passwordHash = passwordHash;
     this.#rol = rol.trim();
     this.#watchlist = [...new Set(watchlist.map((p) => String(p).trim()))];
+    this.#favoritas = [
+      ...new Set(favoritas.map((p) => String(p).trim()).filter(Boolean)),
+    ];
     this.#top4 = [...new Set(top4.map((p) => String(p).trim()))];
     this.#fechaRegistro = fechaRegistro || new Date().toISOString();
   }
@@ -96,6 +105,10 @@ class Usuario {
     return [...this.#watchlist];
   }
 
+  get favoritas() {
+    return structuredClone(this.#favoritas);
+  }
+
   get top4() {
     return [...this.#top4];
   }
@@ -117,6 +130,27 @@ class Usuario {
   quitarDeWatchlist(idPelicula) {
     const trimmed = String(idPelicula).trim();
     this.#watchlist = this.#watchlist.filter((id) => id !== trimmed);
+  }
+
+  agregarAFavoritas(idPelicula) {
+    if (!idPelicula || String(idPelicula).trim() === "") {
+      throw new ValidationError("El id de película es obligatorio");
+    }
+    const trimmed = String(idPelicula).trim();
+    if (!this.#favoritas.includes(trimmed)) {
+      this.#favoritas = [...this.#favoritas, trimmed];
+    }
+  }
+
+  quitarDeFavoritas(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return;
+    const trimmed = String(idPelicula).trim();
+    this.#favoritas = this.#favoritas.filter((id) => id !== trimmed);
+  }
+
+  esFavorita(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return false;
+    return this.#favoritas.includes(String(idPelicula).trim());
   }
 
   actualizarTop4(nuevasPeliculas) {
@@ -163,6 +197,7 @@ class Usuario {
       passwordHash: this.#passwordHash,
       rol: this.#rol,
       watchlist: [...this.#watchlist],
+      favoritas: [...this.#favoritas],
       top4: [...this.#top4],
       fechaRegistro: this.#fechaRegistro,
     };
@@ -175,6 +210,7 @@ class Usuario {
       email: this.#email,
       rol: this.#rol,
       watchlist: [...this.#watchlist],
+      ...(this.#favoritas.length > 0 ? { favoritas: [...this.#favoritas] } : {}),
       top4: [...this.#top4],
       fechaRegistro: this.#fechaRegistro,
     };
@@ -188,6 +224,7 @@ class Espectador extends Usuario {
     email,
     passwordHash,
     watchlist,
+    favoritas,
     top4,
     fechaRegistro,
   }) {
@@ -198,6 +235,7 @@ class Espectador extends Usuario {
       passwordHash,
       rol: "Espectador",
       watchlist,
+      favoritas,
       top4,
       fechaRegistro,
     });
@@ -222,6 +260,7 @@ class Moderador extends Usuario {
     email,
     passwordHash,
     watchlist,
+    favoritas,
     top4,
     fechaRegistro,
   }) {
@@ -232,6 +271,7 @@ class Moderador extends Usuario {
       passwordHash,
       rol: "Moderador",
       watchlist,
+      favoritas,
       top4,
       fechaRegistro,
     });
@@ -260,6 +300,7 @@ class Critico extends Usuario {
     passwordHash,
     medioDePrensa,
     watchlist,
+    favoritas,
     top4,
     fechaRegistro,
   }) {
@@ -270,6 +311,7 @@ class Critico extends Usuario {
       passwordHash,
       rol: "Critico",
       watchlist,
+      favoritas,
       top4,
       fechaRegistro,
     });

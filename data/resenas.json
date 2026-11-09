@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "f1fe8a17-2212-41fe-8fb2-a26815afd1f8",
+    "peliculaId": "940721",
+    "autorId": "usr-1",
+    "puntuacion": 3.5,
+    "texto": "asdasdasdasdasdasdasdasd",
+    "contieneSpoilers": true,
+    "esDestacada": false,
+    "destacada": false,
+    "fechaCreacion": "2026-11-09T21:09:32.894Z",
+    "likes": []
+  }
+]
