@@ -2,6 +2,16 @@ const LEVELS = { debug: 10, info: 20, warn: 30, error: 40, silent: 100 };
 const SENSITIVE = new Set(['password', 'passwordhash', 'token', 'authorization', 'cookie', 'secret']);
 
 function redact(value) {
+  if (value instanceof Error) {
+    return {
+      name: value.name,
+      message: value.message,
+      stack: value.stack,
+      ...(value.cause && {
+        cause: value.cause instanceof Error ? value.cause.message : String(value.cause),
+      }),
+    };
+  }
   if (Array.isArray(value)) return value.map(redact);
   if (value && typeof value === 'object') {
     return Object.fromEntries(
