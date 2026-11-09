@@ -7,6 +7,7 @@ function createResenaRoutes({ resenaService, resenaController } = {}) {
     resenaController || new ResenaController({ resenaService });
 
   router.post('/', (req, res, next) => controller.crear(req, res, next));
+  router.patch('/:id', (req, res, next) => controller.actualizar(req, res, next));
 
   return router;
 }

@@ -80,6 +80,46 @@ class ResenaController {
   create(req, res, next) {
     return this.crear(req, res, next);
   }
+
+  async actualizar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId =
+        (req.session && req.session.userId) ||
+        (typeof req.header === 'function' ? req.header('x-user-id') : null) ||
+        (req.headers && (req.headers['x-user-id'] || req.headers['X-User-Id']));
+
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        return res
+          .status(401)
+          .json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      const { puntuacion, texto, contieneSpoilers } = req.body || {};
+
+      const resenaActualizada = await this.#resenaService.actualizar(id, {
+        autorId: userId.trim(),
+        puntuacion,
+        texto,
+        contieneSpoilers,
+      });
+
+      const respuesta =
+        resenaActualizada && typeof resenaActualizada.paraExponer === 'function'
+          ? resenaActualizada.paraExponer()
+          : resenaActualizada && typeof resenaActualizada.toJSON === 'function'
+            ? resenaActualizada.toJSON()
+            : resenaActualizada;
+
+      return res.status(200).json(respuesta);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  patch(req, res, next) {
+    return this.actualizar(req, res, next);
+  }
 }
 
 module.exports = ResenaController;
