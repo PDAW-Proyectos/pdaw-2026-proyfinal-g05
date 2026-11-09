@@ -3,6 +3,9 @@ const AuthController = require('../controllers/authController');
 
 function createAuthRoutes({ usuarioService } = {}) {
   const router = express.Router();
+  if (!usuarioService) {
+    return router;
+  }
   const authController = new AuthController({ usuarioService });
 
   router.post('/register', (req, res, next) => authController.register(req, res, next));
