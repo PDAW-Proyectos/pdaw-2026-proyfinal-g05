@@ -1,10 +1,12 @@
 const request = require('supertest');
 const { createApp } = require('../../src/app');
 const ResenaService = require('../../src/services/resenaService');
+const { Critico, Moderador } = require('../../src/models/Usuario');
 
-describe('POST /api/resenas (Integration) - T03.3', () => {
+describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
   let app;
   let mockResenaRepository;
+  let mockUsuarioRepository;
   let resenaService;
 
   beforeEach(() => {
@@ -13,7 +15,34 @@ describe('POST /api/resenas (Integration) - T03.3', () => {
       leer: jest.fn().mockResolvedValue([])
     };
 
-    resenaService = new ResenaService({ resenaRepository: mockResenaRepository });
+    mockUsuarioRepository = {
+      findById: jest.fn().mockImplementation(async (id) => {
+        if (id === 'Chamus12') {
+          return new Critico({
+            id: 'Chamus12',
+            nombre: 'Branco Chamusco',
+            email: 'bchamu@movieclub.com',
+            passwordHash: 'hash',
+            medioDePrensa: 'Clarin Cinema Productions'
+          });
+        }
+        if (id === 'lucassafe') {
+          return new Moderador({
+            id: 'lucassafe',
+            nombre: 'Lucas Safe',
+            email: 'lucassafe@movieclub.com',
+            passwordHash: 'hash'
+          });
+        }
+        return null;
+      }),
+      leer: jest.fn().mockResolvedValue([])
+    };
+
+    resenaService = new ResenaService({
+      resenaRepository: mockResenaRepository,
+      usuarioRepository: mockUsuarioRepository
+    });
 
     app = createApp({
       config: {
@@ -49,9 +78,58 @@ describe('POST /api/resenas (Integration) - T03.3', () => {
       autorId: 'usr-test-123',
       puntuacion: 5,
       texto: 'Una obra maestra indiscutible del cine moderno.',
-      contieneSpoilers: false
+      contieneSpoilers: false,
+      destacada: false
     });
     expect(res.body.id).toBeDefined();
+    expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
+  });
+
+  test('guarda la reseña con destacada: true si el usuario es un Critico (Polimorfismo T03.4)', async () => {
+    const payload = {
+      peliculaId: '550',
+      puntuacion: 5,
+      texto: 'Análisis profesional: dirección magistral y guion implacable.',
+      contieneSpoilers: false
+    };
+
+    const res = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'Chamus12')
+      .send(payload);
+
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({
+      peliculaId: '550',
+      autorId: 'Chamus12',
+      puntuacion: 5,
+      destacada: true,
+      esDestacada: true
+    });
+    expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
+  });
+
+  test('guarda la reseña con destacada: true si el usuario es un Moderador (Polimorfismo T03.4)', async () => {
+    const payload = {
+      peliculaId: '550',
+      puntuacion: 5,
+      texto: 'Reseña aprobada con carácter oficial por moderación.',
+      contieneSpoilers: false
+    };
+
+    const res = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'lucassafe')
+      .send(payload);
+
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({
+      peliculaId: '550',
+      autorId: 'lucassafe',
+      puntuacion: 5,
+      destacada: true,
+      esDestacada: true
+    });
     expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
   });
 
@@ -67,7 +145,7 @@ describe('POST /api/resenas (Integration) - T03.3', () => {
       .send(payload);
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'El encabezado x-user-id es obligatorio' });
+    expect(res.body.error).toBe('El encabezado x-user-id es obligatorio');
     expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
   });
 

@@ -1,5 +1,6 @@
 const ResenaService = require('../../src/services/resenaService');
 const Resena = require('../../src/models/Resena');
+const { Critico, Espectador, Moderador } = require('../../src/models/Usuario');
 const { ValidationError, NotFoundError, ForbiddenError } = require('../../src/utils/errors');
 
 describe('ResenaService (Unit) - T03.3 & T04.1', () => {
@@ -55,6 +56,96 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
 
       await expect(service.crear(datosInvalidos)).rejects.toThrow(ValidationError);
       expect(mockRepository.guardar).not.toHaveBeenCalled();
+    });
+
+    test('asigna flag destacada: true si el autor es un Critico (Polimorfismo T03.4)', async () => {
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue(
+          new Critico({
+            id: 'Chamus12',
+            nombre: 'Branco Chamusco',
+            email: 'bchamu@movieclub.com',
+            passwordHash: 'hash',
+            medioDePrensa: 'Clarin Cinema Productions'
+          })
+        )
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      const resena = await serviceConUsuarios.crear({
+        autorId: 'Chamus12',
+        peliculaId: '550',
+        puntuacion: 5,
+        texto: 'Una película brillante y transgresora.'
+      });
+
+      expect(resena.destacada).toBe(true);
+      expect(resena.esDestacada).toBe(true);
+      expect(resena.toJSON().destacada).toBe(true);
+      expect(resena.paraExponer().destacada).toBe(true);
+    });
+
+    test('asigna flag destacada: true si el autor es un Moderador (Polimorfismo T03.4)', async () => {
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue(
+          new Moderador({
+            id: 'lucassafe',
+            nombre: 'Lucas Safe',
+            email: 'lucassafe@movieclub.com',
+            passwordHash: 'hash'
+          })
+        )
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      const resena = await serviceConUsuarios.crear({
+        autorId: 'lucassafe',
+        peliculaId: '550',
+        puntuacion: 5,
+        texto: 'Reseña oficial del club de moderación.'
+      });
+
+      expect(resena.destacada).toBe(true);
+      expect(resena.esDestacada).toBe(true);
+      expect(resena.toJSON().destacada).toBe(true);
+      expect(resena.paraExponer().destacada).toBe(true);
+    });
+
+    test('asigna flag destacada: false si el autor es un Espectador (Polimorfismo T03.4)', async () => {
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue(
+          new Espectador({
+            id: 'espectador-1',
+            nombre: 'Juan Perez',
+            email: 'juan@test.com',
+            passwordHash: 'hash'
+          })
+        )
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      const resena = await serviceConUsuarios.crear({
+        autorId: 'espectador-1',
+        peliculaId: '550',
+        puntuacion: 4,
+        texto: 'Me gustó mucho la película de principio a fin.'
+      });
+
+      expect(resena.destacada).toBe(false);
+      expect(resena.esDestacada).toBe(false);
+      expect(resena.toJSON().destacada).toBe(false);
     });
   });
 
