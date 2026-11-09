@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const requestContext = require('./middlewares/requestContext');
 const errorHandler = require('./middlewares/errorHandler');
 const createAuthRoutes = require('./routes/authRoutes');
 const createUsuarioRoutes = require('./routes/usuarioRoutes');
@@ -9,6 +10,7 @@ const createResenaRoutes = require('./routes/resenaRoutes');
 function createApp({ config, services } = {}) {
   const app = express();
 
+  app.use(requestContext());
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
