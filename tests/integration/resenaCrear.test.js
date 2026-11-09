@@ -36,6 +36,7 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
         }
         return null;
       }),
+      guardar: jest.fn().mockImplementation(async (usuario) => usuario),
       leer: jest.fn().mockResolvedValue([])
     };
 
@@ -163,6 +164,78 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toContain('entre 10 y 2000 caracteres');
+    expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
+  });
+
+  test('acepta calificaciones en medias estrellas como 0.5 y 3.5', async () => {
+    const resMedia = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'usr-test-123')
+      .send({
+        peliculaId: '550',
+        puntuacion: 0.5,
+        texto: 'No cumplió las expectativas, pero destaca la fotografía.',
+        contieneSpoilers: false
+      });
+
+    expect(resMedia.status).toBe(201);
+    expect(resMedia.body.puntuacion).toBe(0.5);
+
+    const resTresYMedia = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'usr-test-123')
+      .send({
+        peliculaId: '550',
+        puntuacion: 3.5,
+        texto: 'Muy sólida propuesta narrativa con buen ritmo.',
+        contieneSpoilers: true
+      });
+
+    expect(resTresYMedia.status).toBe(201);
+    expect(resTresYMedia.body.puntuacion).toBe(3.5);
+  });
+
+  test('registra vistaPreviamente, fechaVisionado en ISO 8601 UTC, esFavorita y actualiza las favoritas del usuario', async () => {
+    const res = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'Chamus12')
+      .send({
+        peliculaId: '550',
+        puntuacion: 5,
+        texto: 'Directo a mi lista de películas favoritas tras volver a verla.',
+        contieneSpoilers: false,
+        vistaPreviamente: true,
+        fechaVisionado: '2026-10-20',
+        esFavorita: true
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({
+      peliculaId: '550',
+      autorId: 'Chamus12',
+      vistaPreviamente: true,
+      fechaVisionado: '2026-10-20T00:00:00.000Z',
+      esFavorita: true,
+      favorita: true
+    });
+    expect(mockUsuarioRepository.guardar).toHaveBeenCalledTimes(1);
+    const usuarioGuardado = mockUsuarioRepository.guardar.mock.calls[0][0];
+    expect(usuarioGuardado.favoritas).toContain('550');
+  });
+
+  test('retorna 400 si fechaVisionado es una fecha futura', async () => {
+    const res = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'usr-test-123')
+      .send({
+        peliculaId: '550',
+        puntuacion: 4,
+        texto: 'Intentando publicar con una fecha en el futuro.',
+        fechaVisionado: '2099-01-01'
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toContain('futura');
     expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
   });
 });

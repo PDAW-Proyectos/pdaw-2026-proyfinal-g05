@@ -147,6 +147,58 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
       expect(resena.esDestacada).toBe(false);
       expect(resena.toJSON().destacada).toBe(false);
     });
+
+    test('guarda vistaPreviamente, fechaVisionado en ISO 8601 UTC, esFavorita y sincroniza favoritas del Usuario', async () => {
+      const usuarioInstancia = new Espectador({
+        id: 'espectador-fav',
+        nombre: 'Maria',
+        email: 'maria@test.com',
+        passwordHash: 'hash'
+      });
+
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue(usuarioInstancia),
+        guardar: jest.fn().mockResolvedValue(usuarioInstancia)
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      const resena = await serviceConUsuarios.crear({
+        autorId: 'espectador-fav',
+        peliculaId: '550',
+        puntuacion: 4.5,
+        texto: 'Una de mis películas favoritas absolutas.',
+        contieneSpoilers: true,
+        vistaPreviamente: true,
+        fechaVisionado: '2026-10-15',
+        esFavorita: true
+      });
+
+      expect(resena.vistaPreviamente).toBe(true);
+      expect(resena.esFavorita).toBe(true);
+      expect(resena.favorita).toBe(true);
+      expect(resena.fechaVisionado).toBe('2026-10-15T00:00:00.000Z');
+      expect(usuarioInstancia.esFavorita('550')).toBe(true);
+      expect(usuarioInstancia.favoritas).toEqual(['550']);
+      expect(mockUsuarioRepo.guardar).toHaveBeenCalledWith(usuarioInstancia);
+    });
+
+    test('lanza ValidationError si fechaVisionado es una fecha futura', async () => {
+      await expect(
+        service.crear({
+          autorId: 'usr-456',
+          peliculaId: '550',
+          puntuacion: 4,
+          texto: 'Intentando registrar una fecha del futuro lejano.',
+          fechaVisionado: '2099-12-31'
+        })
+      ).rejects.toThrow(ValidationError);
+
+      expect(mockRepository.guardar).not.toHaveBeenCalled();
+    });
   });
 
   describe('actualizar() - T04.1', () => {

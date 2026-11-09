@@ -70,7 +70,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
     });
   });
 
-  describe('Validación de la puntuación (estrictamente entre 1 y 5)', () => {
+  describe('Validación de la puntuación (estrictamente entre 0.5 y 5 en pasos de 0.5)', () => {
     test('rechaza con 400 si la puntuación no está presente', async () => {
       delete req.body.puntuacion;
 
@@ -78,7 +78,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'La puntuación es obligatoria y debe ser un número entre 1 y 5',
+        error: 'La puntuación es obligatoria y debe ser un número entre 0.5 y 5',
       });
       expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
@@ -93,13 +93,13 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
       expect(res.status).toHaveBeenCalledWith(400);
     });
 
-    test('rechaza con 400 si la puntuación es menor a 1 (e.g. 0 o 0.5)', async () => {
-      req.body.puntuacion = 0.5;
+    test('rechaza con 400 si la puntuación es menor a 0.5 o no es múltiplo de 0.5 (e.g. 0 o 0.3)', async () => {
+      req.body.puntuacion = 0.3;
       await controller.crear(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'La puntuación debe ser un número entre 1 y 5',
+        error: 'La puntuación debe ser un número entre 0.5 y 5 en pasos de 0.5',
       });
 
       req.body.puntuacion = 0;
@@ -114,7 +114,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'La puntuación debe ser un número entre 1 y 5',
+        error: 'La puntuación debe ser un número entre 0.5 y 5 en pasos de 0.5',
       });
 
       req.body.puntuacion = 6;
@@ -129,13 +129,17 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'La puntuación debe ser un número entre 1 y 5',
+        error: 'La puntuación debe ser un número entre 0.5 y 5 en pasos de 0.5',
       });
       expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
 
-    test('acepta puntuación válida en los límites 1 y 5 y valores intermedios', async () => {
-      req.body.puntuacion = 1;
+    test('acepta puntuación válida en los límites 0.5 y 5 y valores intermedios en pasos de 0.5', async () => {
+      req.body.puntuacion = 0.5;
+      await controller.crear(req, res, next);
+      expect(res.status).toHaveBeenCalledWith(201);
+
+      req.body.puntuacion = 2.5;
       await controller.crear(req, res, next);
       expect(res.status).toHaveBeenCalledWith(201);
 
@@ -143,7 +147,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
       await controller.crear(req, res, next);
       expect(res.status).toHaveBeenCalledWith(201);
 
-      req.body.puntuacion = '3';
+      req.body.puntuacion = '3.5';
       await controller.crear(req, res, next);
       expect(res.status).toHaveBeenCalledWith(201);
     });
