@@ -10,6 +10,7 @@ class Resena {
   #contieneSpoilers;
   #fechaCreacion;
   #likes;
+  #esDestacada;
 
   constructor({
     id,
@@ -18,6 +19,8 @@ class Resena {
     puntuacion,
     texto,
     contieneSpoilers = false,
+    esDestacada = false,
+    destacada,
     fechaCreacion,
     likes = [],
   }) {
@@ -27,6 +30,7 @@ class Resena {
     this.#puntuacion = Resena.#validarPuntuacion(puntuacion);
     this.#texto = Resena.#validarTexto(texto);
     this.#contieneSpoilers = Boolean(contieneSpoilers);
+    this.#esDestacada = Boolean(esDestacada ?? destacada ?? false);
     this.#fechaCreacion = Resena.#validarFecha(fechaCreacion);
     this.#likes = Resena.#validarLikes(likes);
   }
@@ -168,6 +172,14 @@ class Resena {
     return this.#likes.length;
   }
 
+  get esDestacada() {
+    return this.#esDestacada;
+  }
+
+  get destacada() {
+    return this.#esDestacada;
+  }
+
   actualizar({ puntuacion, texto, contieneSpoilers } = {}) {
     if (puntuacion !== undefined) {
       this.#puntuacion = Resena.#validarPuntuacion(puntuacion);
@@ -207,6 +219,8 @@ class Resena {
       puntuacion: this.#puntuacion,
       texto: this.#texto,
       contieneSpoilers: this.#contieneSpoilers,
+      esDestacada: this.#esDestacada,
+      destacada: this.#esDestacada,
       fechaCreacion: this.#fechaCreacion,
       likes: [...this.#likes],
     };
@@ -220,6 +234,8 @@ class Resena {
       puntuacion: this.#puntuacion,
       texto: this.#texto,
       contieneSpoilers: this.#contieneSpoilers,
+      esDestacada: this.#esDestacada,
+      destacada: this.#esDestacada,
       fechaCreacion: this.#fechaCreacion,
       likes: [...this.#likes],
       cantidadLikes: this.#likes.length,
@@ -239,6 +255,7 @@ class Resena {
       puntuacion: data.puntuacion,
       texto: data.texto,
       contieneSpoilers: data.contieneSpoilers,
+      esDestacada: data.esDestacada ?? data.destacada ?? false,
       fechaCreacion: data.fechaCreacion,
       likes: data.likes,
     });

@@ -14,7 +14,10 @@ function createContainer({ config }) {
 
   const services = {
     usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository }),
-    resenaService: new ResenaService({ resenaRepository: repos.resenaRepository }),
+    resenaService: new ResenaService({
+      resenaRepository: repos.resenaRepository,
+      usuarioRepository: repos.usuarioRepository
+    }),
     tmdbService: new TmdbService({ config })
   };
 

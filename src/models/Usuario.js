@@ -241,6 +241,10 @@ class Moderador extends Usuario {
     return true;
   }
 
+  puedeDestacar() {
+    return true;
+  }
+
   eliminarResenaOfensiva() {
     return true;
   }

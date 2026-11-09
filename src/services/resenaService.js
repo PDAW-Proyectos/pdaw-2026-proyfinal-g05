@@ -1,8 +1,10 @@
 const Resena = require('../models/Resena');
+const { Usuario } = require('../models/Usuario');
 const { ValidationError, NotFoundError, ForbiddenError } = require('../utils/errors');
 
 class ResenaService {
   #resenaRepository;
+  #usuarioRepository;
 
   constructor(options = {}) {
     const repository = options?.resenaRepository || options;
@@ -10,15 +12,51 @@ class ResenaService {
       throw new Error('resenaRepository es requerido');
     }
     this.#resenaRepository = repository;
+    this.#usuarioRepository = options?.usuarioRepository || options?.usuarioService || null;
   }
 
-  async crear({ autorId, peliculaId, puntuacion, texto, contieneSpoilers } = {}) {
+  async #obtenerUsuario(autorId) {
+    if (!this.#usuarioRepository || !autorId) {
+      return null;
+    }
+
+    if (typeof this.#usuarioRepository.obtenerPorId === 'function') {
+      return await this.#usuarioRepository.obtenerPorId(autorId);
+    }
+
+    if (typeof this.#usuarioRepository.findById === 'function') {
+      const data = await this.#usuarioRepository.findById(autorId);
+      if (!data) return null;
+      return data instanceof Usuario ? data : Usuario.fromJSON(data);
+    }
+
+    if (typeof this.#usuarioRepository.leer === 'function') {
+      const usuarios = await this.#usuarioRepository.leer();
+      const data = usuarios.find((u) => u.id === autorId);
+      if (!data) return null;
+      return data instanceof Usuario ? data : Usuario.fromJSON(data);
+    }
+
+    return null;
+  }
+
+  async crear({ autorId, peliculaId, puntuacion, texto, contieneSpoilers, esDestacada, destacada } = {}) {
+    let flagDestacada = Boolean(esDestacada ?? destacada ?? false);
+
+    if (autorId) {
+      const usuario = await this.#obtenerUsuario(autorId);
+      if (usuario && typeof usuario.puedeDestacar === 'function') {
+        flagDestacada = usuario.puedeDestacar();
+      }
+    }
+
     const resena = new Resena({
       autorId,
       peliculaId,
       puntuacion,
       texto,
-      contieneSpoilers
+      contieneSpoilers,
+      esDestacada: flagDestacada
     });
 
     if (typeof this.#resenaRepository.guardar === 'function') {
