@@ -8,6 +8,7 @@ class ResenaController {
   async crear(req, res, next) {
     try {
       const userId =
+        (req.session && req.session.userId) ||
         (typeof req.header === 'function' ? req.header('x-user-id') : null) ||
         (req.headers && (req.headers['x-user-id'] || req.headers['X-User-Id']));
 

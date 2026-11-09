@@ -1,5 +1,6 @@
 const JsonFileRepository = require('./repositories/JsonFileRepository');
 const UsuarioService = require('./services/usuarioService');
+const ResenaService = require('./services/resenaService');
 const TmdbService = require('./services/tmdbService');
 const TmdbAdapter = require('./services/tmdbAdapter');
 const PeliculasController = require('./controllers/PeliculasController');
@@ -13,6 +14,7 @@ function createContainer({ config }) {
 
   const services = {
     usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository }),
+    resenaService: new ResenaService({ resenaRepository: repos.resenaRepository }),
     tmdbService: new TmdbService({ config })
   };
 
