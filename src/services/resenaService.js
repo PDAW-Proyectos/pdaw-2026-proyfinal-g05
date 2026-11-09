@@ -5,6 +5,7 @@ const { ValidationError, NotFoundError, ForbiddenError } = require('../utils/err
 class ResenaService {
   #resenaRepository;
   #usuarioRepository;
+  #tmdbAdapter;
 
   constructor(options = {}) {
     const repository = options?.resenaRepository || options;
@@ -13,6 +14,7 @@ class ResenaService {
     }
     this.#resenaRepository = repository;
     this.#usuarioRepository = options?.usuarioRepository || options?.usuarioService || null;
+    this.#tmdbAdapter = options?.tmdbAdapter || options?.tmdbService || null;
   }
 
   async #obtenerUsuario(autorId) {
@@ -199,6 +201,81 @@ class ResenaService {
     }
 
     return resena;
+  }
+
+  async listar({ peliculaId, limite } = {}) {
+    let todas = [];
+    if (typeof this.#resenaRepository.leer === 'function') {
+      todas = await this.#resenaRepository.leer();
+    } else if (typeof this.#resenaRepository.findAll === 'function') {
+      todas = await this.#resenaRepository.findAll();
+    }
+
+    let filtradas = todas;
+    if (peliculaId) {
+      filtradas = filtradas.filter(
+        (r) => String(r.peliculaId) === String(peliculaId),
+      );
+    }
+
+    filtradas.sort((a, b) => {
+      const fechaA = new Date(a.fechaCreacion || 0).getTime();
+      const fechaB = new Date(b.fechaCreacion || 0).getTime();
+      return fechaB - fechaA;
+    });
+
+    const cant = Number(limite) || filtradas.length;
+    const seleccionadas = filtradas.slice(0, cant);
+
+    return Promise.all(
+      seleccionadas.map(async (r) => {
+        const instancia = r instanceof Resena ? r : Resena.fromJSON(r);
+        const expuesta =
+          typeof instancia.paraExponer === 'function'
+            ? instancia.paraExponer()
+            : instancia.toJSON();
+
+        let nombreAutor = null;
+        if (instancia.autorId) {
+          const usuario = await this.#obtenerUsuario(instancia.autorId);
+          if (usuario && usuario.nombre) {
+            nombreAutor = usuario.nombre;
+          }
+        }
+
+        let pelicula = null;
+        if (this.#tmdbAdapter && instancia.peliculaId) {
+          try {
+            const fn =
+              typeof this.#tmdbAdapter.obtenerPeliculaPorId === 'function'
+                ? this.#tmdbAdapter.obtenerPeliculaPorId.bind(this.#tmdbAdapter)
+                : typeof this.#tmdbAdapter.getMovieById === 'function'
+                  ? this.#tmdbAdapter.getMovieById.bind(this.#tmdbAdapter)
+                  : null;
+
+            if (fn) {
+              const p = await fn(instancia.peliculaId);
+              if (p) {
+                pelicula = {
+                  id: String(p.id),
+                  titulo: p.titulo || p.title || 'Película',
+                  anio: (p.fechaEstreno || p.release_date || '').slice(0, 4),
+                  poster: (p.posterPath || p.poster_path)
+                    ? `https://image.tmdb.org/t/p/w500${p.posterPath || p.poster_path}`
+                    : '/img/logoMovieClub.png',
+                };
+              }
+            }
+          } catch {}
+        }
+
+        return {
+          ...expuesta,
+          nombreAutor: nombreAutor || 'Miembro de MovieClub',
+          ...(pelicula && { pelicula }),
+        };
+      }),
+    );
   }
 }
 

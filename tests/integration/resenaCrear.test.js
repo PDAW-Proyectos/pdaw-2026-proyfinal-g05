@@ -238,4 +238,25 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
     expect(res.body.error).toContain('futura');
     expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
   });
+
+  test('GET /api/resenas retorna la lista de reseñas ordenadas por fecha con nombre de autor', async () => {
+    mockResenaRepository.leer = jest.fn().mockResolvedValue([
+      {
+        id: 'res-1',
+        peliculaId: '550',
+        autorId: 'Chamus12',
+        puntuacion: 5,
+        texto: 'Excelente reseña de prueba.',
+        fechaCreacion: '2026-11-08T20:00:00.000Z'
+      }
+    ]);
+
+    const res = await request(app).get('/api/resenas?limite=5');
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].nombreAutor).toBe('Branco Chamusco');
+    expect(res.body[0].peliculaId).toBe('550');
+  });
 });

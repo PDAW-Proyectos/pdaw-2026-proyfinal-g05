@@ -241,6 +241,50 @@ h4,
 
 .movie-card {
   min-width: 0;
+  cursor: pointer;
+}
+
+.movie-poster {
+  aspect-ratio: 2 / 3;
+  width: 100%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  display: block;
+  background-color: var(--bg-surface);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.movie-card:hover .movie-poster {
+  transform: translateY(-4px);
+  border-color: var(--accent-pink);
+  box-shadow: 0 8px 20px rgba(255, 102, 153, 0.25);
+}
+
+.movie-review-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.movie-review-author {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent-pink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie-review-snippet {
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .movie-poster-placeholder {

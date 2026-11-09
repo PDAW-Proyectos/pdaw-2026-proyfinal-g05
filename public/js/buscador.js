@@ -633,6 +633,7 @@
               bsModalResena.hide();
             }
             resetearFormularioResena();
+            actualizarUltimasResenas();
           }, 1200);
         } catch (err) {
           if (err && err.name === 'AbortError') {
@@ -666,6 +667,98 @@
         poster: peliculaPoster
       });
     });
+
+    const movieSlider = document.querySelector('.movie-slider');
+    if (movieSlider) {
+      movieSlider.addEventListener('click', (e) => {
+        const item = e.target.closest('.movie-card');
+        if (!item) return;
+
+        const peliculaId = item.dataset.id;
+        const peliculaTitulo = item.dataset.titulo;
+        const peliculaAnio = item.dataset.anio;
+        const peliculaPoster = item.dataset.poster;
+
+        if (peliculaId) {
+          abrirModalResena({
+            id: peliculaId,
+            titulo: peliculaTitulo,
+            anio: peliculaAnio,
+            poster: peliculaPoster
+          });
+        }
+      });
+    }
+
+    async function actualizarUltimasResenas() {
+      try {
+        const response = await fetch('/api/resenas?limite=6');
+        if (!response.ok) return;
+        const resenas = await response.json();
+        if (!Array.isArray(resenas) || resenas.length === 0) return;
+
+        const slider = document.querySelector('.movie-slider');
+        const template = document.getElementById('template-tarjeta-resena');
+        if (!slider || !template) return;
+
+        const fragment = document.createDocumentFragment();
+
+        resenas.forEach((resena) => {
+          const clon = template.content.cloneNode(true);
+          const card = clon.querySelector('.movie-card');
+          const img = clon.querySelector('.movie-poster');
+          const title = clon.querySelector('.movie-title');
+          const year = clon.querySelector('.movie-year');
+          const rating = clon.querySelector('.movie-rating');
+          const author = clon.querySelector('.movie-review-author');
+          const snippet = clon.querySelector('.movie-review-snippet');
+
+          const pelicula = resena.pelicula || {};
+          const peliId = String(pelicula.id || resena.peliculaId || '');
+          const peliTitulo = pelicula.titulo || 'Película';
+          const peliAnio = pelicula.anio || '';
+          const peliPoster = pelicula.poster || '/img/logoMovieClub.png';
+
+          if (card) {
+            card.dataset.id = peliId;
+            card.dataset.titulo = peliTitulo;
+            card.dataset.anio = peliAnio;
+            card.dataset.poster = peliPoster;
+          }
+
+          if (img) {
+            img.src = peliPoster;
+            img.alt = peliTitulo;
+          }
+
+          if (title) {
+            title.textContent = peliTitulo;
+          }
+
+          if (year) {
+            year.textContent = peliAnio;
+          }
+
+          if (rating) {
+            rating.textContent = `★ ${Number(resena.puntuacion || 0).toFixed(1)}`;
+          }
+
+          if (author) {
+            author.textContent = resena.nombreAutor || 'Miembro de MovieClub';
+          }
+
+          if (snippet) {
+            snippet.textContent = resena.texto ? `“${resena.texto}”` : '';
+          }
+
+          fragment.appendChild(clon);
+        });
+
+        slider.replaceChildren(fragment);
+      } catch {}
+    }
+
+    actualizarUltimasResenas();
 
     if (modalBuscadorElement) {
       modalBuscadorElement.addEventListener('shown.bs.modal', () => {

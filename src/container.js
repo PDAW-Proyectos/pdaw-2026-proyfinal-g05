@@ -12,16 +12,18 @@ function createContainer({ config }) {
     resenaRepository: new JsonFileRepository(config.data.resenasFile)
   };
 
+  const tmdbService = new TmdbService({ config });
+  const tmdbAdapter = new TmdbAdapter({ tmdbService });
+
   const services = {
     usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository }),
     resenaService: new ResenaService({
       resenaRepository: repos.resenaRepository,
-      usuarioRepository: repos.usuarioRepository
+      usuarioRepository: repos.usuarioRepository,
+      tmdbAdapter
     }),
-    tmdbService: new TmdbService({ config })
+    tmdbService
   };
-
-  const tmdbAdapter = new TmdbAdapter({ tmdbService: services.tmdbService });
 
   const peliculasController = new PeliculasController({
     tmdbAdapter: tmdbAdapter

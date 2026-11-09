@@ -152,6 +152,29 @@ class ResenaController {
   patch(req, res, next) {
     return this.actualizar(req, res, next);
   }
+
+  async listar(req, res, next) {
+    try {
+      const { peliculaId, limite } = req.query || {};
+      if (
+        this.#resenaService &&
+        typeof this.#resenaService.listar === 'function'
+      ) {
+        const resenas = await this.#resenaService.listar({
+          peliculaId,
+          limite: limite ? Number(limite) : 10,
+        });
+        return res.status(200).json(resenas);
+      }
+      return res.status(200).json([]);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  list(req, res, next) {
+    return this.listar(req, res, next);
+  }
 }
 
 module.exports = ResenaController;
