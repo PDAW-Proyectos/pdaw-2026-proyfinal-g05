@@ -674,6 +674,12 @@
         const item = e.target.closest('.movie-card');
         if (!item) return;
 
+        const resenaId = item.dataset.resenaId;
+        if (resenaId) {
+          window.location.href = `/resena.html?id=${encodeURIComponent(resenaId)}`;
+          return;
+        }
+
         const peliculaId = item.dataset.id;
         const peliculaTitulo = item.dataset.titulo;
         const peliculaAnio = item.dataset.anio;
@@ -699,6 +705,7 @@
 
         const slider = document.querySelector('.movie-slider');
         const template = document.getElementById('template-tarjeta-resena');
+        const cargando = document.getElementById('slider-estado-cargando');
         if (!slider || !template) return;
 
         const fragment = document.createDocumentFragment();
@@ -721,6 +728,7 @@
 
           if (card) {
             card.dataset.id = peliId;
+            card.dataset.resenaId = resena.id || '';
             card.dataset.titulo = peliTitulo;
             card.dataset.anio = peliAnio;
             card.dataset.poster = peliPoster;
@@ -755,7 +763,12 @@
         });
 
         slider.replaceChildren(fragment);
-      } catch {}
+        if (cargando) cargando.classList.add('d-none');
+        slider.classList.remove('d-none');
+      } catch {
+        const cargando = document.getElementById('slider-estado-cargando');
+        if (cargando) cargando.classList.add('d-none');
+      }
     }
 
     actualizarUltimasResenas();

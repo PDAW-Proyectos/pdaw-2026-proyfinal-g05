@@ -175,6 +175,42 @@ class ResenaController {
   list(req, res, next) {
     return this.listar(req, res, next);
   }
+
+  async obtenerPorId(req, res, next) {
+    try {
+      const { id } = req.params || {};
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        return res.status(400).json({ error: 'El id de la reseña es obligatorio' });
+      }
+
+      if (this.#resenaService && typeof this.#resenaService.obtenerDetalle === 'function') {
+        const detalle = await this.#resenaService.obtenerDetalle(id.trim());
+        return res.status(200).json(detalle);
+      }
+
+      if (this.#resenaService && typeof this.#resenaService.obtenerPorId === 'function') {
+        const resena = await this.#resenaService.obtenerPorId(id.trim());
+        if (!resena) {
+          return res.status(404).json({ error: 'Reseña no encontrada' });
+        }
+        const respuesta =
+          typeof resena.paraExponer === 'function'
+            ? resena.paraExponer()
+            : typeof resena.toJSON === 'function'
+              ? resena.toJSON()
+              : resena;
+        return res.status(200).json(respuesta);
+      }
+
+      return res.status(404).json({ error: 'Reseña no encontrada' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  getById(req, res, next) {
+    return this.obtenerPorId(req, res, next);
+  }
 }
 
 module.exports = ResenaController;

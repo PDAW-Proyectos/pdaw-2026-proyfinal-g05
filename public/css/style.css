@@ -143,6 +143,57 @@ h4,
   text-transform: uppercase;
 }
 
+.btn-outline-pink {
+  background-color: transparent !important;
+  color: var(--accent-pink) !important;
+  border: 1px solid var(--accent-pink) !important;
+  border-radius: 4px !important;
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+
+.btn-outline-pink:hover {
+  background-color: var(--accent-pink) !important;
+  color: #101519 !important;
+}
+
+.resena-panel-box {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1.25rem;
+}
+
+.resena-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.resena-texto-body {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: #d1d5db;
+  white-space: pre-line;
+}
+
+.resena-quote-start {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  line-height: 0;
+  color: var(--accent-pink);
+  vertical-align: -0.4em;
+  margin-right: 0.25rem;
+}
+
 .btn-outline-custom:hover {
   border-color: var(--text-primary) !important;
   color: #fff !important;
@@ -865,6 +916,52 @@ h4,
   font-weight: 600;
   font-size: 0.9rem;
 }
+
+.pelicula-hero-backdrop {
+  background: linear-gradient(180deg, rgba(16, 21, 25, 0.4) 0%, rgba(16, 21, 25, 0.95) 75%, #101519 100%),
+              radial-gradient(circle at 50% 20%, rgba(255, 102, 153, 0.08) 0%, transparent 60%),
+              #12181e;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.feed-resena-card {
+  background-color: #151D23;
+  border: 1px solid var(--border-color);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.feed-resena-card:hover {
+  border-color: var(--accent-pink);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 102, 153, 0.15);
+}
+
+.pelicula-cast-card {
+  background-color: #12181e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.6rem 0.8rem;
+}
+
+.filter-chip-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.9rem;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+
+.filter-chip-btn:hover,
+.filter-chip-btn.active {
+  background-color: var(--accent-pink);
+  color: #101519;
+  border-color: var(--accent-pink);
+}
+
 
 
 

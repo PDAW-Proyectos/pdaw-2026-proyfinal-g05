@@ -36,10 +36,8 @@
           <li class="nav-item text-secondary d-none d-lg-block" id="user-bolt-item">
             <i class="bi bi-lightning-charge-fill" style="font-size: 0.85rem;"></i>
           </li>
-          <li class="nav-item"><a class="nav-link" href="#peliculas">Films</a></li>
-          <li class="nav-item"><a class="nav-link" href="#listas">Lists</a></li>
-          <li class="nav-item"><a class="nav-link" href="#miembros">Members</a></li>
-          <li class="nav-item"><a class="nav-link" href="#diario">Journal</a></li>
+          <li class="nav-item"><a class="nav-link" href="/pelicula.html">Films</a></li>
+          <li class="nav-item"><a class="nav-link" href="/resenas.html">Reseñas</a></li>
         </ul>
         <div class="d-flex align-items-center ms-lg-4 gap-3">
           <button type="button" class="btn nav-link-icon p-0 border-0 bg-transparent text-secondary hover-pink" aria-label="Buscar" data-bs-toggle="modal" data-bs-target="#modal-buscador">
@@ -80,11 +78,16 @@
   <main class="container-xl px-4 px-md-5 py-5 mt-auto">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="h3 text-uppercase text-primary-custom mb-0">En boca de todos · Últimas reseñas</h2>
-      <a href="#" class="text-pink text-decoration-none small text-uppercase fw-semibold">Ver películas ↗</a>
+      <a href="/resenas.html" class="text-pink text-decoration-none small text-uppercase fw-semibold">Ver Feed Reseñas ↗</a>
     </div>
     <div class="border-top border-subtle-custom mb-4"></div>
-    <div class="movie-slider" id="movie-slider"></div>
-    <p class="text-secondary text-center mt-4 small text-uppercase fw-semibold">Próximamente</p>
+    <div id="slider-estado-cargando" class="text-center py-5">
+      <div class="spinner-border text-pink mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando reseñas...</span>
+      </div>
+      <p class="text-secondary text-uppercase fw-semibold small">Cargando últimas reseñas...</p>
+    </div>
+    <div class="movie-slider d-none" id="movie-slider"></div>
   </main>
 
   <footer class="footer-cta">
@@ -127,7 +130,8 @@
           <span class="text-secondary small">· Cine sin filtros. © 2026</span>
         </div>
         <div class="d-flex gap-4 text-uppercase small text-secondary">
-          <a href="#peliculas" class="text-secondary text-decoration-none hover-pink">Films</a>
+          <a href="/pelicula.html" class="text-secondary text-decoration-none hover-pink">Films</a>
+          <a href="/resenas.html" class="text-secondary text-decoration-none hover-pink">Reseñas</a>
           <a href="#listas" class="text-secondary text-decoration-none hover-pink">Lists</a>
           <a href="#miembros" class="text-secondary text-decoration-none hover-pink">Members</a>
           <a href="#diario" class="text-secondary text-decoration-none hover-pink">Journal</a>

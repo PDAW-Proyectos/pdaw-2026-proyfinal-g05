@@ -118,6 +118,63 @@ class ResenaService {
     return data instanceof Resena ? data : Resena.fromJSON(data);
   }
 
+  async obtenerDetalle(id) {
+    const resena = await this.obtenerPorId(id);
+    if (!resena) {
+      throw new NotFoundError('Reseña no encontrada');
+    }
+
+    const expuesta =
+      typeof resena.paraExponer === 'function'
+        ? resena.paraExponer()
+        : resena.toJSON();
+
+    let nombreAutor = null;
+    let rolAutor = 'Espectador';
+    if (resena.autorId) {
+      const usuario = await this.#obtenerUsuario(resena.autorId);
+      if (usuario) {
+        if (usuario.nombre) nombreAutor = usuario.nombre;
+        if (usuario.rol) rolAutor = usuario.rol;
+      }
+    }
+
+    let pelicula = null;
+    if (this.#tmdbAdapter && resena.peliculaId) {
+      try {
+        const fn =
+          typeof this.#tmdbAdapter.obtenerPeliculaPorId === 'function'
+            ? this.#tmdbAdapter.obtenerPeliculaPorId.bind(this.#tmdbAdapter)
+            : typeof this.#tmdbAdapter.getMovieById === 'function'
+              ? this.#tmdbAdapter.getMovieById.bind(this.#tmdbAdapter)
+              : null;
+
+        if (fn) {
+          const p = await fn(resena.peliculaId);
+          if (p) {
+            pelicula = {
+              id: String(p.id),
+              titulo: p.titulo || p.title || 'Película',
+              sinopsis: p.sinopsis || p.overview || '',
+              anio: (p.fechaEstreno || p.release_date || '').slice(0, 4),
+              poster: (p.posterPath || p.poster_path)
+                ? `https://image.tmdb.org/t/p/w500${p.posterPath || p.poster_path}`
+                : '/img/logoMovieClub.png',
+              calificacion: p.calificacion || p.vote_average || null,
+            };
+          }
+        }
+      } catch {}
+    }
+
+    return {
+      ...expuesta,
+      nombreAutor: nombreAutor || 'Miembro de MovieClub',
+      rolAutor,
+      ...(pelicula && { pelicula }),
+    };
+  }
+
   async actualizar(
     id,
     {

@@ -259,4 +259,34 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
     expect(res.body[0].nombreAutor).toBe('Branco Chamusco');
     expect(res.body[0].peliculaId).toBe('550');
   });
+
+  test('GET /api/resenas/:id retorna la reseña enriquecida con autor y película', async () => {
+    mockResenaRepository.findById = jest.fn().mockResolvedValue({
+      id: 'res-detalle-1',
+      peliculaId: '550',
+      autorId: 'Chamus12',
+      puntuacion: 5,
+      texto: 'Detalle de reseña de Fight Club.',
+      fechaCreacion: '2026-11-08T20:00:00.000Z',
+      favorita: true,
+      destacada: true
+    });
+
+    const res = await request(app).get('/api/resenas/res-detalle-1');
+
+    expect(res.status).toBe(200);
+    expect(res.body.id).toBe('res-detalle-1');
+    expect(res.body.nombreAutor).toBe('Branco Chamusco');
+    expect(res.body.puntuacion).toBe(5);
+  });
+
+  test('GET /api/resenas/:id retorna 404 si la reseña no existe', async () => {
+    mockResenaRepository.findById = jest.fn().mockResolvedValue(null);
+    mockResenaRepository.leer = jest.fn().mockResolvedValue([]);
+
+    const res = await request(app).get('/api/resenas/no-existe');
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toContain('no encontrada');
+  });
 });
