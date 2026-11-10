@@ -80,13 +80,13 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       puntuacion: 5,
       texto: 'Una obra maestra indiscutible del cine moderno.',
       contieneSpoilers: false,
-      destacada: false
+      esDestacada: false
     });
     expect(res.body.id).toBeDefined();
     expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
   });
 
-  test('guarda la reseña con destacada: true si el usuario es un Critico (Polimorfismo T03.4)', async () => {
+  test('guarda la reseña con esDestacada: true si el usuario es un Critico (Polimorfismo T03.4)', async () => {
     const payload = {
       peliculaId: '550',
       puntuacion: 5,
@@ -104,13 +104,12 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       peliculaId: '550',
       autorId: 'Chamus12',
       puntuacion: 5,
-      destacada: true,
       esDestacada: true
     });
     expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
   });
 
-  test('guarda la reseña con destacada: true si el usuario es un Moderador (Polimorfismo T03.4)', async () => {
+  test('guarda la reseña con esDestacada: true si el usuario es un Moderador (Polimorfismo T03.4)', async () => {
     const payload = {
       peliculaId: '550',
       puntuacion: 5,
@@ -128,7 +127,6 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       peliculaId: '550',
       autorId: 'lucassafe',
       puntuacion: 5,
-      destacada: true,
       esDestacada: true
     });
     expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
@@ -215,8 +213,7 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       autorId: 'Chamus12',
       vistaPreviamente: true,
       fechaVisionado: '2026-10-20T00:00:00.000Z',
-      esFavorita: true,
-      favorita: true
+      esFavorita: true
     });
     expect(mockUsuarioRepository.guardar).toHaveBeenCalledTimes(1);
     const usuarioGuardado = mockUsuarioRepository.guardar.mock.calls[0][0];
@@ -268,8 +265,8 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       puntuacion: 5,
       texto: 'Detalle de reseña de Fight Club.',
       fechaCreacion: '2026-11-08T20:00:00.000Z',
-      favorita: true,
-      destacada: true
+      esFavorita: true,
+      esDestacada: true
     });
 
     const res = await request(app).get('/api/resenas/res-detalle-1');

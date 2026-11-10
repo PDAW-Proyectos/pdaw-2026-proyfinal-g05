@@ -58,7 +58,7 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
       expect(mockRepository.guardar).not.toHaveBeenCalled();
     });
 
-    test('asigna flag destacada: true si el autor es un Critico (Polimorfismo T03.4)', async () => {
+    test('asigna flag esDestacada: true si el autor es un Critico (Polimorfismo T03.4)', async () => {
       const mockUsuarioRepo = {
         findById: jest.fn().mockResolvedValue(
           new Critico({
@@ -83,13 +83,12 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
         texto: 'Una película brillante y transgresora.'
       });
 
-      expect(resena.destacada).toBe(true);
       expect(resena.esDestacada).toBe(true);
-      expect(resena.toJSON().destacada).toBe(true);
-      expect(resena.paraExponer().destacada).toBe(true);
+      expect(resena.toJSON().esDestacada).toBe(true);
+      expect(resena.paraExponer().esDestacada).toBe(true);
     });
 
-    test('asigna flag destacada: true si el autor es un Moderador (Polimorfismo T03.4)', async () => {
+    test('asigna flag esDestacada: true si el autor es un Moderador (Polimorfismo T03.4)', async () => {
       const mockUsuarioRepo = {
         findById: jest.fn().mockResolvedValue(
           new Moderador({
@@ -113,13 +112,12 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
         texto: 'Reseña oficial del club de moderación.'
       });
 
-      expect(resena.destacada).toBe(true);
       expect(resena.esDestacada).toBe(true);
-      expect(resena.toJSON().destacada).toBe(true);
-      expect(resena.paraExponer().destacada).toBe(true);
+      expect(resena.toJSON().esDestacada).toBe(true);
+      expect(resena.paraExponer().esDestacada).toBe(true);
     });
 
-    test('asigna flag destacada: false si el autor es un Espectador (Polimorfismo T03.4)', async () => {
+    test('asigna flag esDestacada: false si el autor es un Espectador (Polimorfismo T03.4)', async () => {
       const mockUsuarioRepo = {
         findById: jest.fn().mockResolvedValue(
           new Espectador({
@@ -143,9 +141,8 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
         texto: 'Me gustó mucho la película de principio a fin.'
       });
 
-      expect(resena.destacada).toBe(false);
       expect(resena.esDestacada).toBe(false);
-      expect(resena.toJSON().destacada).toBe(false);
+      expect(resena.toJSON().esDestacada).toBe(false);
     });
 
     test('guarda vistaPreviamente, fechaVisionado en ISO 8601 UTC, esFavorita y sincroniza favoritas del Usuario', async () => {
@@ -179,7 +176,6 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
 
       expect(resena.vistaPreviamente).toBe(true);
       expect(resena.esFavorita).toBe(true);
-      expect(resena.favorita).toBe(true);
       expect(resena.fechaVisionado).toBe('2026-10-15T00:00:00.000Z');
       expect(usuarioInstancia.esFavorita('550')).toBe(true);
       expect(usuarioInstancia.favoritas).toEqual(['550']);

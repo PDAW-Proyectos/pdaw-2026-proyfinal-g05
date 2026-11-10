@@ -24,10 +24,8 @@ class Resena {
     contieneSpoilers = false,
     vistaPreviamente = false,
     esFavorita = false,
-    favorita,
     fechaVisionado = null,
     esDestacada = false,
-    destacada,
     fechaCreacion,
     likes = [],
   }) {
@@ -38,9 +36,9 @@ class Resena {
     this.#texto = Resena.#validarTexto(texto);
     this.#contieneSpoilers = Resena.#normalizarBooleano(contieneSpoilers);
     this.#vistaPreviamente = Resena.#normalizarBooleano(vistaPreviamente);
-    this.#esFavorita = Resena.#normalizarBooleano(esFavorita ?? favorita ?? false);
+    this.#esFavorita = Resena.#normalizarBooleano(esFavorita);
     this.#fechaVisionado = Resena.#validarFechaVisionado(fechaVisionado);
-    this.#esDestacada = Resena.#normalizarBooleano(esDestacada ?? destacada ?? false);
+    this.#esDestacada = Resena.#normalizarBooleano(esDestacada);
     this.#fechaCreacion = Resena.#validarFecha(fechaCreacion);
     this.#likes = Resena.#validarLikes(likes);
   }
@@ -214,10 +212,6 @@ class Resena {
     return this.#esFavorita;
   }
 
-  get favorita() {
-    return this.#esFavorita;
-  }
-
   get fechaVisionado() {
     return this.#fechaVisionado;
   }
@@ -235,10 +229,6 @@ class Resena {
   }
 
   get esDestacada() {
-    return this.#esDestacada;
-  }
-
-  get destacada() {
     return this.#esDestacada;
   }
 
@@ -299,10 +289,8 @@ class Resena {
       contieneSpoilers: this.#contieneSpoilers,
       vistaPreviamente: this.#vistaPreviamente,
       esFavorita: this.#esFavorita,
-      favorita: this.#esFavorita,
       fechaVisionado: this.#fechaVisionado,
       esDestacada: this.#esDestacada,
-      destacada: this.#esDestacada,
       fechaCreacion: this.#fechaCreacion,
       likes: [...this.#likes],
     };
@@ -318,10 +306,8 @@ class Resena {
       contieneSpoilers: this.#contieneSpoilers,
       vistaPreviamente: this.#vistaPreviamente,
       esFavorita: this.#esFavorita,
-      favorita: this.#esFavorita,
       fechaVisionado: this.#fechaVisionado,
       esDestacada: this.#esDestacada,
-      destacada: this.#esDestacada,
       fechaCreacion: this.#fechaCreacion,
       likes: [...this.#likes],
       cantidadLikes: this.#likes.length,
@@ -342,9 +328,9 @@ class Resena {
       texto: data.texto,
       contieneSpoilers: data.contieneSpoilers,
       vistaPreviamente: data.vistaPreviamente ?? false,
-      esFavorita: data.esFavorita ?? data.favorita ?? false,
+      esFavorita: Boolean(data.esFavorita ?? data.favorita ?? false),
       fechaVisionado: data.fechaVisionado ?? null,
-      esDestacada: data.esDestacada ?? data.destacada ?? false,
+      esDestacada: Boolean(data.esDestacada ?? data.destacada ?? false),
       fechaCreacion: data.fechaCreacion,
       likes: data.likes,
     });

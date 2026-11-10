@@ -26,7 +26,6 @@ class ResenaController {
         contieneSpoilers,
         vistaPreviamente,
         esFavorita,
-        favorita,
         fechaVisionado,
       } = req.body || {};
 
@@ -63,8 +62,8 @@ class ResenaController {
           ? { vistaPreviamente: Boolean(vistaPreviamente) }
           : {}),
         ...(fechaVisionado !== undefined ? { fechaVisionado } : {}),
-        ...(esFavorita !== undefined || favorita !== undefined
-          ? { esFavorita: Boolean(esFavorita ?? favorita) }
+        ...(esFavorita !== undefined
+          ? { esFavorita: Boolean(esFavorita) }
           : {}),
       };
 
@@ -118,7 +117,6 @@ class ResenaController {
         contieneSpoilers,
         vistaPreviamente,
         esFavorita,
-        favorita,
         fechaVisionado,
       } = req.body || {};
 
@@ -131,8 +129,8 @@ class ResenaController {
           ? { vistaPreviamente: Boolean(vistaPreviamente) }
           : {}),
         ...(fechaVisionado !== undefined ? { fechaVisionado } : {}),
-        ...(esFavorita !== undefined || favorita !== undefined
-          ? { esFavorita: Boolean(esFavorita ?? favorita) }
+        ...(esFavorita !== undefined
+          ? { esFavorita: Boolean(esFavorita) }
           : {}),
       });
 

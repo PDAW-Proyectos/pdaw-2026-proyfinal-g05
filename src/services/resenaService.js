@@ -49,13 +49,11 @@ class ResenaService {
     texto,
     contieneSpoilers,
     vistaPreviamente,
-    esFavorita,
-    favorita,
+    esFavorita = false,
     fechaVisionado,
-    esDestacada,
-    destacada,
+    esDestacada = false,
   } = {}) {
-    let flagDestacada = Boolean(esDestacada ?? destacada ?? false);
+    let flagDestacada = Boolean(esDestacada);
     let usuario = null;
 
     if (autorId) {
@@ -72,7 +70,7 @@ class ResenaService {
       texto,
       contieneSpoilers,
       vistaPreviamente,
-      esFavorita: esFavorita ?? favorita ?? false,
+      esFavorita,
       fechaVisionado,
       esDestacada: flagDestacada,
     });
@@ -184,7 +182,6 @@ class ResenaService {
       contieneSpoilers,
       vistaPreviamente,
       esFavorita,
-      favorita,
       fechaVisionado,
     } = {},
   ) {
@@ -192,19 +189,12 @@ class ResenaService {
       throw new ValidationError('El id de la reseña es obligatorio');
     }
 
-    const flagFavorita =
-      esFavorita !== undefined
-        ? esFavorita
-        : favorita !== undefined
-          ? favorita
-          : undefined;
-
     if (
       puntuacion === undefined &&
       texto === undefined &&
       contieneSpoilers === undefined &&
       vistaPreviamente === undefined &&
-      flagFavorita === undefined &&
+      esFavorita === undefined &&
       fechaVisionado === undefined
     ) {
       throw new ValidationError(
@@ -226,7 +216,7 @@ class ResenaService {
       texto,
       contieneSpoilers,
       vistaPreviamente,
-      esFavorita: flagFavorita,
+      esFavorita,
       fechaVisionado,
     });
 
@@ -234,7 +224,7 @@ class ResenaService {
       await this.#resenaRepository.guardar(resena);
     }
 
-    if (flagFavorita !== undefined && resena.autorId) {
+    if (esFavorita !== undefined && resena.autorId) {
       const usuario = await this.#obtenerUsuario(resena.autorId);
       if (usuario) {
         if (
