@@ -15,7 +15,7 @@ class ResenaController {
       if (!userId || typeof userId !== 'string' || userId.trim() === '') {
         return res
           .status(400)
-          .json({ error: 'El encabezado x-user-id es obligatorio' });
+          .json({ error: 'Necesitás iniciar sesión para publicar una reseña' });
       }
 
       const {

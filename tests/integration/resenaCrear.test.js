@@ -146,7 +146,7 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       .send(payload);
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe('El encabezado x-user-id es obligatorio');
+    expect(res.body.error).toBe('Necesitás iniciar sesión para publicar una reseña');
     expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
   });
 

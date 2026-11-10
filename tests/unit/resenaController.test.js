@@ -42,7 +42,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'El encabezado x-user-id es obligatorio',
+        error: 'Necesitás iniciar sesión para publicar una reseña',
       });
       expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
@@ -54,7 +54,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'El encabezado x-user-id es obligatorio',
+        error: 'Necesitás iniciar sesión para publicar una reseña',
       });
       expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
