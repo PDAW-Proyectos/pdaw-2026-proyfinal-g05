@@ -151,6 +151,31 @@ class ResenaController {
     return this.actualizar(req, res, next);
   }
 
+  async eliminar(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId =
+        (req.session && req.session.userId) ||
+        (typeof req.header === 'function' ? req.header('x-user-id') : null) ||
+        (req.headers && (req.headers['x-user-id'] || req.headers['X-User-Id']));
+
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        return res
+          .status(401)
+          .json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      await this.#resenaService.eliminar(id, userId.trim());
+      return res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  delete(req, res, next) {
+    return this.eliminar(req, res, next);
+  }
+
   async listar(req, res, next) {
     try {
       const { peliculaId, limite } = req.query || {};

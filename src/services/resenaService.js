@@ -207,7 +207,7 @@ class ResenaService {
       throw new NotFoundError('Reseña no encontrada');
     }
 
-    if (autorId && !resena.esAutor(autorId)) {
+    if (!autorId || !resena.esAutor(autorId)) {
       throw new ForbiddenError('No tienes permisos para modificar esta reseña');
     }
 
@@ -248,6 +248,41 @@ class ResenaService {
     }
 
     return resena;
+  }
+
+  async eliminar(id, autorId) {
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      throw new ValidationError('El id de la reseña es obligatorio');
+    }
+
+    const resena = await this.obtenerPorId(id.trim());
+    if (!resena) {
+      throw new NotFoundError('Reseña no encontrada');
+    }
+
+    const solicitanteId =
+      typeof autorId === 'object' && autorId !== null
+        ? autorId.autorId
+        : autorId;
+
+    if (!solicitanteId || !resena.esAutor(solicitanteId)) {
+      throw new ForbiddenError('No tienes permisos para eliminar esta reseña');
+    }
+
+    if (typeof this.#resenaRepository.eliminar === 'function') {
+      await this.#resenaRepository.eliminar(resena.id);
+    } else if (typeof this.#resenaRepository.delete === 'function') {
+      await this.#resenaRepository.delete(resena.id);
+    } else if (
+      typeof this.#resenaRepository.leer === 'function' &&
+      typeof this.#resenaRepository.guardar === 'function'
+    ) {
+      const todas = await this.#resenaRepository.leer();
+      const filtradas = todas.filter((r) => r.id !== resena.id);
+      await this.#resenaRepository.guardar(filtradas);
+    }
+
+    return true;
   }
 
   async listar({ peliculaId, limite } = {}) {

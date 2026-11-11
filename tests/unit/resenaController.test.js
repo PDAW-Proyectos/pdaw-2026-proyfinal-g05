@@ -184,5 +184,44 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
       expect(next).toHaveBeenCalledWith(errorInesperado);
     });
   });
+
+  describe('eliminar() - Autorización T04.2', () => {
+    beforeEach(() => {
+      mockResenaService.eliminar = jest.fn();
+      req.params = { id: 'res-123' };
+      res.send = jest.fn().mockReturnThis();
+    });
+
+    test('rechaza con 401 si no hay usuario autenticado', async () => {
+      delete req.headers['x-user-id'];
+
+      await controller.eliminar(req, res, next);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'Acceso no autorizado: se requiere iniciar sesión',
+      });
+      expect(mockResenaService.eliminar).not.toHaveBeenCalled();
+    });
+
+    test('elimina la reseña y responde 204 cuando hay usuario autenticado', async () => {
+      mockResenaService.eliminar.mockResolvedValue(true);
+
+      await controller.eliminar(req, res, next);
+
+      expect(mockResenaService.eliminar).toHaveBeenCalledWith('res-123', 'usr-123');
+      expect(res.status).toHaveBeenCalledWith(204);
+      expect(res.send).toHaveBeenCalled();
+    });
+
+    test('propaga el error a next si el servicio lanza un fallo (ej. ForbiddenError)', async () => {
+      const forbidden = new Error('No tienes permisos');
+      mockResenaService.eliminar.mockRejectedValue(forbidden);
+
+      await controller.eliminar(req, res, next);
+
+      expect(next).toHaveBeenCalledWith(forbidden);
+    });
+  });
 });
 

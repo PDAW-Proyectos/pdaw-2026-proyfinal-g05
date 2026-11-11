@@ -276,7 +276,10 @@ class Resena {
   }
 
   esAutor(usuarioId) {
-    return this.#autorId === String(usuarioId).trim();
+    if (!usuarioId || typeof usuarioId !== 'string' || usuarioId.trim() === '') {
+      return false;
+    }
+    return this.#autorId === usuarioId.trim();
   }
 
   toJSON() {

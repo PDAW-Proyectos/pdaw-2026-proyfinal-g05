@@ -261,5 +261,59 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
         })
       ).rejects.toThrow(ValidationError);
     });
+
+    test('lanza ForbiddenError si no se envía autorId', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+
+      await expect(
+        service.actualizar('resena-123', {
+          puntuacion: 4
+        })
+      ).rejects.toThrow(ForbiddenError);
+    });
+  });
+
+  describe('eliminar() y regla de autorización - T04.2', () => {
+    const resenaExistente = new Resena({
+      id: 'resena-123',
+      peliculaId: '550',
+      autorId: 'usr-autor',
+      puntuacion: 3,
+      texto: 'Texto original de la reseña con más de diez caracteres.',
+      contieneSpoilers: false
+    });
+
+    test('elimina la reseña cuando el autorId coincide exactamente con el autor de la reseña', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+      mockRepository.eliminar = jest.fn().mockResolvedValue(true);
+
+      const resultado = await service.eliminar('resena-123', 'usr-autor');
+
+      expect(resultado).toBe(true);
+      expect(mockRepository.eliminar).toHaveBeenCalledWith('resena-123');
+    });
+
+    test('lanza ForbiddenError si quien intenta eliminar no coincide con el autorId', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+
+      await expect(
+        service.eliminar('resena-123', 'usr-usurpador')
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    test('lanza ForbiddenError si autorId es nulo o vacío', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+
+      await expect(service.eliminar('resena-123', null)).rejects.toThrow(ForbiddenError);
+      await expect(service.eliminar('resena-123', '')).rejects.toThrow(ForbiddenError);
+    });
+
+    test('lanza NotFoundError si la reseña a eliminar no existe', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.eliminar('resena-inexistente', 'usr-autor')
+      ).rejects.toThrow(NotFoundError);
+    });
   });
 });
