@@ -124,5 +124,33 @@
     "esDestacada": false,
     "fechaCreacion": "2026-11-09T22:24:42.478Z",
     "likes": []
+  },
+  {
+    "id": "23de4f67-cbd5-4200-b0d9-c628f6a867a6",
+    "peliculaId": "950028",
+    "autorId": "usr-1",
+    "puntuacion": 3,
+    "texto": "Muy graciosa!",
+    "contieneSpoilers": false,
+    "vistaPreviamente": false,
+    "esFavorita": false,
+    "fechaVisionado": "2026-11-11T00:00:00.000Z",
+    "esDestacada": false,
+    "fechaCreacion": "2026-11-11T13:14:24.096Z",
+    "likes": []
+  },
+  {
+    "id": "155a064e-eee4-4573-b9f0-2fa86f24967c",
+    "peliculaId": "1318297",
+    "autorId": "usr-1",
+    "puntuacion": 5,
+    "texto": "Gran monologo, muy gracioso, bla bla bnla",
+    "contieneSpoilers": true,
+    "vistaPreviamente": false,
+    "esFavorita": true,
+    "fechaVisionado": "2026-11-11T00:00:00.000Z",
+    "esDestacada": false,
+    "fechaCreacion": "2026-11-11T15:12:52.278Z",
+    "likes": []
   }
 ]
