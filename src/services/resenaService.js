@@ -283,10 +283,12 @@ class ResenaService {
             : instancia.toJSON();
 
         let nombreAutor = null;
+        let rolAutor = 'Espectador';
         if (instancia.autorId) {
           const usuario = await this.#obtenerUsuario(instancia.autorId);
-          if (usuario && usuario.nombre) {
-            nombreAutor = usuario.nombre;
+          if (usuario) {
+            if (usuario.nombre) nombreAutor = usuario.nombre;
+            if (usuario.rol) rolAutor = usuario.rol;
           }
         }
 
@@ -319,6 +321,7 @@ class ResenaService {
         return {
           ...expuesta,
           nombreAutor: nombreAutor || 'Miembro de MovieClub',
+          rolAutor: rolAutor || 'Espectador',
           ...(pelicula && { pelicula }),
         };
       }),

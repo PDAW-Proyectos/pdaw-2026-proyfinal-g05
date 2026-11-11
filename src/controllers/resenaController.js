@@ -160,7 +160,7 @@ class ResenaController {
       ) {
         const resenas = await this.#resenaService.listar({
           peliculaId,
-          limite: limite ? Number(limite) : 10,
+          limite: limite ? Number(limite) : 50,
         });
         return res.status(200).json(resenas);
       }
