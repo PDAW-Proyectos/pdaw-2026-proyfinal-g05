@@ -20,6 +20,8 @@
     const estrellasCabecera = document.getElementById('resena-estrellas-cabecera');
     const corazonCabecera = document.getElementById('resena-icono-corazon-cabecera');
     const alertaSpoilers = document.getElementById('resena-alerta-spoilers');
+    const btnToggleSpoiler = document.getElementById('btn-toggle-spoiler');
+    const textoToggleSpoiler = document.getElementById('texto-toggle-spoiler');
     const resenaTexto = document.getElementById('resena-texto');
     const badgeDestacada = document.getElementById('resena-badge-destacada');
     const iconoFavoritaStat = document.getElementById('icono-favorita-stat');
@@ -128,7 +130,11 @@
         }
 
         if (alertaSpoilers) {
-          alertaSpoilers.classList.toggle('d-none', !data.contieneSpoilers);
+          const tieneSpoilers = Boolean(data.contieneSpoilers);
+          alertaSpoilers.classList.toggle('d-none', !tieneSpoilers);
+          if (tieneSpoilers && resenaTexto) {
+            resenaTexto.classList.add('spoiler-blureado');
+          }
         }
 
         if (fechaVisionado) {
@@ -163,6 +169,15 @@
             feedbackCompartir.textContent = 'Copiá este enlace: ' + window.location.href;
             feedbackCompartir.classList.remove('d-none');
           }
+        }
+      });
+    }
+
+    if (btnToggleSpoiler && resenaTexto) {
+      btnToggleSpoiler.addEventListener('click', () => {
+        const estaRevelado = resenaTexto.classList.toggle('revelado');
+        if (textoToggleSpoiler) {
+          textoToggleSpoiler.textContent = estaRevelado ? 'Ocultar spoilers.' : 'Mostrala sin filtros.';
         }
       });
     }
