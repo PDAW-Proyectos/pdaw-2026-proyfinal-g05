@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feed de Reseñas | MovieClub</title>
+  <link rel="icon" type="image/png" href="/img/logoMovieClub.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Special+Elite&family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;1,400&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-main border-bottom border-subtle-custom sticky-top py-3">
+    <div class="container-xl px-4 px-md-5">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+        <img src="/img/logoMovieClub.png" alt="MovieClub" height="34">
+        <span class="brand-title mb-0">MOVIECLUB</span>
+      </a>
+      <button class="navbar-toggler border-subtle-custom" type="button" data-bs-toggle="collapse" data-bs-target="#navContent" aria-controls="navContent" aria-expanded="false" aria-label="Navegación">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navContent">
+        <ul class="navbar-nav ms-auto align-items-center gap-3 gap-lg-4 text-uppercase mb-2 mb-lg-0">
+          <li class="nav-item dropdown d-none" id="user-nav-item">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-decoration-none" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: #475569; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <i class="bi bi-person-fill text-light" style="font-size: 0.8rem;"></i>
+              </div>
+              <span id="user-nav-name" class="fw-bold small text-light text-uppercase"></span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end py-1 shadow">
+              <li><button type="button" class="dropdown-item small text-danger" id="btn-logout">Cerrar Sesión</button></li>
+            </ul>
+          </li>
+          <li class="nav-item text-secondary d-none d-lg-block" id="user-bolt-item">
+            <i class="bi bi-lightning-charge-fill" style="font-size: 0.85rem;"></i>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="/detallePelicula.html">Películas</a></li>
+          <li class="nav-item"><a class="nav-link active text-white" href="/resenas.html">Reseñas</a></li>
+        </ul>
+        <div class="d-flex align-items-center ms-lg-4 gap-3">
+          <a href="/login.html" id="btn-login-nav" class="btn btn-outline-light btn-sm px-3 py-1 text-uppercase fw-semibold">Iniciar Sesión</a>
+          <a href="/#modal-buscador" class="btn btn-pink btn-sm px-3 py-1 text-uppercase fw-bold">+ LOG</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-xl px-4 px-md-5 py-5 flex-grow-1">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+      <div>
+        <div class="text-pink text-uppercase fw-bold small mb-1" style="letter-spacing: 0.15em;">
+          COMUNIDAD · CRÍTICAS Y DIARIOS
+        </div>
+        <h1 class="display-4 fw-bold text-uppercase text-white mb-2" style="font-family: var(--font-display);">
+          FEED DE RESEÑAS
+        </h1>
+        <p class="text-secondary mb-0 fs-6">
+          Lo que el club está viendo, amando y destrozando sin filtros.
+        </p>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-pink btn-sm px-3 py-2 text-uppercase fw-bold">
+          <i class="bi bi-plus-lg me-1"></i> Escribir reseña
+        </a>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 border-top border-bottom border-secondary border-opacity-25 py-3 mb-4">
+      <button type="button" class="btn filter-chip-btn active">Todas las reseñas</button>
+      <button type="button" class="btn filter-chip-btn">Destacadas</button>
+      <button type="button" class="btn filter-chip-btn">5 Estrellas</button>
+      <button type="button" class="btn filter-chip-btn">Con Spoilers</button>
+      <button type="button" class="btn filter-chip-btn">Favoritas del Club</button>
+    </div>
+
+    <div class="row g-4">
+
+      <div class="col-lg-6">
+        <article class="feed-resena-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-3 mb-3">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: #1e293b; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                  <i class="bi bi-person-fill text-pink fs-6"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-white fw-bold small text-uppercase">Tyler Durden</span>
+                    <span class="badge bg-dark border border-secondary border-opacity-50 text-pink small">MODERADOR</span>
+                  </div>
+                  <span class="text-secondary small">Visionado el 15 Oct 2026</span>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-dark border border-pink text-pink small">DESTACADA</span>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-3">
+              <a href="/detallePelicula.html" class="flex-shrink-0">
+                <img src="https://image.tmdb.org/t/p/w500/bptfVGEQuv6vDTIMVCHjJ9Dz8PX.jpg" alt="Fight Club" class="img-fluid" style="width: 80px; height: 120px; object-fit: cover; border: 1px solid var(--border-color);">
+              </a>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <h2 class="h5 text-white text-uppercase fw-bold mb-0" style="font-family: var(--font-display);">
+                    <a href="/detallePelicula.html" class="text-white text-decoration-none hover-pink">Fight Club</a>
+                  </h2>
+                  <span class="text-secondary small fw-semibold">1999</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="text-pink fw-bold">★★★★★</span>
+                  <span class="text-pink small fw-bold">5.0</span>
+                  <i class="bi bi-heart-fill text-pink small ms-1" title="Favorita"></i>
+                </div>
+                <div class="mb-2">
+                  <span class="fst-italic text-secondary small">
+                    Esta reseña puede contener spoilers.
+                    <button type="button" class="btn btn-link p-0 text-pink text-decoration-underline fst-italic ms-1 align-baseline small" onclick="const p=this.closest('.flex-grow-1').querySelector('.spoiler-texto'); const rev=p.classList.toggle('revelado'); this.textContent = rev ? 'Ocultar spoilers.' : 'Mostrala sin filtros.';">
+                      Mostrala sin filtros.
+                    </button>
+                  </span>
+                </div>
+                <p class="text-light small mb-0 spoiler-texto spoiler-blureado" style="line-height: 1.5; font-family: 'Special Elite', monospace;">
+                  “La primera regla de MovieClub es no hablar de MovieClub. Pero esta película redefine la alienación contemporánea y el vacío del consumismo con la precisión de un cirujano psicópata.”
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end align-items-center border-top border-secondary border-opacity-25 pt-3 mt-3">
+            <a href="/detalleResena.html?id=resena-001" class="btn btn-outline-pink btn-sm py-1 px-3 fw-semibold">
+              Leer reseña ↗
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col-lg-6">
+        <article class="feed-resena-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-3 mb-3">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: #1e293b; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                  <i class="bi bi-person-fill text-pink fs-6"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-white fw-bold small text-uppercase">Mia Wallace</span>
+                    <span class="badge bg-dark border border-secondary border-opacity-50 text-pink small">CRÍTICO</span>
+                  </div>
+                  <span class="text-secondary small">Visionado el 20 Oct 2026</span>
+                </div>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-dark border border-pink text-pink small">DESTACADA</span>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-3">
+              <a href="/detallePelicula.html" class="flex-shrink-0">
+                <img src="https://image.tmdb.org/t/p/w500/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg" alt="Pulp Fiction" class="img-fluid" style="width: 80px; height: 120px; object-fit: cover; border: 1px solid var(--border-color);">
+              </a>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <h2 class="h5 text-white text-uppercase fw-bold mb-0" style="font-family: var(--font-display);">
+                    <a href="/detallePelicula.html" class="text-white text-decoration-none hover-pink">Pulp Fiction</a>
+                  </h2>
+                  <span class="text-secondary small fw-semibold">1994</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="text-pink fw-bold">★★★★★</span>
+                  <span class="text-pink small fw-bold">5.0</span>
+                  <i class="bi bi-heart-fill text-pink small ms-1" title="Favorita"></i>
+                </div>
+                <p class="text-light small mb-0" style="line-height: 1.5; font-family: 'Special Elite', monospace;">
+                  “Diálogos afilados como navajas, estructura no lineal icónica y una banda sonora que se te mete en los huesos. Tarantino en la cima absoluta de su libertad formal.”
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end align-items-center border-top border-secondary border-opacity-25 pt-3 mt-3">
+            <a href="/detalleResena.html?id=resena-002" class="btn btn-outline-pink btn-sm py-1 px-3 fw-semibold">
+              Leer reseña ↗
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col-lg-6">
+        <article class="feed-resena-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-3 mb-3">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: #1e293b; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                  <i class="bi bi-person-fill text-pink fs-6"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-white fw-bold small text-uppercase">Maxi Martínez</span>
+                    <span class="badge bg-dark border border-secondary border-opacity-50 text-secondary small">ESPECTADOR</span>
+                  </div>
+                  <span class="text-secondary small">Visionado el 25 Oct 2026</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-3">
+              <a href="/detallePelicula.html" class="flex-shrink-0">
+                <img src="https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg" alt="The Batman" class="img-fluid" style="width: 80px; height: 120px; object-fit: cover; border: 1px solid var(--border-color);">
+              </a>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <h2 class="h5 text-white text-uppercase fw-bold mb-0" style="font-family: var(--font-display);">
+                    <a href="/detallePelicula.html" class="text-white text-decoration-none hover-pink">The Batman</a>
+                  </h2>
+                  <span class="text-secondary small fw-semibold">2022</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="text-pink fw-bold">★★★★½</span>
+                  <span class="text-pink small fw-bold">4.5</span>
+                </div>
+                <p class="text-light small mb-0" style="line-height: 1.5; font-family: 'Special Elite', monospace;">
+                  “Un noir detectivesco sucio, lluvioso y denso. Pattinson encarna la ira y el desgaste psicológico como pocos. La fotografía de Greig Fraser es monumental.”
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end align-items-center border-top border-secondary border-opacity-25 pt-3 mt-3">
+            <a href="/detalleResena.html?id=resena-003" class="btn btn-outline-pink btn-sm py-1 px-3 fw-semibold">
+              Leer reseña ↗
+            </a>
+          </div>
+        </article>
+      </div>
+
+      <div class="col-lg-6">
+        <article class="feed-resena-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-3 mb-3">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: #1e293b; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">
+                  <i class="bi bi-person-fill text-pink fs-6"></i>
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-white fw-bold small text-uppercase">Dante Alighieri</span>
+                    <span class="badge bg-dark border border-secondary border-opacity-50 text-pink small">CRÍTICO</span>
+                  </div>
+                  <span class="text-secondary small">Visionado el 28 Oct 2026</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-3 mb-3">
+              <a href="/detallePelicula.html" class="flex-shrink-0">
+                <img src="https://image.tmdb.org/t/p/w500/bK0Q2J3wV3pZ2oT5Xn1A8Lp2Y1q.jpg" onerror="this.src='/img/logoMovieClub.png'" alt="Martin (Hache)" class="img-fluid" style="width: 80px; height: 120px; object-fit: cover; border: 1px solid var(--border-color);">
+              </a>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <h2 class="h5 text-white text-uppercase fw-bold mb-0" style="font-family: var(--font-display);">
+                    <a href="/detallePelicula.html" class="text-white text-decoration-none hover-pink">Martín (Hache)</a>
+                  </h2>
+                  <span class="text-secondary small fw-semibold">1997</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="text-pink fw-bold">★★★★☆</span>
+                  <span class="text-pink small fw-bold">4.0</span>
+                  <i class="bi bi-heart-fill text-pink small ms-1" title="Favorita"></i>
+                </div>
+                <p class="text-light small mb-0" style="line-height: 1.5; font-family: 'Special Elite', monospace;">
+                  “Hay que estar solo para saber quién carajo es uno. Federico Luppi entrega un monólogo que queda grabado a fuego en la memoria cinematográfica hispana.”
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end align-items-center border-top border-secondary border-opacity-25 pt-3 mt-3">
+            <a href="/detalleResena.html?id=resena-004" class="btn btn-outline-pink btn-sm py-1 px-3 fw-semibold">
+              Leer reseña ↗
+            </a>
+          </div>
+        </article>
+      </div>
+
+    </div>
+
+    <div class="d-flex justify-content-center align-items-center gap-2 mt-5">
+      <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2 disabled">Anterior</button>
+      <button type="button" class="btn btn-pink btn-sm px-3 py-2">1</button>
+      <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2">2</button>
+      <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2">3</button>
+      <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2">Siguiente</button>
+    </div>
+
+  </main>
+
+  <footer class="footer-cta mt-auto">
+    <div class="footer-cta-bg">
+      <div class="footer-cta-overlay"></div>
+      <div class="footer-cta-content text-center py-5">
+        <div class="mb-3">
+          <img src="/img/logoMovieClub.png" alt="MovieClub Soap" height="60" class="footer-logo">
+        </div>
+        <h2 class="footer-cta-title mb-2">UNITE AL CINE SIN FILTROS</h2>
+        <p class="small text-secondary text-uppercase mb-0">La primera regla de MovieClub es hablar de cine.</p>
+      </div>
+    </div>
+    <div class="footer-bottom py-4">
+      <div class="container-xl px-4 px-md-5 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <img src="/img/logoMovieClub.png" alt="MovieClub" height="34">
+          <span class="brand-title h5 mb-0">MOVIECLUB</span>
+          <span class="text-secondary small">· Cine sin filtros. © 2026</span>
+        </div>
+        <div class="d-flex gap-4 text-uppercase small text-secondary">
+          <a href="/detallePelicula.html" class="text-secondary text-decoration-none hover-pink">Películas</a>
+          <a href="/resenas.html" class="text-secondary text-decoration-none hover-pink">Reseñas</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>
+

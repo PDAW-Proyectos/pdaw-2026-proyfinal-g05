@@ -676,7 +676,7 @@
 
         const resenaId = item.dataset.resenaId;
         if (resenaId) {
-          window.location.href = `/resena.html?id=${encodeURIComponent(resenaId)}`;
+          window.location.href = `/detalleResena.html?id=${encodeURIComponent(resenaId)}`;
           return;
         }
 

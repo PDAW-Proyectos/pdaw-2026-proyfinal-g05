@@ -40,7 +40,7 @@
             <i class="bi bi-lightning-charge-fill" style="font-size: 0.85rem;"></i>
           </li>
           <li class="nav-item"><a class="nav-link" href="/">Inicio</a></li>
-          <li class="nav-item"><a class="nav-link" href="/pelicula.html">Películas</a></li>
+          <li class="nav-item"><a class="nav-link" href="/detallePelicula.html">Películas</a></li>
           <li class="nav-item"><a class="nav-link" href="/resenas.html">Reseñas</a></li>
         </ul>
         <div class="d-flex align-items-center ms-lg-4 gap-3">
@@ -148,9 +148,13 @@
             </div>
           </div>
 
-          <div id="resena-alerta-spoilers" class="alert alert-dark border-danger border-opacity-50 text-danger-emphasis py-2 px-3 small d-none mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill text-danger me-2" aria-hidden="true"></i>
-            <strong>Aviso de Spoilers:</strong> Esta reseña revela giros o detalles importantes de la trama.
+          <div id="resena-alerta-spoilers" class="d-none mb-3 py-2 border-bottom border-secondary border-opacity-25">
+            <p class="fst-italic text-secondary mb-0" style="font-size: 1.05rem;">
+              Esta reseña puede contener spoilers.
+              <button type="button" class="btn btn-link p-0 text-pink text-decoration-underline fst-italic ms-1 align-baseline fw-semibold" id="btn-toggle-spoiler" style="font-size: inherit;">
+                <span id="texto-toggle-spoiler">Mostrala sin filtros.</span>
+              </button>
+            </p>
           </div>
 
           <article class="resena-cuerpo-box mb-4">
@@ -190,11 +194,8 @@
           <span class="text-secondary small">· Cine sin filtros. © 2026</span>
         </div>
         <div class="d-flex gap-4 text-uppercase small text-secondary">
-          <a href="/pelicula.html" class="text-secondary text-decoration-none hover-pink">Films</a>
+          <a href="/detallePelicula.html" class="text-secondary text-decoration-none hover-pink">Películas</a>
           <a href="/resenas.html" class="text-secondary text-decoration-none hover-pink">Reseñas</a>
-          <a href="#listas" class="text-secondary text-decoration-none hover-pink">Lists</a>
-          <a href="#miembros" class="text-secondary text-decoration-none hover-pink">Members</a>
-          <a href="#diario" class="text-secondary text-decoration-none hover-pink">Journal</a>
         </div>
       </div>
     </div>
