@@ -291,6 +291,38 @@
         linkDetalle.setAttribute('href', `/detalleResena.html?id=${encodeURIComponent(idResena)}`);
       }
 
+      const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');
+      if (contenedorAccionesAutor) {
+        const idUsuarioActivo = (() => {
+          try {
+            if (typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
+              const id = window.API.getUserId();
+              if (id) return String(id);
+            }
+            const directId = localStorage.getItem('userId');
+            if (directId) return String(directId);
+            const rawUser = localStorage.getItem('usuario');
+            if (rawUser) {
+              const parsed = JSON.parse(rawUser);
+              if (parsed?.id) return String(parsed.id);
+            }
+          } catch {}
+          return null;
+        })();
+
+        const esAutor = Boolean(
+          idUsuarioActivo &&
+          resena.autorId &&
+          String(idUsuarioActivo) === String(resena.autorId)
+        );
+
+        if (esAutor) {
+          contenedorAccionesAutor.classList.remove('d-none');
+        } else {
+          contenedorAccionesAutor.classList.add('d-none');
+        }
+      }
+
       return clone;
     }
 

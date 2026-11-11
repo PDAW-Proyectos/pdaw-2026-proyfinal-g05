@@ -145,6 +145,34 @@
           fechaPublicacion.textContent = formatearFecha(data.fechaCreacion);
         }
 
+        const panelAccionesAutor = document.getElementById('resena-acciones-autor-detalle');
+        if (panelAccionesAutor) {
+          const idUsuarioActivo = (() => {
+            try {
+              if (typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
+                const id = window.API.getUserId();
+                if (id) return String(id);
+              }
+              const directId = localStorage.getItem('userId');
+              if (directId) return String(directId);
+              const rawUser = localStorage.getItem('usuario');
+              if (rawUser) {
+                const parsed = JSON.parse(rawUser);
+                if (parsed?.id) return String(parsed.id);
+              }
+            } catch {}
+            return null;
+          })();
+
+          const esAutor = Boolean(
+            idUsuarioActivo &&
+            data.autorId &&
+            String(idUsuarioActivo) === String(data.autorId)
+          );
+
+          panelAccionesAutor.classList.toggle('d-none', !esAutor);
+        }
+
         document.title = `${tituloPeli} - Reseña de ${data.nombreAutor || 'MovieClub'} | MovieClub`;
 
         if (contCargando) contCargando.classList.add('d-none');
