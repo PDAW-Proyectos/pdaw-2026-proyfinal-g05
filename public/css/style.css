@@ -962,6 +962,19 @@ h4,
   border-color: var(--accent-pink);
 }
 
+.spoiler-blureado {
+  filter: blur(7px);
+  user-select: none;
+  cursor: default;
+  transition: filter 0.25s ease;
+}
+
+.spoiler-blureado.revelado {
+  filter: none !important;
+  user-select: text !important;
+  cursor: text !important;
+}
+
 
 
 
