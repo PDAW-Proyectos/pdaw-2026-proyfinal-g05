@@ -39,7 +39,19 @@ function createApp({ config, services } = {}) {
   }
 
   app.use((req, res) => {
-    res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
+    const errorMsg = `Ruta no encontrada: ${req.method} ${req.originalUrl}`;
+    res.status(404);
+
+    if (req.accepts('html') && !req.originalUrl.startsWith('/api')) {
+      const publicDirectory = config?.publicDir || path.resolve(__dirname, '../public');
+      return res.sendFile(path.join(publicDirectory, '404.html'), (err) => {
+        if (err) {
+          res.json({ error: errorMsg });
+        }
+      });
+    }
+
+    return res.json({ error: errorMsg });
   });
 
   app.use(errorHandler);
