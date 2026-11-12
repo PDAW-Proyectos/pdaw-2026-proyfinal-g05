@@ -1,5 +1,5 @@
 const Resena = require('../models/Resena');
-const { Usuario } = require('../models/Usuario');
+const { Usuario, Moderador } = require('../models/Usuario');
 const { ValidationError, NotFoundError, ForbiddenError } = require('../utils/errors');
 
 class ResenaService {
@@ -265,7 +265,25 @@ class ResenaService {
         ? autorId.autorId
         : autorId;
 
-    if (!solicitanteId || !resena.esAutor(solicitanteId)) {
+    if (!solicitanteId || typeof solicitanteId !== 'string' || solicitanteId.trim() === '') {
+      throw new ForbiddenError('No tienes permisos para eliminar esta reseña');
+    }
+
+    const idSolicitante = solicitanteId.trim();
+    let tienePermiso = resena.esAutor(idSolicitante);
+
+    if (!tienePermiso) {
+      const solicitante = await this.#obtenerUsuario(idSolicitante);
+      if (
+        solicitante &&
+        (solicitante instanceof Moderador ||
+          (typeof solicitante.puedeModerar === 'function' && solicitante.puedeModerar()))
+      ) {
+        tienePermiso = true;
+      }
+    }
+
+    if (!tienePermiso) {
       throw new ForbiddenError('No tienes permisos para eliminar esta reseña');
     }
 
