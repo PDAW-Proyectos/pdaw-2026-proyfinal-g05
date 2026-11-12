@@ -1,5 +1,6 @@
 const express = require('express');
 const ResenaController = require('../controllers/resenaController');
+const { requireAuth } = require('../middlewares/auth');
 
 function createResenaRoutes({ resenaService, resenaController } = {}) {
   const router = express.Router();
@@ -8,9 +9,9 @@ function createResenaRoutes({ resenaService, resenaController } = {}) {
 
   router.get('/', (req, res, next) => controller.listar(req, res, next));
   router.get('/:id', (req, res, next) => controller.obtenerPorId(req, res, next));
-  router.post('/', (req, res, next) => controller.crear(req, res, next));
-  router.patch('/:id', (req, res, next) => controller.actualizar(req, res, next));
-  router.delete('/:id', (req, res, next) => controller.eliminar(req, res, next));
+  router.post('/', requireAuth, (req, res, next) => controller.crear(req, res, next));
+  router.patch('/:id', requireAuth, (req, res, next) => controller.actualizar(req, res, next));
+  router.delete('/:id', requireAuth, (req, res, next) => controller.eliminar(req, res, next));
 
   return router;
 }

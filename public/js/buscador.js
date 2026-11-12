@@ -682,21 +682,6 @@
             'Content-Type': 'application/json'
           };
 
-          try {
-            const storedUserId = localStorage.getItem('userId');
-            const storedUserRaw = localStorage.getItem('usuario');
-            let fallbackUserId = storedUserId;
-            if (!fallbackUserId && storedUserRaw) {
-              const parsedUser = JSON.parse(storedUserRaw);
-              if (parsedUser && parsedUser.id) {
-                fallbackUserId = String(parsedUser.id);
-              }
-            }
-            if (fallbackUserId) {
-              headers['x-user-id'] = fallbackUserId;
-            }
-          } catch (_) { }
-
           const urlEndpoint = esModoEdicion
             ? `/api/resenas/${encodeURIComponent(resenaEditandoId)}`
             : '/api/resenas';

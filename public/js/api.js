@@ -29,11 +29,6 @@ async function apiFetch(url, options = {}) {
 
   const headers = normalizarHeaders(headersInput);
 
-  const userId = API.getUserId();
-  if (userId && !tieneHeader(headers, 'x-user-id')) {
-    headers['x-user-id'] = userId;
-  }
-
   let finalBody = body;
   if (body !== undefined && body !== null) {
     const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;

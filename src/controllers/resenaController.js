@@ -5,17 +5,22 @@ class ResenaController {
     this.#resenaService = resenaService;
   }
 
+  #obtenerUserIdSesion(req) {
+    const userId = req?.session?.userId;
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      return null;
+    }
+    return userId.trim();
+  }
+
   async crear(req, res, next) {
     try {
-      const userId =
-        (req.session && req.session.userId) ||
-        (typeof req.header === 'function' ? req.header('x-user-id') : null) ||
-        (req.headers && (req.headers['x-user-id'] || req.headers['X-User-Id']));
+      const userId = this.#obtenerUserIdSesion(req);
 
-      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      if (!userId) {
         return res
-          .status(400)
-          .json({ error: 'Necesitás iniciar sesión para publicar una reseña' });
+          .status(401)
+          .json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
       }
 
       const {
@@ -100,12 +105,9 @@ class ResenaController {
   async actualizar(req, res, next) {
     try {
       const { id } = req.params;
-      const userId =
-        (req.session && req.session.userId) ||
-        (typeof req.header === 'function' ? req.header('x-user-id') : null) ||
-        (req.headers && (req.headers['x-user-id'] || req.headers['X-User-Id']));
+      const userId = this.#obtenerUserIdSesion(req);
 
-      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      if (!userId) {
         return res
           .status(401)
           .json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
@@ -121,7 +123,7 @@ class ResenaController {
       } = req.body || {};
 
       const resenaActualizada = await this.#resenaService.actualizar(id, {
-        autorId: userId.trim(),
+        autorId: userId,
         puntuacion,
         texto,
         contieneSpoilers,
@@ -154,18 +156,15 @@ class ResenaController {
   async eliminar(req, res, next) {
     try {
       const { id } = req.params;
-      const userId =
-        (req.session && req.session.userId) ||
-        (typeof req.header === 'function' ? req.header('x-user-id') : null) ||
-        (req.headers && (req.headers['x-user-id'] || req.headers['X-User-Id']));
+      const userId = this.#obtenerUserIdSesion(req);
 
-      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      if (!userId) {
         return res
           .status(401)
           .json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
       }
 
-      await this.#resenaService.eliminar(id, userId.trim());
+      await this.#resenaService.eliminar(id, userId);
       return res.status(204).send();
     } catch (error) {
       next(error);
