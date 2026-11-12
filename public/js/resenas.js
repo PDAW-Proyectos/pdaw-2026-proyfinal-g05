@@ -79,6 +79,22 @@
 
     #configurarDelegacionEventos() {
       this.#contenedor.addEventListener('click', (e) => {
+        const btnEditar = e.target.closest('.btn-editar-resena');
+        if (btnEditar) {
+          const resenaId = btnEditar.dataset.resenaId;
+          const resenaEncontrada = this.#todasLasResenas.find((r) => String(r.id) === String(resenaId));
+          if (resenaEncontrada && typeof window.abrirModalEdicionResena === 'function') {
+            window.abrirModalEdicionResena(resenaEncontrada, (resenaActualizada) => {
+              const idx = this.#todasLasResenas.findIndex((r) => String(r.id) === String(resenaActualizada.id));
+              if (idx !== -1) {
+                this.#todasLasResenas[idx] = { ...this.#todasLasResenas[idx], ...resenaActualizada };
+                this.#aplicarFiltroYRenderizar();
+              }
+            });
+          }
+          return;
+        }
+
         const btnToggle = e.target.closest('.btn-toggle-spoiler');
         if (!btnToggle) return;
 
@@ -289,6 +305,11 @@
       if (linkDetalle) {
         const idResena = resena.id || '';
         linkDetalle.setAttribute('href', `/detalleResena.html?id=${encodeURIComponent(idResena)}`);
+      }
+
+      const btnEditar = clone.querySelector('.btn-editar-resena');
+      if (btnEditar) {
+        btnEditar.dataset.resenaId = resena.id || '';
       }
 
       const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');

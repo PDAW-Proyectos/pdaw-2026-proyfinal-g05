@@ -31,6 +31,10 @@
     const modalResenaTexto = document.getElementById('modal-resena-texto');
     const checkContieneSpoilers = document.getElementById('check-contiene-spoilers');
     const btnSaveResena = document.getElementById('btn-save-resena');
+    const headerModalResenaTitulo = document.getElementById('modalResenaTitulo');
+
+    let resenaEditandoId = null;
+    let callbackEdicionGuardada = null;
 
     if (!inputBuscar || !listaResultados || !templateItem) {
       return;
@@ -315,6 +319,14 @@
         resenaAbortController.abort();
         resenaAbortController = null;
       }
+      resenaEditandoId = null;
+      callbackEdicionGuardada = null;
+      if (headerModalResenaTitulo) {
+        headerModalResenaTitulo.textContent = 'La vi...';
+      }
+      if (btnBackResena) {
+        btnBackResena.classList.remove('d-none');
+      }
       fijarCalificacion(0);
       fijarFavorita(false);
       if (modalResenaTexto) {
@@ -342,6 +354,98 @@
       }
       ocultarFeedbackResena();
     }
+
+    function abrirModalEdicion(resena, onGuardado) {
+      if (!resena) return;
+
+      resetearFormularioResena();
+
+      resenaEditandoId = String(resena.id || '').trim();
+      callbackEdicionGuardada = typeof onGuardado === 'function' ? onGuardado : null;
+
+      if (headerModalResenaTitulo) {
+        headerModalResenaTitulo.textContent = 'Editar reseña';
+      }
+      if (btnBackResena) {
+        btnBackResena.classList.add('d-none');
+      }
+      if (btnSaveResena) {
+        btnSaveResena.textContent = 'Guardar Cambios';
+      }
+
+      const pelicula = resena.pelicula || {};
+      const titulo = pelicula.titulo || resena.peliculaTitulo || resena.tituloPelicula || 'Película';
+      const anio = pelicula.anio || resena.peliculaAnio || '';
+      const poster = pelicula.poster || resena.peliculaPoster || '/img/logoMovieClub.png';
+      const peliId = String(pelicula.id || resena.peliculaId || '').trim();
+
+      if (modalResenaTitulo) {
+        modalResenaTitulo.textContent = titulo;
+      }
+      if (modalResenaAnio) {
+        modalResenaAnio.textContent = anio ? `(${anio})` : '';
+      }
+      if (modalResenaPoster) {
+        modalResenaPoster.src = poster;
+        modalResenaPoster.alt = titulo;
+      }
+      if (inputPeliculaId) {
+        inputPeliculaId.value = peliId;
+      }
+      if (modalResenaElement) {
+        modalResenaElement.dataset.peliculaId = peliId;
+      }
+
+      const puntuacion = Number(resena.puntuacion) || 0;
+      fijarCalificacion(puntuacion);
+
+      const esFav = Boolean(resena.esFavorita || resena.favorita);
+      fijarFavorita(esFav);
+
+      if (modalResenaTexto) {
+        modalResenaTexto.value = resena.texto || '';
+      }
+
+      if (checkContieneSpoilers) {
+        checkContieneSpoilers.checked = Boolean(resena.contieneSpoilers);
+      }
+
+      const vioAntes = Boolean(resena.vistaPreviamente);
+      if (checkWatchedBefore) {
+        checkWatchedBefore.checked = vioAntes;
+      }
+      if (labelWatchedBefore) {
+        labelWatchedBefore.classList.toggle('text-light', vioAntes);
+        labelWatchedBefore.classList.toggle('text-secondary', !vioAntes);
+      }
+
+      if (resena.fechaVisionado) {
+        if (checkWatchedOn) checkWatchedOn.checked = true;
+        if (inputWatchedDate) {
+          inputWatchedDate.disabled = false;
+          try {
+            inputWatchedDate.value = String(resena.fechaVisionado).split('T')[0];
+          } catch (_) {
+            inputWatchedDate.value = '';
+          }
+        }
+      } else {
+        if (checkWatchedOn) checkWatchedOn.checked = false;
+        if (inputWatchedDate) {
+          inputWatchedDate.disabled = true;
+          inputWatchedDate.value = '';
+        }
+      }
+
+      if (bsModalBuscador) {
+        bsModalBuscador.hide();
+      }
+      if (bsModalResena) {
+        bsModalResena.show();
+      }
+    }
+
+    window.abrirModalEdicionResena = abrirModalEdicion;
 
     function abrirModalResena({ id, titulo, anio, poster }) {
       if (modalResenaTitulo) {
@@ -547,20 +651,31 @@
         }
         resenaAbortController = new AbortController();
 
+        const esModoEdicion = Boolean(resenaEditandoId);
+
         if (btnSaveResena) {
           btnSaveResena.disabled = true;
-          btnSaveResena.textContent = 'Publicando...';
+          btnSaveResena.textContent = esModoEdicion ? 'Guardando...' : 'Publicando...';
         }
 
-        const payload = {
-          peliculaId,
-          puntuacion,
-          texto,
-          contieneSpoilers,
-          vistaPreviamente,
-          fechaVisionado,
-          esFavorita
-        };
+        const payload = esModoEdicion
+          ? {
+              puntuacion,
+              texto,
+              contieneSpoilers,
+              vistaPreviamente,
+              fechaVisionado,
+              esFavorita
+            }
+          : {
+              peliculaId,
+              puntuacion,
+              texto,
+              contieneSpoilers,
+              vistaPreviamente,
+              fechaVisionado,
+              esFavorita
+            };
 
         try {
           const headers = {
@@ -582,8 +697,13 @@
             }
           } catch (_) { }
 
-          const response = await fetch('/api/resenas', {
-            method: 'POST',
+          const urlEndpoint = esModoEdicion
+            ? `/api/resenas/${encodeURIComponent(resenaEditandoId)}`
+            : '/api/resenas';
+          const metodoHttp = esModoEdicion ? 'PATCH' : 'POST';
+
+          const response = await fetch(urlEndpoint, {
+            method: metodoHttp,
             headers,
             body: JSON.stringify(payload),
             credentials: 'same-origin',
@@ -597,12 +717,14 @@
               data.detail ||
               data.error ||
               (response.status === 401
-                ? 'Debés iniciar sesión para publicar una reseña.'
-                : 'No se pudo publicar la reseña. Intentá nuevamente.');
+                ? 'Debés iniciar sesión para realizar esta acción.'
+                : response.status === 403
+                  ? 'No tenés permisos para modificar esta reseña.'
+                  : (esModoEdicion ? 'No se pudo guardar la reseña. Intentá nuevamente.' : 'No se pudo publicar la reseña. Intentá nuevamente.'));
             mostrarFeedbackResena('error', mensajeError);
             if (btnSaveResena) {
               btnSaveResena.disabled = false;
-              btnSaveResena.textContent = 'Publicar Reseña';
+              btnSaveResena.textContent = esModoEdicion ? 'Guardar Cambios' : 'Publicar Reseña';
             }
             return;
           }
@@ -626,14 +748,27 @@
             } catch (_) {}
           }
 
-          mostrarFeedbackResena('exito', 'Reseña publicada con éxito en MovieClub!');
+          mostrarFeedbackResena(
+            'exito',
+            esModoEdicion
+              ? '¡Reseña actualizada con éxito!'
+              : 'Reseña publicada con éxito en MovieClub!'
+          );
+
+          if (esModoEdicion && typeof callbackEdicionGuardada === 'function') {
+            try {
+              callbackEdicionGuardada(data);
+            } catch (_) {}
+          }
 
           cierreModalTimeoutId = setTimeout(() => {
             if (bsModalResena) {
               bsModalResena.hide();
             }
             resetearFormularioResena();
-            actualizarUltimasResenas();
+            if (!esModoEdicion) {
+              actualizarUltimasResenas();
+            }
           }, 1200);
         } catch (err) {
           if (err && err.name === 'AbortError') {
@@ -641,11 +776,11 @@
           }
           mostrarFeedbackResena(
             'error',
-            err?.message || 'Error de conexión al intentar publicar la reseña.'
+            err?.message || (esModoEdicion ? 'Error de conexión al guardar los cambios.' : 'Error de conexión al intentar publicar la reseña.')
           );
           if (btnSaveResena) {
             btnSaveResena.disabled = false;
-            btnSaveResena.textContent = 'Publicar Reseña';
+            btnSaveResena.textContent = esModoEdicion ? 'Guardar Cambios' : 'Publicar Reseña';
           }
         }
       });

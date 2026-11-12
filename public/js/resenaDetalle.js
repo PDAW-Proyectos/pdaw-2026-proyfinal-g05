@@ -31,6 +31,9 @@
     const fechaPublicacion = document.getElementById('resena-fecha-publicacion');
     const btnCompartir = document.getElementById('btn-compartir-resena');
     const feedbackCompartir = document.getElementById('feedback-compartir');
+    const btnEditarDetalle = document.getElementById('btn-editar-resena-detalle');
+
+    let datosResenaActual = null;
 
     function formatearFecha(isoString) {
       if (!isoString) return '—';
@@ -83,6 +86,7 @@
         }
 
         const data = await respuesta.json();
+        datosResenaActual = data;
 
         if (autorNombre) autorNombre.textContent = data.nombreAutor || 'Miembro de MovieClub';
         if (autorRol) autorRol.textContent = (data.rolAutor || 'Espectador').toUpperCase();
@@ -206,6 +210,17 @@
         const estaRevelado = resenaTexto.classList.toggle('revelado');
         if (textoToggleSpoiler) {
           textoToggleSpoiler.textContent = estaRevelado ? 'Ocultar spoilers.' : 'Mostrala sin filtros.';
+        }
+      });
+    }
+
+    if (btnEditarDetalle) {
+      btnEditarDetalle.addEventListener('click', () => {
+        if (!datosResenaActual) return;
+        if (typeof window.abrirModalEdicionResena === 'function') {
+          window.abrirModalEdicionResena(datosResenaActual, () => {
+            cargarDetalleResena();
+          });
         }
       });
     }
