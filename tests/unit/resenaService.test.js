@@ -273,7 +273,7 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
     });
   });
 
-  describe('eliminar() y regla de autorización - T04.2', () => {
+  describe('eliminar() y regla de autorización - T04.2 & T06.2', () => {
     const resenaExistente = new Resena({
       id: 'resena-123',
       peliculaId: '550',
@@ -291,6 +291,75 @@ describe('ResenaService (Unit) - T03.3 & T04.1', () => {
 
       expect(resultado).toBe(true);
       expect(mockRepository.eliminar).toHaveBeenCalledWith('resena-123');
+    });
+
+    test('permite eliminar una reseña ajena si el usuario en usuarioRepository es Moderador (T06.2)', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+      mockRepository.eliminar = jest.fn().mockResolvedValue(true);
+
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue({
+          id: 'usr-mod',
+          nombre: 'Thomas Anderson',
+          email: 'neo@movieclub.com',
+          passwordHash: 'hash',
+          rol: 'Moderador'
+        })
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      const resultado = await serviceConUsuarios.eliminar('resena-123', 'usr-mod');
+
+      expect(resultado).toBe(true);
+      expect(mockUsuarioRepo.findById).toHaveBeenCalledWith('usr-mod');
+      expect(mockRepository.eliminar).toHaveBeenCalledWith('resena-123');
+    });
+
+    test('lanza ForbiddenError si el solicitante no es autor y en usuarioRepository es Espectador o Critico (T06.2)', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+      mockRepository.eliminar = jest.fn();
+
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue({
+          id: 'usr-critico',
+          nombre: 'Branco',
+          email: 'bchamu@movieclub.com',
+          passwordHash: 'hash',
+          rol: 'Critico',
+          medioDePrensa: 'Clarin'
+        })
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      await expect(
+        serviceConUsuarios.eliminar('resena-123', 'usr-critico')
+      ).rejects.toThrow(ForbiddenError);
+      expect(mockRepository.eliminar).not.toHaveBeenCalled();
+    });
+
+    test('lanza ForbiddenError si quien intenta eliminar no coincide con el autorId y no existe en usuarioRepository', async () => {
+      mockRepository.findById.mockResolvedValue(resenaExistente);
+
+      const mockUsuarioRepo = {
+        findById: jest.fn().mockResolvedValue(null)
+      };
+
+      const serviceConUsuarios = new ResenaService({
+        resenaRepository: mockRepository,
+        usuarioRepository: mockUsuarioRepo
+      });
+
+      await expect(
+        serviceConUsuarios.eliminar('resena-123', 'usr-usurpador')
+      ).rejects.toThrow(ForbiddenError);
     });
 
     test('lanza ForbiddenError si quien intenta eliminar no coincide con el autorId', async () => {
