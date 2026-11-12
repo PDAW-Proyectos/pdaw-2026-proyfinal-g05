@@ -52,12 +52,25 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       },
       services: {
         usuarioService: {
-          obtenerPorId: jest.fn()
+          obtenerPorId: jest.fn(),
+          login: jest.fn().mockImplementation(async ({ email }) => {
+            const id = email.replace('@test.com', '');
+            return { id, paraExponer: () => ({ id }) };
+          })
         },
         resenaService
       }
     });
   });
+
+  async function iniciarSesion(userId) {
+    const agent = request.agent(app);
+    await agent.post('/api/auth/login').send({
+      email: `${userId}@test.com`,
+      password: 'password123'
+    });
+    return agent;
+  }
 
   test('retorna 201 Created, header Location y la reseña creada al enviar datos válidos', async () => {
     const payload = {
@@ -67,9 +80,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       contieneSpoilers: false
     };
 
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-test-123');
+    const res = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'usr-test-123')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -94,9 +107,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       contieneSpoilers: false
     };
 
-    const res = await request(app)
+    const agent = await iniciarSesion('Chamus12');
+    const res = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'Chamus12')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -117,9 +130,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       contieneSpoilers: false
     };
 
-    const res = await request(app)
+    const agent = await iniciarSesion('lucassafe');
+    const res = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'lucassafe')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -132,19 +145,26 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
     expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
   });
 
-  test('retorna 400 si falta el identificador de usuario', async () => {
+  test('retorna 401 si no hay sesión activa (incluso si envían x-user-id)', async () => {
     const payload = {
       peliculaId: '550',
       puntuacion: 4,
       texto: 'Una película excelente y muy entretenida.',
     };
 
-    const res = await request(app)
+    const resSinSesion = await request(app)
       .post('/api/resenas')
       .send(payload);
 
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe('Necesitás iniciar sesión para publicar una reseña');
+    expect(resSinSesion.status).toBe(401);
+    expect(resSinSesion.body.error).toContain('Acceso no autorizado');
+
+    const resConHeaderFalso = await request(app)
+      .post('/api/resenas')
+      .set('x-user-id', 'Chamus12')
+      .send(payload);
+
+    expect(resConHeaderFalso.status).toBe(401);
     expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
   });
 
@@ -155,9 +175,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
       texto: 'Corta'
     };
 
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-test-123');
+    const res = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'usr-test-123')
       .send(payload);
 
     expect(res.status).toBe(400);
@@ -166,9 +186,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
   });
 
   test('acepta calificaciones en medias estrellas como 0.5 y 3.5', async () => {
-    const resMedia = await request(app)
+    const agent = await iniciarSesion('usr-test-123');
+    const resMedia = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'usr-test-123')
       .send({
         peliculaId: '550',
         puntuacion: 0.5,
@@ -179,9 +199,8 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
     expect(resMedia.status).toBe(201);
     expect(resMedia.body.puntuacion).toBe(0.5);
 
-    const resTresYMedia = await request(app)
+    const resTresYMedia = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'usr-test-123')
       .send({
         peliculaId: '550',
         puntuacion: 3.5,
@@ -194,9 +213,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
   });
 
   test('registra vistaPreviamente, fechaVisionado en ISO 8601 UTC, esFavorita y actualiza las favoritas del usuario', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('Chamus12');
+    const res = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'Chamus12')
       .send({
         peliculaId: '550',
         puntuacion: 5,
@@ -221,9 +240,9 @@ describe('POST /api/resenas (Integration) - T03.3 & T03.4', () => {
   });
 
   test('retorna 400 si fechaVisionado es una fecha futura', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-test-123');
+    const res = await agent
       .post('/api/resenas')
-      .set('x-user-id', 'usr-test-123')
       .send({
         peliculaId: '550',
         puntuacion: 4,

@@ -15,9 +15,10 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
     controller = new ResenaController({ resenaService: mockResenaService });
 
     req = {
-      headers: {
-        'x-user-id': 'usr-123',
+      session: {
+        userId: 'usr-123',
       },
+      headers: {},
       body: {
         peliculaId: '550',
         puntuacion: 4,
@@ -34,39 +35,39 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
     next = jest.fn();
   });
 
-  describe('Validación del encabezado x-user-id', () => {
-    test('rechaza la solicitud con 400 si falta el encabezado x-user-id', async () => {
-      delete req.headers['x-user-id'];
+  describe('Validación de sesión (req.session.userId)', () => {
+    test('rechaza la solicitud con 401 si falta req.session.userId', async () => {
+      delete req.session.userId;
 
       await controller.crear(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Necesitás iniciar sesión para publicar una reseña',
+        error: 'Acceso no autorizado: se requiere iniciar sesión',
       });
       expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
 
-    test('rechaza la solicitud con 400 si el encabezado x-user-id es un string vacío o con espacios', async () => {
-      req.headers['x-user-id'] = '   ';
+    test('rechaza la solicitud con 401 si req.session.userId es un string vacío o con espacios', async () => {
+      req.session.userId = '   ';
 
       await controller.crear(req, res, next);
 
-      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
-        error: 'Necesitás iniciar sesión para publicar una reseña',
+        error: 'Acceso no autorizado: se requiere iniciar sesión',
       });
       expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
 
-    test('detecta el encabezado x-user-id mediante req.header() si está disponible', async () => {
-      req.headers = {};
-      req.header = jest.fn().mockReturnValue('usr-from-func');
+    test('ignora el header x-user-id cuando no hay sesión activa', async () => {
+      req.session = {};
+      req.headers = { 'x-user-id': 'usr-spoof' };
 
       await controller.crear(req, res, next);
 
-      expect(req.header).toHaveBeenCalledWith('x-user-id');
-      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(mockResenaService.crear).not.toHaveBeenCalled();
     });
   });
 
@@ -193,7 +194,7 @@ describe('ResenaController (Unit) - Validaciones T03.2', () => {
     });
 
     test('rechaza con 401 si no hay usuario autenticado', async () => {
-      delete req.headers['x-user-id'];
+      delete req.session.userId;
 
       await controller.eliminar(req, res, next);
 

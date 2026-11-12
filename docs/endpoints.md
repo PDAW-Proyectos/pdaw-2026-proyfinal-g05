@@ -39,7 +39,7 @@ Endpoints previstos para el ciclo de vida de reseñas cinematográficas dentro d
   Devuelve el detalle de una reseña específica identificada por su `id`, incluyendo autor, película asociada, calificación (1 a 5 estrellas), texto y estado de spoilers.
 
 * `POST /api/resenas`  
-  Crea una nueva reseña para una película. Requiere autenticación activa (sesión o header `x-user-id`). Responde `201 Created`, incluye el header `Location` con la URL del nuevo recurso creado (`/api/resenas/:id`) y devuelve el JSON con la representación completa de la reseña recién creada.
+  Crea una nueva reseña para una película. Requiere autenticación activa (sesión `req.session.userId`). Responde `201 Created`, incluye el header `Location` con la URL del nuevo recurso creado (`/api/resenas/:id`) y devuelve el JSON con la representación completa de la reseña recién creada.
 
 * `PUT /api/resenas/:id`  
   Reemplaza o actualiza completamente una reseña existente. Valida que el usuario autenticado sea el autor original de la misma (o un Moderador/Administrador). Responde `200 OK`.

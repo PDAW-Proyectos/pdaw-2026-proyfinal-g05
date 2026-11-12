@@ -40,17 +40,30 @@ describe('PATCH /api/resenas/:id (Integration) - T04.1', () => {
       },
       services: {
         usuarioService: {
-          obtenerPorId: jest.fn()
+          obtenerPorId: jest.fn(),
+          login: jest.fn().mockImplementation(async ({ email }) => {
+            const id = email.replace('@test.com', '');
+            return { id, paraExponer: () => ({ id }) };
+          })
         },
         resenaService
       }
     });
   });
 
+  async function iniciarSesion(userId) {
+    const agent = request.agent(app);
+    await agent.post('/api/auth/login').send({
+      email: `${userId}@test.com`,
+      password: 'password123'
+    });
+    return agent;
+  }
+
   test('retorna 200 y los campos actualizados al ser el autor y enviar datos válidos', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-autor-1');
+    const res = await agent
       .patch('/api/resenas/resena-abc-123')
-      .set('x-user-id', 'usr-autor-1')
       .send({
         puntuacion: 4.5,
         texto: 'Texto completamente modificado y con longitud suficiente.'
@@ -64,20 +77,27 @@ describe('PATCH /api/resenas/:id (Integration) - T04.1', () => {
     expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
   });
 
-  test('retorna 401 si no hay usuario autenticado', async () => {
+  test('retorna 401 si no hay usuario autenticado (incluso si envían x-user-id)', async () => {
     const res = await request(app)
       .patch('/api/resenas/resena-abc-123')
       .send({ puntuacion: 4 });
 
     expect(res.status).toBe(401);
     expect(res.body.error).toContain('Acceso no autorizado');
+
+    const resHeaderFalso = await request(app)
+      .patch('/api/resenas/resena-abc-123')
+      .set('x-user-id', 'usr-autor-1')
+      .send({ puntuacion: 4 });
+
+    expect(resHeaderFalso.status).toBe(401);
     expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
   });
 
   test('retorna 403 Forbidden si el usuario autenticado no es el autor', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-usurpador');
+    const res = await agent
       .patch('/api/resenas/resena-abc-123')
-      .set('x-user-id', 'usr-usurpador')
       .send({ puntuacion: 5 });
 
     expect(res.status).toBe(403);
@@ -86,9 +106,9 @@ describe('PATCH /api/resenas/:id (Integration) - T04.1', () => {
   });
 
   test('retorna 404 Not Found si la reseña no existe', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-autor-1');
+    const res = await agent
       .patch('/api/resenas/id-inexistente')
-      .set('x-user-id', 'usr-autor-1')
       .send({ puntuacion: 4 });
 
     expect(res.status).toBe(404);
@@ -97,9 +117,9 @@ describe('PATCH /api/resenas/:id (Integration) - T04.1', () => {
   });
 
   test('retorna 400 Bad Request si el body no contiene campos para actualizar', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-autor-1');
+    const res = await agent
       .patch('/api/resenas/resena-abc-123')
-      .set('x-user-id', 'usr-autor-1')
       .send({});
 
     expect(res.status).toBe(400);
@@ -108,9 +128,9 @@ describe('PATCH /api/resenas/:id (Integration) - T04.1', () => {
   });
 
   test('retorna 400 Bad Request si el nuevo texto no cumple la longitud mínima', async () => {
-    const res = await request(app)
+    const agent = await iniciarSesion('usr-autor-1');
+    const res = await agent
       .patch('/api/resenas/resena-abc-123')
-      .set('x-user-id', 'usr-autor-1')
       .send({ texto: 'muy corta' });
 
     expect(res.status).toBe(400);
