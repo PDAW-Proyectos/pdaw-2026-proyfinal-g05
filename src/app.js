@@ -1,6 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const requestContext = require('./middlewares/requestContext');
 const errorHandler = require('./middlewares/errorHandler');
 const createAuthRoutes = require('./routes/authRoutes');
 const createUsuarioRoutes = require('./routes/usuarioRoutes');
@@ -9,8 +10,11 @@ const createResenaRoutes = require('./routes/resenaRoutes');
 function createApp({ config, services } = {}) {
   const app = express();
 
+  app.use(requestContext());
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
+
+  app.use(express.static(config?.publicDir || path.resolve(__dirname, '../public')));
 
   app.use(session({
     secret: config?.sessionSecret || 'movieclub_session_secret_default',
@@ -19,11 +23,10 @@ function createApp({ config, services } = {}) {
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: config?.env === 'production'
+      secure: config?.env === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 7
     }
   }));
-
-  app.use(express.static(config?.publicDir || path.resolve(__dirname, '../public')));
 
   app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'MovieClub API' });
@@ -37,7 +40,19 @@ function createApp({ config, services } = {}) {
   }
 
   app.use((req, res) => {
-    res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
+    const errorMsg = `Ruta no encontrada: ${req.method} ${req.originalUrl}`;
+    res.status(404);
+
+    if (req.accepts('html') && !req.originalUrl.startsWith('/api')) {
+      const publicDirectory = config?.publicDir || path.resolve(__dirname, '../public');
+      return res.sendFile(path.join(publicDirectory, '404.html'), (err) => {
+        if (err) {
+          res.json({ error: errorMsg });
+        }
+      });
+    }
+
+    return res.json({ error: errorMsg });
   });
 
   app.use(errorHandler);

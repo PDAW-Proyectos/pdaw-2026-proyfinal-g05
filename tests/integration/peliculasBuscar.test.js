@@ -76,7 +76,7 @@ describe('GET /api/peliculas/buscar (Integration)', () => {
     const res = await request(app).get('/api/peliculas/buscar?q=fight');
 
     expect(res.status).toBe(502);
-    expect(res.body).toEqual({ error: 'Error al conectar con TMDB: Network failure' });
+    expect(res.body).toMatchObject({ error: 'Error al conectar con TMDB: Network failure' });
   });
 
   test('retorna 500 estructurado ante error interno no controlado', async () => {
@@ -87,7 +87,7 @@ describe('GET /api/peliculas/buscar (Integration)', () => {
     const res = await request(app).get('/api/peliculas/buscar?q=fight');
 
     expect(res.status).toBe(500);
-    expect(res.body).toEqual({ error: 'Ocurrió un error interno en el servidor' });
+    expect(res.body).toMatchObject({ error: 'Ocurrió un error interno en el servidor' });
   });
 
   test('contenedor registra peliculasController y peliculasRoutes', () => {

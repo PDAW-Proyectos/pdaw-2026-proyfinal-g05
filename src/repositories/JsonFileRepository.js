@@ -53,6 +53,16 @@ class JsonFileRepository {
     return todos.find((u) => u.id === id) || null;
   }
 
+  async eliminar(id) {
+    const todos = await this.leer();
+    const restantes = todos.filter((item) => item.id !== id);
+    if (restantes.length === todos.length) {
+      return false;
+    }
+    await this.guardar(restantes);
+    return true;
+  }
+
   async guardar(datos) {
     let arreglo = datos;
     if (!Array.isArray(datos)) {

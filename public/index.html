@@ -30,16 +30,17 @@
               <span id="user-nav-name" class="fw-bold small text-light text-uppercase"></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end py-1 shadow">
+              <li><a class="dropdown-item small" href="/perfil.html"><i class="bi bi-person me-2"></i>Mi Perfil</a></li>
+              <li><hr class="dropdown-divider border-secondary border-opacity-25 my-1"></li>
               <li><button type="button" class="dropdown-item small text-danger" id="btn-logout">Cerrar Sesión</button></li>
             </ul>
           </li>
           <li class="nav-item text-secondary d-none d-lg-block" id="user-bolt-item">
             <i class="bi bi-lightning-charge-fill" style="font-size: 0.85rem;"></i>
           </li>
-          <li class="nav-item"><a class="nav-link" href="#peliculas">Films</a></li>
-          <li class="nav-item"><a class="nav-link" href="#listas">Lists</a></li>
-          <li class="nav-item"><a class="nav-link" href="#miembros">Members</a></li>
-          <li class="nav-item"><a class="nav-link" href="#diario">Journal</a></li>
+          <li class="nav-item"><a class="nav-link active text-white" href="/">Inicio</a></li>
+          <li class="nav-item"><a class="nav-link" href="/peliculas.html">Películas</a></li>
+          <li class="nav-item"><a class="nav-link" href="/resenas.html">Reseñas</a></li>
         </ul>
         <div class="d-flex align-items-center ms-lg-4 gap-3">
           <button type="button" class="btn nav-link-icon p-0 border-0 bg-transparent text-secondary hover-pink" aria-label="Buscar" data-bs-toggle="modal" data-bs-target="#modal-buscador">
@@ -79,61 +80,17 @@
 
   <main class="container-xl px-4 px-md-5 py-5 mt-auto">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="h3 text-uppercase text-primary-custom mb-0">En boca de todos</h2>
-      <a href="#" class="text-pink text-decoration-none small text-uppercase fw-semibold">Ver películas ↗</a>
+      <h2 class="h3 text-uppercase text-primary-custom mb-0">En boca de todos · Últimas reseñas</h2>
+      <a href="/resenas.html" class="text-pink text-decoration-none small text-uppercase fw-semibold">Ver Feed Reseñas ↗</a>
     </div>
     <div class="border-top border-subtle-custom mb-4"></div>
-    <div class="movie-slider">
-      <div class="movie-card">
-        <div class="movie-poster-placeholder"></div>
-        <p class="movie-title mt-2 mb-0">—</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="movie-year">—</span>
-          <span class="movie-rating">★ —</span>
-        </div>
+    <div id="slider-estado-cargando" class="text-center py-5">
+      <div class="spinner-border text-pink mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando reseñas...</span>
       </div>
-      <div class="movie-card">
-        <div class="movie-poster-placeholder"></div>
-        <p class="movie-title mt-2 mb-0">—</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="movie-year">—</span>
-          <span class="movie-rating">★ —</span>
-        </div>
-      </div>
-      <div class="movie-card">
-        <div class="movie-poster-placeholder"></div>
-        <p class="movie-title mt-2 mb-0">—</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="movie-year">—</span>
-          <span class="movie-rating">★ —</span>
-        </div>
-      </div>
-      <div class="movie-card">
-        <div class="movie-poster-placeholder"></div>
-        <p class="movie-title mt-2 mb-0">—</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="movie-year">—</span>
-          <span class="movie-rating">★ —</span>
-        </div>
-      </div>
-      <div class="movie-card">
-        <div class="movie-poster-placeholder"></div>
-        <p class="movie-title mt-2 mb-0">—</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="movie-year">—</span>
-          <span class="movie-rating">★ —</span>
-        </div>
-      </div>
-      <div class="movie-card">
-        <div class="movie-poster-placeholder"></div>
-        <p class="movie-title mt-2 mb-0">—</p>
-        <div class="d-flex justify-content-between align-items-center">
-          <span class="movie-year">—</span>
-          <span class="movie-rating">★ —</span>
-        </div>
-      </div>
+      <p class="text-secondary text-uppercase fw-semibold small">Cargando últimas reseñas...</p>
     </div>
-    <p class="text-secondary text-center mt-4 small text-uppercase fw-semibold">Próximamente</p>
+    <div class="movie-slider d-none" id="movie-slider"></div>
   </main>
 
   <footer class="footer-cta">
@@ -149,9 +106,10 @@
           UNITE AL CINE SIN FILTROS
         </h2>
 
-        <form class="footer-subscribe-form mx-auto" onsubmit="event.preventDefault(); alert('¡Bienvenido al club!');">
+        <form id="form-suscripcion" class="footer-subscribe-form mx-auto">
           <div class="footer-input-group">
-            <input type="email" class="form-control footer-input" placeholder="Ingresá tu correo electrónico..." required autocomplete="email">
+            <label for="footer-email" class="visually-hidden">Correo electrónico para suscripción</label>
+            <input type="email" class="form-control footer-input" id="footer-email" name="email" placeholder="Ingresá tu correo electrónico..." required autocomplete="email" aria-describedby="footer-terms">
             <button type="submit" class="btn footer-btn">
               Suscribirse
             </button>
@@ -175,10 +133,9 @@
           <span class="text-secondary small">· Cine sin filtros. © 2026</span>
         </div>
         <div class="d-flex gap-4 text-uppercase small text-secondary">
-          <a href="#peliculas" class="text-secondary text-decoration-none hover-pink">Films</a>
-          <a href="#listas" class="text-secondary text-decoration-none hover-pink">Lists</a>
-          <a href="#miembros" class="text-secondary text-decoration-none hover-pink">Members</a>
-          <a href="#diario" class="text-secondary text-decoration-none hover-pink">Journal</a>
+          <a href="/peliculas.html" class="text-secondary text-decoration-none hover-pink">Películas</a>
+          <a href="/resenas.html" class="text-secondary text-decoration-none hover-pink">Reseñas</a>
+          <a href="/perfil.html" class="text-secondary text-decoration-none hover-pink">Mi Perfil</a>
         </div>
       </div>
     </div>
@@ -193,6 +150,7 @@
         </div>
         <div class="modal-body p-4">
           <div class="position-relative">
+            <label for="input-buscar-pelicula" class="visually-hidden">Buscar película</label>
             <input type="text" id="input-buscar-pelicula" class="form-control form-control-lg bg-white text-dark py-2 px-3 fs-6" placeholder="Buscar película..." autocomplete="off">
             <div id="spinner-busqueda" class="spinner-border spinner-border-sm text-secondary position-absolute top-50 end-0 translate-middle-y me-3 d-none" role="status">
               <span class="visually-hidden">Cargando...</span>
@@ -228,73 +186,90 @@
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
-        <div class="modal-body p-4">
-          <div class="row g-4">
-            <div class="col-12 col-md-4 text-center text-md-start">
-              <img id="modal-resena-poster" src="" alt="Póster" class="img-fluid rounded shadow" style="max-height: 320px; object-fit: cover; background: #111;">
-            </div>
-            <div class="col-12 col-md-8 d-flex flex-column">
-              <div class="d-flex align-items-baseline gap-2 mb-3">
-                <h3 id="modal-resena-titulo" class="h4 text-white fw-bold mb-0"></h3>
-                <span id="modal-resena-anio" class="text-secondary fs-5"></span>
+        <form id="form-resena" novalidate>
+          <div class="modal-body p-4">
+            <div id="alerta-resena" class="alert d-none mb-3 py-2 px-3 rounded-0 border-0" role="alert" aria-live="polite"></div>
+            <input type="hidden" id="input-resena-pelicula-id" name="peliculaId" value="">
+            <input type="hidden" id="input-resena-puntuacion" name="puntuacion" value="0">
+            <input type="hidden" id="input-resena-favorita" name="esFavorita" value="false">
+            <div class="row g-4">
+              <div class="col-12 col-md-4 text-center text-md-start">
+                <img id="modal-resena-poster" src="" alt="Póster" class="img-fluid rounded shadow" style="max-height: 320px; object-fit: cover; background: #111;">
               </div>
-
-              <div class="d-flex flex-wrap align-items-center gap-4 mb-3 small text-secondary">
-                <div class="form-check d-flex align-items-center gap-2 mb-0">
-                  <input class="form-check-input mt-0" type="checkbox" id="check-watched-on" checked>
-                  <label class="form-check-label user-select-none text-light" for="check-watched-on">
-                    Vista el <span id="label-watched-date" class="badge bg-secondary bg-opacity-50 text-light ms-1 px-2 py-1"></span>
-                  </label>
+              <div class="col-12 col-md-8 d-flex flex-column">
+                <div class="d-flex align-items-baseline gap-2 mb-3">
+                  <h3 id="modal-resena-titulo" class="h4 text-white fw-bold mb-0"></h3>
+                  <span id="modal-resena-anio" class="text-secondary fs-5"></span>
                 </div>
-                <div class="form-check d-flex align-items-center gap-2 mb-0">
-                  <input class="form-check-input mt-0" type="checkbox" id="check-watched-before">
-                  <label class="form-check-label user-select-none text-secondary" for="check-watched-before">
-                    Ya la había visto antes
-                  </label>
-                </div>
-              </div>
 
-              <div class="mb-3">
-                <textarea id="modal-resena-texto" class="form-control resena-textarea p-3" rows="5" placeholder="Escribí tu reseña..."></textarea>
-              </div>
-
-              <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 pt-2">
-                <div class="d-flex align-items-center">
+                <div class="d-flex flex-wrap align-items-center gap-4 mb-3 small text-secondary">
                   <div class="form-check d-flex align-items-center gap-2 mb-0">
-                    <input class="form-check-input mt-0" type="checkbox" id="check-contiene-spoilers">
-                    <label class="form-check-label user-select-none text-secondary small fw-semibold" for="check-contiene-spoilers">
-                      Contiene spoilers
+                    <input class="form-check-input check-fightclub mt-0" type="checkbox" id="check-watched-on" name="vistaEnFecha" checked>
+                    <label class="form-check-label user-select-none text-light" for="check-watched-on">
+                      Vista el
+                    </label>
+                    <input
+                      type="date"
+                      id="input-watched-date"
+                      name="fechaVisionado"
+                      class="form-control form-control-sm input-fecha-fightclub ms-1"
+                      aria-label="Fecha en que viste la película"
+                    >
+                    <span id="label-watched-date" class="visually-hidden"></span>
+                  </div>
+                  <div class="form-check d-flex align-items-center gap-2 mb-0">
+                    <input class="form-check-input check-fightclub mt-0" type="checkbox" id="check-watched-before" name="vistaPreviamente">
+                    <label class="form-check-label user-select-none text-secondary" for="check-watched-before" id="label-watched-before">
+                      Ya la había visto antes
                     </label>
                   </div>
                 </div>
 
-                <div class="d-flex align-items-center gap-4">
-                  <div>
-                    <div class="d-flex align-items-center justify-content-between mb-1">
-                      <span class="text-secondary small fw-bold">Calificación</span>
-                      <span id="label-rating-resena" class="text-secondary ms-2" style="font-size: 0.75rem;">0 de 5</span>
-                    </div>
-                    <div id="contenedor-estrellas" class="d-flex gap-1">
-                      <i class="bi bi-star estrella-rating" data-valor="1"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="2"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="3"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="4"></i>
-                      <i class="bi bi-star estrella-rating" data-valor="5"></i>
+                <div class="mb-3">
+                  <label for="modal-resena-texto" class="visually-hidden">Escribí tu reseña</label>
+                  <textarea id="modal-resena-texto" name="texto" class="form-control resena-textarea p-3" rows="5" placeholder="Escribí tu reseña..."></textarea>
+                </div>
+
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 pt-2">
+                  <div class="d-flex align-items-center">
+                    <div class="form-check d-flex align-items-center gap-2 mb-0">
+                      <input class="form-check-input check-fightclub mt-0" type="checkbox" id="check-contiene-spoilers" name="contieneSpoilers">
+                      <label class="form-check-label user-select-none text-secondary small fw-semibold" for="check-contiene-spoilers">
+                        Contiene spoilers
+                      </label>
                     </div>
                   </div>
 
-                  <div>
-                    <div class="text-secondary small fw-bold mb-1">Favorita</div>
-                    <i id="btn-like-resena" class="bi bi-heart-fill icono-like"></i>
+                  <div class="d-flex align-items-center gap-4">
+                    <div>
+                      <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="text-secondary small fw-bold">Calificación</span>
+                        <span id="label-rating-resena" class="text-secondary ms-2" style="font-size: 0.75rem;">0 de 5</span>
+                      </div>
+                      <div id="contenedor-estrellas" class="d-flex gap-1" role="group" aria-label="Calificación de la película">
+                        <i class="bi bi-star estrella-rating" data-valor="1" data-estrella="1" role="button" tabindex="0" aria-label="1 estrella"></i>
+                        <i class="bi bi-star estrella-rating" data-valor="2" data-estrella="2" role="button" tabindex="0" aria-label="2 estrellas"></i>
+                        <i class="bi bi-star estrella-rating" data-valor="3" data-estrella="3" role="button" tabindex="0" aria-label="3 estrellas"></i>
+                        <i class="bi bi-star estrella-rating" data-valor="4" data-estrella="4" role="button" tabindex="0" aria-label="4 estrellas"></i>
+                        <i class="bi bi-star estrella-rating" data-valor="5" data-estrella="5" role="button" tabindex="0" aria-label="5 estrellas"></i>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div class="text-secondary small fw-bold mb-1">Favorita</div>
+                      <button type="button" id="btn-like-resena" class="btn p-0 border-0 bg-transparent" aria-label="Marcar como favorita" aria-pressed="false">
+                        <i class="bi bi-heart-fill icono-like"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3">
-          <button type="button" id="btn-save-resena" class="btn btn-save-resena ms-auto">Guardar</button>
-        </div>
+          <div class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3">
+            <button type="submit" id="btn-save-resena" class="btn btn-pink btn-sm px-4 py-2 ms-auto">Publicar Reseña</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -311,6 +286,21 @@
       </div>
       <div class="text-end text-nowrap">
         <span class="badge bg-dark border border-secondary border-opacity-50 text-warning item-calificacion"></span>
+      </div>
+    </div>
+  </template>
+
+  <template id="template-tarjeta-resena">
+    <div class="movie-card" data-id="" data-titulo="" data-anio="" data-poster="">
+      <img class="movie-poster" src="" alt="" loading="lazy">
+      <p class="movie-title mt-2 mb-0"></p>
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="movie-year"></span>
+        <span class="movie-rating text-pink"></span>
+      </div>
+      <div class="movie-review-preview mt-2 pt-2 border-top border-secondary border-opacity-25">
+        <span class="movie-review-author"></span>
+        <p class="movie-review-snippet"></p>
       </div>
     </div>
   </template>

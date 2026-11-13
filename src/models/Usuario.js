@@ -3,20 +3,24 @@ const { ValidationError, BusinessRuleError } = require("../utils/errors");
 class Usuario {
   #id;
   #nombre;
+  #usuario;
   #email;
   #passwordHash;
   #rol;
   #watchlist;
+  #favoritas;
   #top4;
   #fechaRegistro;
 
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     rol,
     watchlist = [],
+    favoritas = [],
     top4 = [],
     fechaRegistro,
   }) {
@@ -56,6 +60,10 @@ class Usuario {
       throw new ValidationError("La watchlist debe ser un arreglo");
     }
 
+    if (!Array.isArray(favoritas)) {
+      throw new ValidationError("Las películas favoritas deben ser un arreglo");
+    }
+
     if (!Array.isArray(top4) || top4.length > 4) {
       throw new ValidationError(
         "El Top 4 debe ser un arreglo de hasta 4 elementos",
@@ -64,10 +72,17 @@ class Usuario {
 
     this.#id = id.trim();
     this.#nombre = nombre.trim();
+    this.#usuario =
+      typeof usuario === "string" && usuario.trim().replace(/^@+/, "") !== ""
+        ? usuario.trim().replace(/^@+/, "")
+        : null;
     this.#email = email.trim().toLowerCase();
     this.#passwordHash = passwordHash;
     this.#rol = rol.trim();
     this.#watchlist = [...new Set(watchlist.map((p) => String(p).trim()))];
+    this.#favoritas = [
+      ...new Set(favoritas.map((p) => String(p).trim()).filter(Boolean)),
+    ];
     this.#top4 = [...new Set(top4.map((p) => String(p).trim()))];
     this.#fechaRegistro = fechaRegistro || new Date().toISOString();
   }
@@ -80,8 +95,36 @@ class Usuario {
     return this.#nombre;
   }
 
+  get usuario() {
+    return this.#usuario;
+  }
+
   get email() {
     return this.#email;
+  }
+
+  actualizarDatosPersonales({ nombre, usuario } = {}) {
+    if (nombre !== undefined) {
+      if (typeof nombre !== "string" || nombre.trim().length < 2) {
+        throw new ValidationError(
+          "El nombre es obligatorio y debe tener al menos 2 caracteres",
+        );
+      }
+      this.#nombre = nombre.trim();
+    }
+
+    if (usuario !== undefined) {
+      if (typeof usuario !== "string") {
+        throw new ValidationError("El nombre de usuario (@) es inválido");
+      }
+      const limpio = usuario.trim().replace(/^@+/, "");
+      if (!/^[a-zA-Z0-9._-]{2,30}$/.test(limpio)) {
+        throw new ValidationError(
+          "El usuario (@) debe tener entre 2 y 30 caracteres (letras, números, punto, guion o guion bajo)",
+        );
+      }
+      this.#usuario = limpio;
+    }
   }
 
   get passwordHash() {
@@ -94,6 +137,10 @@ class Usuario {
 
   get watchlist() {
     return [...this.#watchlist];
+  }
+
+  get favoritas() {
+    return structuredClone(this.#favoritas);
   }
 
   get top4() {
@@ -117,6 +164,27 @@ class Usuario {
   quitarDeWatchlist(idPelicula) {
     const trimmed = String(idPelicula).trim();
     this.#watchlist = this.#watchlist.filter((id) => id !== trimmed);
+  }
+
+  agregarAFavoritas(idPelicula) {
+    if (!idPelicula || String(idPelicula).trim() === "") {
+      throw new ValidationError("El id de película es obligatorio");
+    }
+    const trimmed = String(idPelicula).trim();
+    if (!this.#favoritas.includes(trimmed)) {
+      this.#favoritas = [...this.#favoritas, trimmed];
+    }
+  }
+
+  quitarDeFavoritas(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return;
+    const trimmed = String(idPelicula).trim();
+    this.#favoritas = this.#favoritas.filter((id) => id !== trimmed);
+  }
+
+  esFavorita(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return false;
+    return this.#favoritas.includes(String(idPelicula).trim());
   }
 
   actualizarTop4(nuevasPeliculas) {
@@ -159,10 +227,12 @@ class Usuario {
     return {
       id: this.#id,
       nombre: this.#nombre,
+      ...(this.#usuario ? { usuario: this.#usuario } : {}),
       email: this.#email,
       passwordHash: this.#passwordHash,
       rol: this.#rol,
       watchlist: [...this.#watchlist],
+      favoritas: [...this.#favoritas],
       top4: [...this.#top4],
       fechaRegistro: this.#fechaRegistro,
     };
@@ -172,9 +242,11 @@ class Usuario {
     return {
       id: this.#id,
       nombre: this.#nombre,
+      ...(this.#usuario ? { usuario: this.#usuario } : {}),
       email: this.#email,
       rol: this.#rol,
       watchlist: [...this.#watchlist],
+      ...(this.#favoritas.length > 0 ? { favoritas: [...this.#favoritas] } : {}),
       top4: [...this.#top4],
       fechaRegistro: this.#fechaRegistro,
     };
@@ -185,19 +257,23 @@ class Espectador extends Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     watchlist,
+    favoritas,
     top4,
     fechaRegistro,
   }) {
     super({
       id,
       nombre,
+      usuario,
       email,
       passwordHash,
       rol: "Espectador",
       watchlist,
+      favoritas,
       top4,
       fechaRegistro,
     });
@@ -219,25 +295,33 @@ class Moderador extends Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     watchlist,
+    favoritas,
     top4,
     fechaRegistro,
   }) {
     super({
       id,
       nombre,
+      usuario,
       email,
       passwordHash,
       rol: "Moderador",
       watchlist,
+      favoritas,
       top4,
       fechaRegistro,
     });
   }
 
   puedeModerar() {
+    return true;
+  }
+
+  puedeDestacar() {
     return true;
   }
 
@@ -252,20 +336,24 @@ class Critico extends Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     medioDePrensa,
     watchlist,
+    favoritas,
     top4,
     fechaRegistro,
   }) {
     super({
       id,
       nombre,
+      usuario,
       email,
       passwordHash,
       rol: "Critico",
       watchlist,
+      favoritas,
       top4,
       fechaRegistro,
     });

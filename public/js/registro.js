@@ -86,6 +86,9 @@
           }
 
           const nombreUsuario = data.nombre || data.email || 'Usuario';
+          if (data.id) {
+            localStorage.setItem('userId', String(data.id));
+          }
           localStorage.setItem('usuarioNombre', nombreUsuario);
           localStorage.setItem('usuario', JSON.stringify(data));
         }

@@ -1,6 +1,8 @@
 const JsonFileRepository = require('./repositories/JsonFileRepository');
 const UsuarioService = require('./services/usuarioService');
+const ResenaService = require('./services/resenaService');
 const TmdbService = require('./services/tmdbService');
+const TmdbAdapter = require('./services/tmdbAdapter');
 const PeliculasController = require('./controllers/PeliculasController');
 const createPeliculasRoutes = require('./routes/peliculasRoutes');
 
@@ -10,13 +12,21 @@ function createContainer({ config }) {
     resenaRepository: new JsonFileRepository(config.data.resenasFile)
   };
 
+  const tmdbService = new TmdbService({ config });
+  const tmdbAdapter = new TmdbAdapter({ tmdbService });
+
   const services = {
     usuarioService: new UsuarioService({ usuarioRepository: repos.usuarioRepository }),
-    tmdbService: new TmdbService({ config })
+    resenaService: new ResenaService({
+      resenaRepository: repos.resenaRepository,
+      usuarioRepository: repos.usuarioRepository,
+      tmdbAdapter
+    }),
+    tmdbService
   };
 
   const peliculasController = new PeliculasController({
-    tmdbService: services.tmdbService
+    tmdbAdapter: tmdbAdapter
   });
 
   services.peliculasController = peliculasController;

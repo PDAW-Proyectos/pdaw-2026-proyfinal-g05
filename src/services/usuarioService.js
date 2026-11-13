@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { Usuario, Espectador } = require('../models/Usuario');
-const { ValidationError, UnauthorizedError, ConflictError } = require('../utils/errors');
+const { ValidationError, UnauthorizedError, ConflictError, NotFoundError } = require('../utils/errors');
 
 class UsuarioService {
   #usuarioRepository;
@@ -117,6 +117,50 @@ class UsuarioService {
     }
 
     return usuarioData instanceof Usuario ? usuarioData : Usuario.fromJSON(usuarioData);
+  }
+
+  async actualizarPerfil(userId, { nombre, usuario, email } = {}) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (email !== undefined) {
+      throw new ValidationError('El correo electrónico no se puede modificar. Contactá con soporte para este cambio.');
+    }
+
+    if (nombre === undefined && usuario === undefined) {
+      throw new ValidationError('Debes proporcionar al menos el nombre o el usuario (@) para actualizar');
+    }
+
+    const idLimpio = userId.trim();
+    const existente = await this.obtenerPorId(idLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    if (usuario !== undefined && typeof usuario === 'string') {
+      const handleLimpio = usuario.trim().replace(/^@+/, '').toLowerCase();
+      if (handleLimpio && typeof this.#usuarioRepository.leer === 'function') {
+        const usuarios = await this.#usuarioRepository.leer();
+        const duplicado = usuarios.find(
+          (u) =>
+            u.id !== idLimpio &&
+            typeof (u.usuario || u.id) === 'string' &&
+            (u.usuario || u.id).trim().replace(/^@+/, '').toLowerCase() === handleLimpio
+        );
+        if (duplicado) {
+          throw new ConflictError('Ese nombre de usuario (@) ya está en uso');
+        }
+      }
+    }
+
+    existente.actualizarDatosPersonales({ nombre, usuario });
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(existente);
+    }
+
+    return existente;
   }
 }
 

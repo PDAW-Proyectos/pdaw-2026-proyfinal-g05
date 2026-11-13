@@ -62,8 +62,9 @@
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-person input-icon"></i>
-              <input type="text" class="form-control" id="nombre" name="nombre" required placeholder="Tu alias o apodo de cinéfilo" autocomplete="username">
+              <input type="text" class="form-control" id="nombre" name="nombre" required minlength="3" placeholder="Tu alias o apodo de cinéfilo" autocomplete="username" aria-describedby="error-nombre">
             </div>
+            <div id="error-nombre" class="invalid-feedback" role="alert"></div>
           </div>
 
           <div class="mb-3">
@@ -72,8 +73,9 @@
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-envelope input-icon"></i>
-              <input type="email" class="form-control" id="email" name="email" required placeholder="nombre@ejemplo.com" autocomplete="email">
+              <input type="email" class="form-control" id="email" name="email" required placeholder="nombre@ejemplo.com" autocomplete="email" aria-describedby="error-email">
             </div>
+            <div id="error-email" class="invalid-feedback" role="alert"></div>
           </div>
 
           <div class="mb-3">
@@ -82,11 +84,12 @@
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-lock input-icon"></i>
-              <input type="password" class="form-control" id="password" name="password" required placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+              <input type="password" class="form-control" id="password" name="password" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password" aria-describedby="error-password">
               <button type="button" class="btn-toggle-password" aria-label="Mostrar u ocultar contraseña">
                 <i class="bi bi-eye"></i>
               </button>
             </div>
+            <div id="error-password" class="invalid-feedback" role="alert"></div>
           </div>
 
           <button type="submit" class="btn btn-pink w-100 py-2.5 mt-2">
