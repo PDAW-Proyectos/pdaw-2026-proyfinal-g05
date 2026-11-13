@@ -303,7 +303,7 @@ class ResenaService {
     return true;
   }
 
-  async listar({ peliculaId, limite } = {}) {
+  async listar({ peliculaId, autorId, limite } = {}) {
     let todas = [];
     if (typeof this.#resenaRepository.leer === 'function') {
       todas = await this.#resenaRepository.leer();
@@ -315,6 +315,11 @@ class ResenaService {
     if (peliculaId) {
       filtradas = filtradas.filter(
         (r) => String(r.peliculaId) === String(peliculaId),
+      );
+    }
+    if (autorId) {
+      filtradas = filtradas.filter(
+        (r) => String(r.autorId) === String(autorId),
       );
     }
 

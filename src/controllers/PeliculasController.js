@@ -30,6 +30,24 @@ class PeliculasController {
       next(error);
     }
   }
+
+  async obtenerPorId(req, res, next) {
+    try {
+      const { id } = req.params || {};
+      if (!id || typeof id !== 'string' || !/^\d+$/.test(id.trim())) {
+        return res.status(400).json({ error: 'El id de la película debe ser numérico válido' });
+      }
+
+      const pelicula = await this.#adapter.obtenerPeliculaPorId(id.trim());
+      if (!pelicula) {
+        return res.status(404).json({ error: 'Película no encontrada' });
+      }
+
+      return res.status(200).json(pelicula);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = PeliculasController;

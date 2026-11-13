@@ -177,13 +177,14 @@ class ResenaController {
 
   async listar(req, res, next) {
     try {
-      const { peliculaId, limite } = req.query || {};
+      const { peliculaId, autorId, limite } = req.query || {};
       if (
         this.#resenaService &&
         typeof this.#resenaService.listar === 'function'
       ) {
         const resenas = await this.#resenaService.listar({
           peliculaId,
+          autorId,
           limite: limite ? Number(limite) : 50,
         });
         return res.status(200).json(resenas);
