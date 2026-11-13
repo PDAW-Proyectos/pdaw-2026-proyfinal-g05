@@ -497,6 +497,8 @@
       }
     }
 
+    window.abrirModalResena = abrirModalResena;
+
     function volverAlBuscador() {
       if (bsModalResena) {
         bsModalResena.hide();
@@ -745,6 +747,8 @@
               callbackEdicionGuardada(data);
             } catch (_) {}
           }
+
+          window.dispatchEvent(new CustomEvent('movieclub:resena-guardada', { detail: data }));
 
           cierreModalTimeoutId = setTimeout(() => {
             if (bsModalResena) {
