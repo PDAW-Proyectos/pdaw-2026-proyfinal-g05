@@ -39,6 +39,7 @@
     #paginaActual = 1;
     #porPagina = 6;
     #abortController = null;
+    #deleteAbortController = null;
 
     constructor() {
       this.#contenedor = document.getElementById('contenedor-resenas');
@@ -95,6 +96,12 @@
           return;
         }
 
+        const btnEliminar = e.target.closest('.btn-eliminar-resena');
+        if (btnEliminar) {
+          this.#manejarEliminacionResena(btnEliminar);
+          return;
+        }
+
         const btnToggle = e.target.closest('.btn-toggle-spoiler');
         if (!btnToggle) return;
 
@@ -120,6 +127,64 @@
             window.scrollTo({ top: this.#contenedor.offsetTop - 100, behavior: 'smooth' });
           }
         });
+      }
+    }
+
+    async #manejarEliminacionResena(btnEliminar) {
+      const resenaId = btnEliminar.dataset.resenaId;
+      if (!resenaId) return;
+
+      if (btnEliminar.dataset.confirmando !== 'true') {
+        btnEliminar.dataset.confirmando = 'true';
+        btnEliminar.textContent = '¿Confirmar?';
+        btnEliminar.classList.remove('btn-outline-danger');
+        btnEliminar.classList.add('btn-danger', 'text-white');
+
+        setTimeout(() => {
+          if (btnEliminar.isConnected && btnEliminar.dataset.confirmando === 'true') {
+            btnEliminar.dataset.confirmando = 'false';
+            btnEliminar.classList.add('btn-outline-danger');
+            btnEliminar.classList.remove('btn-danger', 'text-white');
+            btnEliminar.textContent = '';
+            const icono = document.createElement('i');
+            icono.className = 'bi bi-trash me-1';
+            icono.setAttribute('aria-hidden', 'true');
+            btnEliminar.appendChild(icono);
+            btnEliminar.appendChild(document.createTextNode(' Eliminar'));
+          }
+        }, 3500);
+        return;
+      }
+
+      if (this.#deleteAbortController) {
+        this.#deleteAbortController.abort();
+      }
+      this.#deleteAbortController = new AbortController();
+
+      btnEliminar.disabled = true;
+      btnEliminar.textContent = 'Eliminando...';
+
+      try {
+        const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+        const resp = await fetchFn(`/api/resenas/${encodeURIComponent(resenaId)}`, {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          signal: this.#deleteAbortController.signal
+        });
+
+        if (!resp.ok) {
+          throw new Error('No se pudo eliminar la reseña.');
+        }
+
+        this.#todasLasResenas = this.#todasLasResenas.filter((r) => String(r.id) !== String(resenaId));
+        this.#aplicarFiltroYRenderizar();
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        btnEliminar.disabled = false;
+        btnEliminar.dataset.confirmando = 'false';
+        btnEliminar.classList.add('btn-outline-danger');
+        btnEliminar.classList.remove('btn-danger', 'text-white');
+        btnEliminar.textContent = err?.message || 'Error al eliminar';
       }
     }
 
@@ -312,33 +377,58 @@
         btnEditar.dataset.resenaId = resena.id || '';
       }
 
+      const btnEliminar = clone.querySelector('.btn-eliminar-resena');
+      if (btnEliminar) {
+        btnEliminar.dataset.resenaId = resena.id || '';
+      }
+
       const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');
       if (contenedorAccionesAutor) {
-        const idUsuarioActivo = (() => {
+        const usuarioActivo = (() => {
           try {
-            if (typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
-              const id = window.API.getUserId();
-              if (id) return String(id);
+            let parsedUser = null;
+            if (typeof window.API !== 'undefined' && typeof window.API.getUsuario === 'function') {
+              parsedUser = window.API.getUsuario();
             }
-            const directId = localStorage.getItem('userId');
-            if (directId) return String(directId);
-            const rawUser = localStorage.getItem('usuario');
-            if (rawUser) {
-              const parsed = JSON.parse(rawUser);
-              if (parsed?.id) return String(parsed.id);
+            if (!parsedUser) {
+              const rawUser = localStorage.getItem('usuario');
+              if (rawUser) {
+                parsedUser = JSON.parse(rawUser);
+              }
             }
-          } catch {}
-          return null;
+            let id = parsedUser?.id ? String(parsedUser.id) : null;
+            if (!id && typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
+              const apiId = window.API.getUserId();
+              if (apiId) id = String(apiId);
+            }
+            if (!id) {
+              const directId = localStorage.getItem('userId');
+              if (directId) id = String(directId);
+            }
+            return {
+              id,
+              rol: parsedUser?.rol ? String(parsedUser.rol) : null
+            };
+          } catch {
+            return { id: null, rol: null };
+          }
         })();
 
         const esAutor = Boolean(
-          idUsuarioActivo &&
+          usuarioActivo.id &&
           resena.autorId &&
-          String(idUsuarioActivo) === String(resena.autorId)
+          String(usuarioActivo.id) === String(resena.autorId)
+        );
+        const esModerador = Boolean(
+          usuarioActivo.id &&
+          String(usuarioActivo.rol || '').toLowerCase() === 'moderador'
         );
 
-        if (esAutor) {
+        if (esAutor || esModerador) {
           contenedorAccionesAutor.classList.remove('d-none');
+          if (btnEditar) {
+            btnEditar.classList.toggle('d-none', !esAutor);
+          }
         } else {
           contenedorAccionesAutor.classList.add('d-none');
         }
