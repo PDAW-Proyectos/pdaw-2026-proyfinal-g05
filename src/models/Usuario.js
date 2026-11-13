@@ -3,6 +3,7 @@ const { ValidationError, BusinessRuleError } = require("../utils/errors");
 class Usuario {
   #id;
   #nombre;
+  #usuario;
   #email;
   #passwordHash;
   #rol;
@@ -14,6 +15,7 @@ class Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     rol,
@@ -70,6 +72,10 @@ class Usuario {
 
     this.#id = id.trim();
     this.#nombre = nombre.trim();
+    this.#usuario =
+      typeof usuario === "string" && usuario.trim().replace(/^@+/, "") !== ""
+        ? usuario.trim().replace(/^@+/, "")
+        : null;
     this.#email = email.trim().toLowerCase();
     this.#passwordHash = passwordHash;
     this.#rol = rol.trim();
@@ -89,8 +95,36 @@ class Usuario {
     return this.#nombre;
   }
 
+  get usuario() {
+    return this.#usuario;
+  }
+
   get email() {
     return this.#email;
+  }
+
+  actualizarDatosPersonales({ nombre, usuario } = {}) {
+    if (nombre !== undefined) {
+      if (typeof nombre !== "string" || nombre.trim().length < 2) {
+        throw new ValidationError(
+          "El nombre es obligatorio y debe tener al menos 2 caracteres",
+        );
+      }
+      this.#nombre = nombre.trim();
+    }
+
+    if (usuario !== undefined) {
+      if (typeof usuario !== "string") {
+        throw new ValidationError("El nombre de usuario (@) es inválido");
+      }
+      const limpio = usuario.trim().replace(/^@+/, "");
+      if (!/^[a-zA-Z0-9._-]{2,30}$/.test(limpio)) {
+        throw new ValidationError(
+          "El usuario (@) debe tener entre 2 y 30 caracteres (letras, números, punto, guion o guion bajo)",
+        );
+      }
+      this.#usuario = limpio;
+    }
   }
 
   get passwordHash() {
@@ -193,6 +227,7 @@ class Usuario {
     return {
       id: this.#id,
       nombre: this.#nombre,
+      ...(this.#usuario ? { usuario: this.#usuario } : {}),
       email: this.#email,
       passwordHash: this.#passwordHash,
       rol: this.#rol,
@@ -207,6 +242,7 @@ class Usuario {
     return {
       id: this.#id,
       nombre: this.#nombre,
+      ...(this.#usuario ? { usuario: this.#usuario } : {}),
       email: this.#email,
       rol: this.#rol,
       watchlist: [...this.#watchlist],
@@ -221,6 +257,7 @@ class Espectador extends Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     watchlist,
@@ -231,6 +268,7 @@ class Espectador extends Usuario {
     super({
       id,
       nombre,
+      usuario,
       email,
       passwordHash,
       rol: "Espectador",
@@ -257,6 +295,7 @@ class Moderador extends Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     watchlist,
@@ -267,6 +306,7 @@ class Moderador extends Usuario {
     super({
       id,
       nombre,
+      usuario,
       email,
       passwordHash,
       rol: "Moderador",
@@ -296,6 +336,7 @@ class Critico extends Usuario {
   constructor({
     id,
     nombre,
+    usuario,
     email,
     passwordHash,
     medioDePrensa,
@@ -307,6 +348,7 @@ class Critico extends Usuario {
     super({
       id,
       nombre,
+      usuario,
       email,
       passwordHash,
       rol: "Critico",
