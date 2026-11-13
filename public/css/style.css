@@ -115,7 +115,8 @@ h4,
   opacity: 0.6;
 }
 
-.btn-pink {
+.btn-pink,
+.btn-save-resena {
   background-color: var(--accent-pink) !important;
   color: #101519 !important;
   border: none !important;
@@ -127,7 +128,8 @@ h4,
   transition: background-color 0.15s ease;
 }
 
-.btn-pink:hover {
+.btn-pink:hover,
+.btn-save-resena:hover {
   background-color: #f0aab8 !important;
   color: #101519 !important;
 }
@@ -813,21 +815,6 @@ h4,
 
 .resena-tags-input::placeholder {
   color: #6c7c8c !important;
-}
-
-.btn-save-resena {
-  background-color: var(--accent-pink) !important;
-  color: #101519 !important;
-  font-weight: 700 !important;
-  border-radius: 20px !important;
-  padding: 0.35rem 1.4rem !important;
-  border: none !important;
-  transition: all 0.15s ease;
-}
-
-.btn-save-resena:hover {
-  background-color: #f0aab8 !important;
-  box-shadow: 0 4px 14px rgba(232, 154, 170, 0.4);
 }
 
 .estrella-rating {
