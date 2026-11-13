@@ -129,11 +129,15 @@ class TmdbService {
     throw lastError;
   }
 
-  async obtenerPeliculaPorId(id) {
+  async obtenerPeliculaPorId(id, params = {}) {
     if (!id) {
       throw new ValidationError('El ID de la película es obligatorio');
     }
-    return await this.#request(`/movie/${id}`);
+    return await this.#request(`/movie/${id}`, {
+      append_to_response: 'credits',
+      language: 'es-ES',
+      ...params
+    });
   }
 
   async obtenerPopulares(page = 1) {
