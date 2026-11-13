@@ -648,6 +648,35 @@
     </div>
   </div>
 
+  <div class="modal fade" id="modal-confirmar-eliminar" tabindex="-1" aria-labelledby="modalConfirmarEliminarTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+      <div class="modal-content modal-custom-dark">
+        <div class="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
+          <h5 class="modal-title fs-5 fw-bold text-white text-uppercase mb-0" id="modalConfirmarEliminarTitulo" style="font-family: var(--font-display);">
+            Eliminar Reseña
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body px-4 py-3">
+          <p class="text-light mb-2" id="modal-confirmar-eliminar-mensaje">
+            ¿Confirmás que querés eliminar esta reseña?
+          </p>
+          <p class="text-secondary small mb-0">
+            Esta acción no se puede deshacer y se borrará definitivamente del club.
+          </p>
+        </div>
+        <div class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-danger btn-sm px-3 py-2 fw-bold text-uppercase" id="btn-confirmar-eliminar">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Templates -->
   <template id="template-item-pelicula">
     <div

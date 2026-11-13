@@ -40,6 +40,11 @@
     #porPagina = 6;
     #abortController = null;
     #deleteAbortController = null;
+    #modalConfirmarEliminarElem;
+    #modalConfirmarEliminarInstance;
+    #btnConfirmarEliminar;
+    #mensajeConfirmarEliminar;
+    #resenaIdAEliminar = null;
 
     constructor() {
       this.#contenedor = document.getElementById('contenedor-resenas');
@@ -50,11 +55,20 @@
       this.#paginacionContenedor = document.getElementById('paginacion-resenas');
       this.#template = document.getElementById('template-tarjeta-resena');
       this.#filtroBotones = document.querySelectorAll('.filter-chip-btn');
+      this.#modalConfirmarEliminarElem = document.getElementById('modal-confirmar-eliminar');
+      this.#btnConfirmarEliminar = document.getElementById('btn-confirmar-eliminar');
+      this.#mensajeConfirmarEliminar = document.getElementById('modal-confirmar-eliminar-mensaje');
     }
 
     init() {
       if (!this.#contenedor || !this.#template) {
         return;
+      }
+
+      if (this.#btnConfirmarEliminar) {
+        this.#btnConfirmarEliminar.addEventListener('click', () => {
+          this.#ejecutarEliminacion();
+        });
       }
 
       this.#configurarFiltros();
@@ -98,7 +112,7 @@
 
         const btnEliminar = e.target.closest('.btn-eliminar-resena');
         if (btnEliminar) {
-          this.#manejarEliminacionResena(btnEliminar);
+          this.#abrirModalEliminar(btnEliminar);
           return;
         }
 
@@ -130,39 +144,47 @@
       }
     }
 
-    async #manejarEliminacionResena(btnEliminar) {
+    #abrirModalEliminar(btnEliminar) {
       const resenaId = btnEliminar.dataset.resenaId;
       if (!resenaId) return;
 
-      if (btnEliminar.dataset.confirmando !== 'true') {
-        btnEliminar.dataset.confirmando = 'true';
-        btnEliminar.textContent = '¿Confirmar?';
-        btnEliminar.classList.remove('btn-outline-danger');
-        btnEliminar.classList.add('btn-danger', 'text-white');
+      this.#resenaIdAEliminar = resenaId;
+      const tituloPelicula = btnEliminar.dataset.peliculaTitulo;
 
-        setTimeout(() => {
-          if (btnEliminar.isConnected && btnEliminar.dataset.confirmando === 'true') {
-            btnEliminar.dataset.confirmando = 'false';
-            btnEliminar.classList.add('btn-outline-danger');
-            btnEliminar.classList.remove('btn-danger', 'text-white');
-            btnEliminar.textContent = '';
-            const icono = document.createElement('i');
-            icono.className = 'bi bi-trash me-1';
-            icono.setAttribute('aria-hidden', 'true');
-            btnEliminar.appendChild(icono);
-            btnEliminar.appendChild(document.createTextNode(' Eliminar'));
-          }
-        }, 3500);
-        return;
+      if (this.#mensajeConfirmarEliminar) {
+        if (tituloPelicula) {
+          this.#mensajeConfirmarEliminar.textContent = `¿Confirmás que querés eliminar tu reseña de "${tituloPelicula}"?`;
+        } else {
+          this.#mensajeConfirmarEliminar.textContent = '¿Confirmás que querés eliminar esta reseña?';
+        }
       }
+
+      if (this.#btnConfirmarEliminar) {
+        this.#btnConfirmarEliminar.disabled = false;
+        this.#btnConfirmarEliminar.textContent = 'Eliminar';
+      }
+
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal && this.#modalConfirmarEliminarElem) {
+        if (!this.#modalConfirmarEliminarInstance) {
+          this.#modalConfirmarEliminarInstance = bootstrap.Modal.getOrCreateInstance(this.#modalConfirmarEliminarElem);
+        }
+        this.#modalConfirmarEliminarInstance.show();
+      }
+    }
+
+    async #ejecutarEliminacion() {
+      const resenaId = this.#resenaIdAEliminar;
+      if (!resenaId) return;
 
       if (this.#deleteAbortController) {
         this.#deleteAbortController.abort();
       }
       this.#deleteAbortController = new AbortController();
 
-      btnEliminar.disabled = true;
-      btnEliminar.textContent = 'Eliminando...';
+      if (this.#btnConfirmarEliminar) {
+        this.#btnConfirmarEliminar.disabled = true;
+        this.#btnConfirmarEliminar.textContent = 'Eliminando...';
+      }
 
       try {
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
@@ -176,15 +198,28 @@
           throw new Error('No se pudo eliminar la reseña.');
         }
 
+        if (this.#modalConfirmarEliminarInstance) {
+          this.#modalConfirmarEliminarInstance.hide();
+        }
+
         this.#todasLasResenas = this.#todasLasResenas.filter((r) => String(r.id) !== String(resenaId));
         this.#aplicarFiltroYRenderizar();
+        window.dispatchEvent(new CustomEvent('movieclub:resena-eliminada', { detail: { id: resenaId } }));
       } catch (err) {
         if (err && err.name === 'AbortError') return;
-        btnEliminar.disabled = false;
-        btnEliminar.dataset.confirmando = 'false';
-        btnEliminar.classList.add('btn-outline-danger');
-        btnEliminar.classList.remove('btn-danger', 'text-white');
-        btnEliminar.textContent = err?.message || 'Error al eliminar';
+        if (this.#btnConfirmarEliminar) {
+          this.#btnConfirmarEliminar.disabled = false;
+          this.#btnConfirmarEliminar.textContent = (err && (err.status === 401 || err.message?.includes('iniciar sesión')))
+            ? 'Sesión expirada'
+            : 'Error al eliminar';
+        }
+        if (err && (err.status === 401 || err.message?.includes('iniciar sesión'))) {
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 1200);
+        }
+      } finally {
+        this.#resenaIdAEliminar = null;
       }
     }
 
@@ -380,6 +415,7 @@
       const btnEliminar = clone.querySelector('.btn-eliminar-resena');
       if (btnEliminar) {
         btnEliminar.dataset.resenaId = resena.id || '';
+        btnEliminar.dataset.peliculaTitulo = tituloPeli;
       }
 
       const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');

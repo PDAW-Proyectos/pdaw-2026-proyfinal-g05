@@ -225,6 +225,64 @@
       });
     }
 
+    const btnEliminarDetalle = document.getElementById('btn-eliminar-resena-detalle');
+    const modalConfirmarEliminar = document.getElementById('modal-confirmar-eliminar');
+    const btnConfirmarEliminar = document.getElementById('btn-confirmar-eliminar');
+    const msgConfirmarEliminar = document.getElementById('modal-confirmar-eliminar-mensaje');
+
+    let bsModalEliminar = null;
+    if (modalConfirmarEliminar && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+      bsModalEliminar = bootstrap.Modal.getOrCreateInstance(modalConfirmarEliminar);
+    }
+
+    if (btnEliminarDetalle) {
+      btnEliminarDetalle.addEventListener('click', () => {
+        if (!datosResenaActual) return;
+        const peliTitulo = datosResenaActual.pelicula?.titulo;
+        if (msgConfirmarEliminar) {
+          msgConfirmarEliminar.textContent = peliTitulo
+            ? `¿Confirmás que querés eliminar tu reseña de "${peliTitulo}"?`
+            : '¿Confirmás que querés eliminar esta reseña?';
+        }
+        if (btnConfirmarEliminar) {
+          btnConfirmarEliminar.disabled = false;
+          btnConfirmarEliminar.textContent = 'Eliminar';
+        }
+        if (bsModalEliminar) {
+          bsModalEliminar.show();
+        }
+      });
+    }
+
+    if (btnConfirmarEliminar) {
+      btnConfirmarEliminar.addEventListener('click', async () => {
+        if (!resenaId) return;
+        btnConfirmarEliminar.disabled = true;
+        btnConfirmarEliminar.textContent = 'Eliminando...';
+
+        try {
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          const resp = await fetchFn(`/api/resenas/${encodeURIComponent(resenaId.trim())}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+          });
+
+          if (!resp.ok) {
+            throw new Error('No se pudo eliminar la reseña.');
+          }
+
+          if (bsModalEliminar) {
+            bsModalEliminar.hide();
+          }
+
+          window.location.href = '/perfil.html';
+        } catch {
+          btnConfirmarEliminar.disabled = false;
+          btnConfirmarEliminar.textContent = 'Error al eliminar';
+        }
+      });
+    }
+
     cargarDetalleResena();
   });
 })();

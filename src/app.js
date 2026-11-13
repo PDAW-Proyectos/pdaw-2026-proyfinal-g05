@@ -14,6 +14,8 @@ function createApp({ config, services } = {}) {
   app.use(express.json({ limit: '100kb' }));
   app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
+  app.use(express.static(config?.publicDir || path.resolve(__dirname, '../public')));
+
   app.use(session({
     secret: config?.sessionSecret || 'movieclub_session_secret_default',
     resave: false,
@@ -21,11 +23,10 @@ function createApp({ config, services } = {}) {
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: config?.env === 'production'
+      secure: config?.env === 'production',
+      maxAge: 1000 * 60 * 60 * 24 * 7
     }
   }));
-
-  app.use(express.static(config?.publicDir || path.resolve(__dirname, '../public')));
 
   app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'ok', service: 'MovieClub API' });

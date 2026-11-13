@@ -84,39 +84,11 @@
     "likes": []
   },
   {
-    "id": "0d9c9dbf-ed97-4b6a-88b4-93f4704e500f",
-    "peliculaId": "43429",
-    "autorId": "usr-1",
-    "puntuacion": 1,
-    "texto": "No me gusto bla bla bla",
-    "contieneSpoilers": false,
-    "vistaPreviamente": false,
-    "esFavorita": true,
-    "fechaVisionado": "2026-11-09T00:00:00.000Z",
-    "esDestacada": false,
-    "fechaCreacion": "2026-11-09T22:16:10.703Z",
-    "likes": []
-  },
-  {
-    "id": "29c338c3-fe09-434c-8e82-3162e02d3477",
-    "peliculaId": "25376",
-    "autorId": "usr-1",
-    "puntuacion": 1,
-    "texto": "Me encanto etcMe encanto etc",
-    "contieneSpoilers": false,
-    "vistaPreviamente": false,
-    "esFavorita": false,
-    "fechaVisionado": "2026-11-09T00:00:00.000Z",
-    "esDestacada": false,
-    "fechaCreacion": "2026-11-09T22:21:48.420Z",
-    "likes": []
-  },
-  {
     "id": "c71ecc80-d3ea-424f-a5cc-6db4e031b36b",
     "peliculaId": "57977",
     "autorId": "usr-1",
     "puntuacion": 1,
-    "texto": "me super encanto",
+    "texto": "me super encanto 2",
     "contieneSpoilers": false,
     "vistaPreviamente": false,
     "esFavorita": false,
@@ -137,20 +109,6 @@
     "fechaVisionado": "2026-11-11T00:00:00.000Z",
     "esDestacada": false,
     "fechaCreacion": "2026-11-11T15:12:52.278Z",
-    "likes": []
-  },
-  {
-    "id": "7ea4e50a-9087-4b4a-b75f-4e2c4288718d",
-    "peliculaId": "1375441",
-    "autorId": "usr-1",
-    "puntuacion": 4,
-    "texto": "teste teste teste teste",
-    "contieneSpoilers": false,
-    "vistaPreviamente": false,
-    "esFavorita": false,
-    "fechaVisionado": "2026-11-11T00:00:00.000Z",
-    "esDestacada": false,
-    "fechaCreacion": "2026-11-13T17:51:46.490Z",
     "likes": []
   }
 ]

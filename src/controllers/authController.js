@@ -17,6 +17,13 @@ class AuthController {
         req.session.regenerate((err) => {
           if (err) return next(err);
           req.session.userId = usuario.id;
+          if (typeof req.session.save === 'function') {
+            req.session.save((saveErr) => {
+              if (saveErr) return next(saveErr);
+              return res.status(201).json(usuario.paraExponer());
+            });
+            return;
+          }
           return res.status(201).json(usuario.paraExponer());
         });
         return;
@@ -24,6 +31,13 @@ class AuthController {
 
       if (req.session) {
         req.session.userId = usuario.id;
+        if (typeof req.session.save === 'function') {
+          req.session.save((saveErr) => {
+            if (saveErr) return next(saveErr);
+            return res.status(201).json(usuario.paraExponer());
+          });
+          return;
+        }
       }
 
       return res.status(201).json(usuario.paraExponer());
@@ -41,6 +55,13 @@ class AuthController {
         req.session.regenerate((err) => {
           if (err) return next(err);
           req.session.userId = usuario.id;
+          if (typeof req.session.save === 'function') {
+            req.session.save((saveErr) => {
+              if (saveErr) return next(saveErr);
+              return res.status(200).json(usuario.paraExponer());
+            });
+            return;
+          }
           return res.status(200).json(usuario.paraExponer());
         });
         return;
@@ -48,6 +69,13 @@ class AuthController {
 
       if (req.session) {
         req.session.userId = usuario.id;
+        if (typeof req.session.save === 'function') {
+          req.session.save((saveErr) => {
+            if (saveErr) return next(saveErr);
+            return res.status(200).json(usuario.paraExponer());
+          });
+          return;
+        }
       }
 
       return res.status(200).json(usuario.paraExponer());
