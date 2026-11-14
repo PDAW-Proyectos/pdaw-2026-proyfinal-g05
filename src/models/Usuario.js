@@ -105,9 +105,9 @@ class Usuario {
 
   actualizarDatosPersonales({ nombre, usuario } = {}) {
     if (nombre !== undefined) {
-      if (typeof nombre !== "string" || nombre.trim().length < 2) {
+      if (typeof nombre !== "string" || nombre.trim().length < 2 || nombre.trim().length > 20) {
         throw new ValidationError(
-          "El nombre es obligatorio y debe tener al menos 2 caracteres",
+          "El nombre es obligatorio y debe tener entre 2 y 20 caracteres",
         );
       }
       this.#nombre = nombre.trim();
@@ -118,9 +118,9 @@ class Usuario {
         throw new ValidationError("El nombre de usuario (@) es inválido");
       }
       const limpio = usuario.trim().replace(/^@+/, "");
-      if (!/^[a-zA-Z0-9._-]{2,30}$/.test(limpio)) {
+      if (!/^[a-zA-Z0-9._-]{2,28}$/.test(limpio)) {
         throw new ValidationError(
-          "El usuario (@) debe tener entre 2 y 30 caracteres (letras, números, punto, guion o guion bajo)",
+          "El usuario (@) debe tener entre 2 y 28 caracteres (letras, números, punto, guion o guion bajo)",
         );
       }
       this.#usuario = limpio;

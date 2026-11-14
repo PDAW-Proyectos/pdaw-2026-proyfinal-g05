@@ -18,6 +18,10 @@ class UsuarioService {
       throw new ValidationError('El nombre es obligatorio');
     }
 
+    if (nombre.trim().length > 20) {
+      throw new ValidationError('El nombre no puede tener más de 20 caracteres');
+    }
+
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       throw new ValidationError('El email es obligatorio y debe tener formato válido');
     }

@@ -125,6 +125,16 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .post('/api/auth/register')
       .send({ nombre: 'Test', email: 'a@b.com', password: '123' });
     expect(resPasswordCorta.status).toBe(400);
+
+    const resNombreLargo = await request(app)
+      .post('/api/auth/register')
+      .send({
+        nombre: 'NombreMuyLargoQueSuperaVeinte',
+        email: 'larguito@club.com',
+        password: 'password123'
+      });
+    expect(resNombreLargo.status).toBe(400);
+    expect(resNombreLargo.body.error).toMatch(/20 caracteres/i);
   });
 
   test('GET /api/auth/me retorna 401 si no hay sesión y 200 con sesión activa', async () => {

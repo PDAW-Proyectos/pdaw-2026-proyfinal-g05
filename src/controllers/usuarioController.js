@@ -27,6 +27,10 @@ class UsuarioController {
           ? usuarioActualizado.paraExponer()
           : usuarioActualizado;
 
+      if (req.session && respuesta?.nombre) {
+        req.session.usuarioNombre = respuesta.nombre;
+      }
+
       return res.status(200).json(respuesta);
     } catch (error) {
       next(error);

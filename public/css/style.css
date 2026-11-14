@@ -238,7 +238,7 @@ h4,
 
 .hero-header {
   position: relative;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(16, 21, 25, 0.96) 0%, rgba(16, 21, 25, 0.88) 42%, rgba(16, 21, 25, 0.45) 75%, rgba(16, 21, 25, 0.12) 100%),
     linear-gradient(to top, var(--bg-main) 0%, transparent 18%),
     linear-gradient(to bottom, var(--bg-main) 0%, transparent 12%),
@@ -931,8 +931,8 @@ h4,
 
 .pelicula-hero-backdrop {
   background: linear-gradient(180deg, rgba(16, 21, 25, 0.4) 0%, rgba(16, 21, 25, 0.95) 75%, #101519 100%),
-              radial-gradient(circle at 50% 20%, rgba(255, 102, 153, 0.08) 0%, transparent 60%),
-              #12181e;
+    radial-gradient(circle at 50% 20%, rgba(255, 102, 153, 0.08) 0%, transparent 60%),
+    #12181e;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -992,6 +992,23 @@ h4,
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 1.5rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#perfil-nombre {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.1;
+  max-width: 100%;
+}
+
+#perfil-usuario,
+#perfil-email {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -1089,7 +1106,3 @@ h4,
   border-color: var(--accent-pink) !important;
   box-shadow: 0 0 0 1px var(--accent-pink) !important;
 }
-
-
-
-

@@ -503,20 +503,33 @@
       const nombre = String(formData.get('nombre') || '').trim();
       const usuario = String(formData.get('usuario') || '').trim().replace(/^@+/, '');
 
-      if (nombre.length < 2) {
-        this.#mostrarAlertaEditarPerfil('error', 'El nombre debe tener al menos 2 caracteres.');
+      if (nombre.length < 2 || nombre.length > 20) {
+        this.#mostrarAlertaEditarPerfil('error', 'El nombre debe tener entre 2 y 20 caracteres.');
         if (this.#inputPerfilNombre) this.#inputPerfilNombre.focus();
         return;
       }
 
-      if (!/^[a-zA-Z0-9._-]{2,30}$/.test(usuario)) {
+      if (!/^[a-zA-Z0-9._-]{2,28}$/.test(usuario)) {
         this.#mostrarAlertaEditarPerfil(
           'error',
-          'El usuario (@) debe tener entre 2 y 30 caracteres (letras, números, punto, guion o guion bajo).'
+          'El usuario (@) debe tener entre 2 y 28 caracteres (letras, números, punto, guion o guion bajo).'
         );
         if (this.#inputPerfilUsuario) this.#inputPerfilUsuario.focus();
         return;
       }
+
+      const userNavName = document.getElementById('user-nav-name');
+      const userNavItem = document.getElementById('user-nav-item');
+      const prevNavName = userNavName ? userNavName.textContent : '';
+      if (userNavName && nombre) {
+        userNavName.textContent = nombre.toUpperCase();
+      }
+      if (userNavItem) {
+        userNavItem.classList.remove('d-none');
+      }
+      try {
+        localStorage.setItem('usuarioNombre', nombre);
+      } catch (e) {}
 
       if (this.#perfilUpdateAbortController) {
         this.#perfilUpdateAbortController.abort();
@@ -565,6 +578,14 @@
         }, 900);
       } catch (err) {
         if (err && err.name === 'AbortError') return;
+        if (userNavName && prevNavName) {
+          userNavName.textContent = prevNavName;
+          try {
+            if (this.#usuario?.nombre) {
+              localStorage.setItem('usuarioNombre', String(this.#usuario.nombre));
+            }
+          } catch (e) {}
+        }
         this.#mostrarAlertaEditarPerfil('error', err?.message || 'Error al actualizar los datos.');
       } finally {
         if (this.#btnGuardarPerfil) {
@@ -753,6 +774,11 @@
 
         if (typeof window.API !== 'undefined' && typeof window.API.guardarSesion === 'function') {
           window.API.guardarSesion(usuario);
+        }
+
+        const userNavName = document.getElementById('user-nav-name');
+        if (userNavName && usuario.nombre) {
+          userNavName.textContent = String(usuario.nombre).toUpperCase();
         }
 
         const resResenas = await fetch(

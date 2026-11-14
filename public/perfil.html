@@ -107,7 +107,6 @@
     <div id="perfil-contenido" class="d-none">
       <div class="row g-4 g-lg-5 align-items-start">
 
-        <!-- Panel Izquierdo: Identidad del Usuario -->
         <aside class="col-lg-3 col-md-4">
           <div class="perfil-sidebar-box perfil-sidebar-sticky">
             <div class="text-center pb-3 mb-3">
@@ -116,11 +115,11 @@
                 <span id="perfil-avatar-iniciales" class="perfil-avatar-iniciales" aria-hidden="true">MC</span>
               </div>
 
-              <h1 id="perfil-nombre" class="h3 text-white text-uppercase fw-bold mb-1"
+              <h1 id="perfil-nombre" class="h3 text-white text-uppercase fw-bold mb-1 text-break"
                 style="font-family: var(--font-display);">
                 Usuario
               </h1>
-              <p id="perfil-usuario" class="text-pink fw-semibold small mb-1"></p>
+              <p id="perfil-usuario" class="text-pink fw-semibold small mb-1 text-break"></p>
               <p id="perfil-email" class="text-secondary small mb-3 text-break"></p>
 
               <div class="d-flex justify-content-center align-items-center flex-wrap gap-2">
@@ -146,7 +145,6 @@
           </div>
         </aside>
 
-        <!-- Cuerpo Centrado: Reseñas del Usuario y Watchlist -->
         <section class="col-lg-9 col-md-8">
           <div class="perfil-main-centered">
 
@@ -163,7 +161,6 @@
               </p>
             </div>
 
-            <!-- Pestañas principales (Visibles en mobile y desktop para acceso directo) -->
             <div class="d-flex flex-wrap gap-2 border-top border-bottom border-secondary border-opacity-25 py-3 mb-4"
               role="tablist" aria-label="Cambiar vista del perfil">
               <button type="button" class="btn filter-chip-btn active perfil-vista-btn" data-vista="resenas" role="tab"
@@ -183,10 +180,8 @@
               </button>
             </div>
 
-            <!-- SECCIÓN 1: RESEÑAS DEL USUARIO -->
             <div id="vista-resenas">
 
-              <!-- Bloque Top 4 dinámico (últimas 4 calificadas con 5 estrellas) -->
               <div id="perfil-top4-bloque" class="resena-panel-box mb-4 d-none">
                 <div
                   class="d-flex justify-content-between align-items-center border-bottom border-secondary border-opacity-25 pb-2 mb-3 flex-wrap gap-2">
@@ -198,7 +193,6 @@
                 <div id="perfil-top4-grid" class="row g-3"></div>
               </div>
 
-              <!-- Barra de Filtros y Orden de Reseñas -->
               <div id="perfil-filtros-resenas"
                 class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4" role="toolbar"
                 aria-label="Filtros y orden de reseñas del usuario">
@@ -335,7 +329,6 @@
                 </div>
               </div>
 
-              <!-- Estado vacío de reseñas -->
               <div id="perfil-resenas-vacio" class="resena-panel-box text-center py-5 d-none">
                 <i class="bi bi-film text-secondary display-4 d-block mb-3 opacity-50" aria-hidden="true"></i>
                 <h3 id="perfil-resenas-vacio-titulo" class="h5 text-white text-uppercase fw-bold mb-2"
@@ -347,15 +340,12 @@
                 </p>
               </div>
 
-              <!-- Listado centrado de reseñas -->
               <div id="perfil-contenedor-resenas" class="d-flex flex-column gap-4" aria-live="polite"></div>
 
-              <!-- Paginación -->
               <div id="perfil-paginacion-resenas" class="d-flex justify-content-center align-items-center gap-2 mt-5">
               </div>
             </div>
 
-            <!-- SECCIÓN 2: PELÍCULAS FAVORITAS DEL USUARIO (SOLO PELÍCULAS) -->
             <div id="vista-favoritas" class="d-none">
               <div id="favoritas-estado-cargando" class="text-center py-5 d-none">
                 <div class="spinner-border text-pink mb-3" role="status" style="width: 2.5rem; height: 2.5rem;">
@@ -377,7 +367,6 @@
               <div id="perfil-contenedor-favoritas" class="row g-3 g-md-4" aria-live="polite"></div>
             </div>
 
-            <!-- SECCIÓN 3: WATCHLIST DEL USUARIO -->
             <div id="vista-watchlist" class="d-none">
               <div id="watchlist-estado-cargando" class="text-center py-5 d-none">
                 <div class="spinner-border text-pink mb-3" role="status" style="width: 2.5rem; height: 2.5rem;">
@@ -436,7 +425,6 @@
     </div>
   </footer>
 
-  <!-- Modal Buscador -->
   <div class="modal fade" id="modal-buscador" tabindex="-1" aria-labelledby="modalBuscadorTitulo" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content modal-custom-dark">
@@ -472,7 +460,6 @@
     </div>
   </div>
 
-  <!-- Modal Reseña -->
   <div class="modal fade" id="modal-resena" tabindex="-1" aria-labelledby="modalResenaTitulo" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content modal-custom-dark">
@@ -574,14 +561,14 @@
             </div>
           </div>
           <div class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3">
-            <button type="submit" id="btn-save-resena" class="btn btn-pink btn-sm px-4 py-2 ms-auto">Publicar Reseña</button>
+            <button type="submit" id="btn-save-resena" class="btn btn-pink btn-sm px-4 py-2 ms-auto">Publicar
+              Reseña</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal Actualizar Datos Personales -->
   <div class="modal fade" id="modal-editar-perfil" tabindex="-1" aria-labelledby="modalEditarPerfilTitulo"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -603,7 +590,7 @@
                 Nombre
               </label>
               <input type="text" id="input-perfil-nombre" name="nombre" class="form-control" required minlength="2"
-                maxlength="80" placeholder="Tu nombre en el club">
+                placeholder="Tu nombre en el club">
             </div>
 
             <div class="mb-3">
@@ -613,10 +600,10 @@
               <div class="input-group">
                 <span class="input-group-text bg-dark border-subtle-custom text-pink fw-bold">@</span>
                 <input type="text" id="input-perfil-usuario" name="usuario" class="form-control" required minlength="2"
-                  maxlength="30" placeholder="tu_usuario" pattern="[A-Za-z0-9._-]+">
+                  maxlength="28" placeholder="tu_usuario" pattern="[A-Za-z0-9._-]+">
               </div>
               <div class="form-text text-secondary small">
-                Solo letras, números, puntos, guiones o guiones bajos.
+                Solo letras, números, puntos, guiones o guiones bajos (máximo 28 caracteres).
               </div>
             </div>
 
@@ -648,11 +635,13 @@
     </div>
   </div>
 
-  <div class="modal fade" id="modal-confirmar-eliminar" tabindex="-1" aria-labelledby="modalConfirmarEliminarTitulo" aria-hidden="true">
+  <div class="modal fade" id="modal-confirmar-eliminar" tabindex="-1" aria-labelledby="modalConfirmarEliminarTitulo"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
       <div class="modal-content modal-custom-dark">
         <div class="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
-          <h5 class="modal-title fs-5 fw-bold text-white text-uppercase mb-0" id="modalConfirmarEliminarTitulo" style="font-family: var(--font-display);">
+          <h5 class="modal-title fs-5 fw-bold text-white text-uppercase mb-0" id="modalConfirmarEliminarTitulo"
+            style="font-family: var(--font-display);">
             Eliminar Reseña
           </h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -665,11 +654,13 @@
             Esta acción no se puede deshacer y se borrará definitivamente del club.
           </p>
         </div>
-        <div class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-end gap-2">
+        <div
+          class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2" data-bs-dismiss="modal">
             Cancelar
           </button>
-          <button type="button" class="btn btn-danger btn-sm px-3 py-2 fw-bold text-uppercase" id="btn-confirmar-eliminar">
+          <button type="button" class="btn btn-danger btn-sm px-3 py-2 fw-bold text-uppercase"
+            id="btn-confirmar-eliminar">
             Eliminar
           </button>
         </div>
@@ -677,7 +668,6 @@
     </div>
   </div>
 
-  <!-- Templates -->
   <template id="template-item-pelicula">
     <div
       class="item-pelicula list-group-item list-group-item-action d-flex align-items-center gap-3 p-2 rounded border-0"

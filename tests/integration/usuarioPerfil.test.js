@@ -120,5 +120,33 @@ describe('PATCH /api/usuarios/perfil (Integration)', () => {
 
     expect(res.status).toBe(409);
   });
+
+  test('rechaza con 400 si el nombre tiene más de 20 caracteres', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/api/auth/login')
+      .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+    const res = await agent
+      .patch('/api/usuarios/perfil')
+      .send({ nombre: 'NombreDemasiadoLargoQueSupera20' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/entre 2 y 20 caracteres/i);
+  });
+
+  test('rechaza con 400 si el usuario (@) tiene más de 28 caracteres', async () => {
+    const agent = request.agent(app);
+    await agent
+      .post('/api/auth/login')
+      .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+    const res = await agent
+      .patch('/api/usuarios/perfil')
+      .send({ usuario: 'usuario_extremadamente_largo_que_supera_28' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/entre 2 y 28 caracteres/i);
+  });
 });
 
