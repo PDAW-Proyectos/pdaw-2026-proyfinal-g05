@@ -232,6 +232,37 @@ class Resena {
     return this.#esDestacada;
   }
 
+  get tieneSpoilers() {
+    return this.#contieneSpoilers;
+  }
+
+  get idPelicula() {
+    return this.#peliculaId;
+  }
+
+  get idAutor() {
+    return this.#autorId;
+  }
+
+  get esRewatch() {
+    return this.#vistaPreviamente;
+  }
+
+  get fecha() {
+    return this.#fechaVisionado || this.#fechaCreacion;
+  }
+
+  esValida() {
+    return Boolean(
+      this.#id &&
+      this.#peliculaId &&
+      this.#autorId &&
+      this.#puntuacion >= 0.5 &&
+      this.#puntuacion <= 5 &&
+      typeof this.#texto === 'string'
+    );
+  }
+
   actualizar({
     puntuacion,
     texto,

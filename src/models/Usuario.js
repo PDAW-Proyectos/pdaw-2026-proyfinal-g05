@@ -131,6 +131,18 @@ class Usuario {
     return this.#passwordHash;
   }
 
+  get password() {
+    return this.#passwordHash;
+  }
+
+  iniciarSesion() {
+    return true;
+  }
+
+  registrarse() {
+    return true;
+  }
+
   get rol() {
     return this.#rol;
   }
@@ -327,6 +339,24 @@ class Moderador extends Usuario {
 
   eliminarResenaOfensiva() {
     return true;
+  }
+
+  cambiarRolUsuario(usuario, nuevoRol, { medioDePrensa } = {}) {
+    if (!usuario) {
+      throw new ValidationError('El usuario a modificar es requerido');
+    }
+    const rolesValidos = ['Espectador', 'Critico', 'Moderador'];
+    if (!rolesValidos.includes(nuevoRol)) {
+      throw new ValidationError(`Rol inválido: ${nuevoRol}`);
+    }
+    const dataJSON = typeof usuario.toJSON === 'function' ? usuario.toJSON() : { ...usuario };
+    dataJSON.rol = nuevoRol;
+    if (nuevoRol === 'Critico') {
+      dataJSON.medioDePrensa = medioDePrensa || dataJSON.medioDePrensa || 'Prensa Oficial MovieClub';
+    } else if (nuevoRol === 'Espectador') {
+      delete dataJSON.medioDePrensa;
+    }
+    return Usuario.fromJSON(dataJSON);
   }
 }
 
