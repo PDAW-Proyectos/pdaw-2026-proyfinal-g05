@@ -468,7 +468,10 @@
           btnEliminar.dataset.esModerador = esModerador ? 'true' : 'false';
           if (esModerador && !esAutor) {
             btnEliminar.setAttribute('title', 'Eliminar reseña (Moderación)');
-            btnEliminar.innerHTML = '<i class="bi bi-shield-x me-1" aria-hidden="true"></i> Eliminar';
+            const iconoShield = document.createElement('i');
+            iconoShield.className = 'bi bi-shield-x me-1';
+            iconoShield.setAttribute('aria-hidden', 'true');
+            btnEliminar.replaceChildren(iconoShield, document.createTextNode(' Eliminar'));
           }
         }
 

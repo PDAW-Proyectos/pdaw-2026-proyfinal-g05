@@ -201,9 +201,15 @@
               btnEliminarDetalle.dataset.esAutor = esAutor ? 'true' : 'false';
               btnEliminarDetalle.dataset.esModerador = esModerador ? 'true' : 'false';
               if (esModerador && !esAutor) {
-                btnEliminarDetalle.innerHTML = '<i class="bi bi-shield-x me-1" aria-hidden="true"></i> Eliminar reseña (Moderación)';
+                const iconoShield = document.createElement('i');
+                iconoShield.className = 'bi bi-shield-x me-1';
+                iconoShield.setAttribute('aria-hidden', 'true');
+                btnEliminarDetalle.replaceChildren(iconoShield, document.createTextNode(' Eliminar reseña (Moderación)'));
               } else {
-                btnEliminarDetalle.innerHTML = '<i class="bi bi-trash me-1" aria-hidden="true"></i> Eliminar reseña';
+                const iconoTrash = document.createElement('i');
+                iconoTrash.className = 'bi bi-trash me-1';
+                iconoTrash.setAttribute('aria-hidden', 'true');
+                btnEliminarDetalle.replaceChildren(iconoTrash, document.createTextNode(' Eliminar reseña'));
               }
             }
           } else {
