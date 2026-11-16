@@ -141,6 +141,43 @@ describe('Autorización de operaciones sobre Reseñas (T04.2 & T06.2)', () => {
       expect(mockResenaRepository.guardar).not.toHaveBeenCalled();
     });
 
+    test('permite modificar o marcar spoilers si el usuario en sesión es Moderador', async () => {
+      const agent = await iniciarSesion('usr-moderador-1');
+      const res = await agent
+        .patch('/api/resenas/res-test-autor-99')
+        .send({
+          contieneSpoilers: true,
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe('res-test-autor-99');
+      expect(res.body.contieneSpoilers).toBe(true);
+      expect(mockResenaRepository.guardar).toHaveBeenCalledTimes(1);
+    });
+
+    test('permite a un Moderador quitar la marca de spoilers de una reseña', async () => {
+      resenaGuardada = new Resena({
+        id: 'res-test-autor-99',
+        peliculaId: '550',
+        autorId: 'usr-propietario-original',
+        puntuacion: 4,
+        texto: 'Reseña de prueba con spoilers que deben removerse.',
+        contieneSpoilers: true,
+      });
+
+      const agent = await iniciarSesion('usr-moderador-1');
+      const res = await agent
+        .patch('/api/resenas/res-test-autor-99')
+        .send({
+          contieneSpoilers: false,
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe('res-test-autor-99');
+      expect(res.body.contieneSpoilers).toBe(false);
+      expect(mockResenaRepository.guardar).toHaveBeenCalled();
+    });
+
     test('rechaza con 401 si no hay sesión activa en la petición', async () => {
       const res = await request(app)
         .patch('/api/resenas/res-test-autor-99')

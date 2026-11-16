@@ -37,6 +37,17 @@ describe('PATCH /api/usuarios/perfil (Integration)', () => {
         favoritas: [],
         top4: [],
         fechaRegistro: '2026-10-26T20:00:00.000Z'
+      },
+      {
+        id: 'usr-mod',
+        nombre: 'Moderador Marla',
+        email: 'marla@movieclub.com',
+        passwordHash,
+        rol: 'Moderador',
+        watchlist: [],
+        favoritas: [],
+        top4: [],
+        fechaRegistro: '2026-10-27T10:00:00.000Z'
       }
     ];
 
@@ -147,6 +158,62 @@ describe('PATCH /api/usuarios/perfil (Integration)', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/entre 2 y 28 caracteres/i);
+  });
+
+  describe('PATCH /api/usuarios/:id/rol (Moderador)', () => {
+    test('rechaza con 401 si no hay sesión activa', async () => {
+      const res = await request(app)
+        .patch('/api/usuarios/usr-1/rol')
+        .send({ rol: 'Critico' });
+
+      expect(res.status).toBe(401);
+    });
+
+    test('rechaza con 403 Forbidden si el usuario que llama no es Moderador', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-2/rol')
+        .send({ rol: 'Critico' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error).toMatch(/permisos insuficientes|moderadores/i);
+    });
+
+    test('permite a un Moderador cambiar el rol de un usuario a Crítico', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'marla@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-1/rol')
+        .send({ rol: 'Critico' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe('usr-1');
+      expect(res.body.rol).toBe('Critico');
+      expect(mockUsuarioRepository.guardar).toHaveBeenCalled();
+    });
+
+    test('permite a un Moderador quitar el rol de Crítico devolviéndolo a Espectador', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'marla@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-1/rol')
+        .send({ rol: 'Espectador' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe('usr-1');
+      expect(res.body.rol).toBe('Espectador');
+      expect(mockUsuarioRepository.guardar).toHaveBeenCalled();
+    });
   });
 });
 
