@@ -14,6 +14,10 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
     controller.actualizarPerfil(req, res, next)
   );
 
+  router.post('/favoritas/:peliculaId', requireAuth, (req, res, next) =>
+    controller.toggleFavorita(req, res, next)
+  );
+
   return router;
 }
 

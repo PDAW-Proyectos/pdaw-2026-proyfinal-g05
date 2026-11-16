@@ -36,6 +36,30 @@ class UsuarioController {
       next(error);
     }
   }
+
+  async toggleFavorita(req, res, next) {
+    try {
+      const userId = req?.session?.userId;
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        return res.status(401).json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      const { peliculaId } = req.params || {};
+      const usuarioActualizado = await this.#usuarioService.toggleFavorita(userId, peliculaId);
+
+      const respuesta =
+        usuarioActualizado && typeof usuarioActualizado.paraExponer === 'function'
+          ? usuarioActualizado.paraExponer()
+          : usuarioActualizado;
+
+      return res.status(200).json({
+        ...respuesta,
+        favoritas: Array.isArray(usuarioActualizado?.favoritas) ? usuarioActualizado.favoritas : []
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = UsuarioController;

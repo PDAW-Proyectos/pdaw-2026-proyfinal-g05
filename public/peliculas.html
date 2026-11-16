@@ -144,6 +144,14 @@
     <template id="template-pelicula-card">
       <div class="col">
         <article class="movie-card h-100 position-relative">
+          <div class="movie-card-actions">
+            <button type="button" class="movie-card-action-btn btn-card-favorita" aria-label="Marcar como favorita" aria-pressed="false" title="Sumar a favoritas">
+              <i class="bi bi-heart icono-card-fav" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="movie-card-action-btn btn-card-watchlist" aria-label="Añadir a watchlist" title="Añadir a watchlist">
+              <i class="bi bi-bookmark-plus icono-card-watchlist" aria-hidden="true"></i>
+            </button>
+          </div>
           <a href="#" class="text-decoration-none pelicula-card-link d-block movie-card-poster-wrapper">
             <img src="" alt="" class="movie-poster pelicula-card-poster" loading="lazy">
             <div class="movie-card-overlay">

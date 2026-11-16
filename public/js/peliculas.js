@@ -182,6 +182,102 @@
           }
         });
       }
+
+      if (this.#contenedor) {
+        this.#contenedor.addEventListener('click', (e) => {
+          const btnFav = e.target.closest('.btn-card-favorita');
+          if (btnFav) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.#manejarToggleFavorita(btnFav);
+            return;
+          }
+
+          const btnWatch = e.target.closest('.btn-card-watchlist');
+          if (btnWatch) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        });
+      }
+    }
+
+    #obtenerFavoritasUsuarioLocal() {
+      try {
+        const raw = localStorage.getItem('usuario');
+        if (!raw) return new Set();
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.favoritas)) {
+          return new Set(parsed.favoritas.map((id) => String(id).trim()));
+        }
+      } catch {
+      }
+      return new Set();
+    }
+
+    #actualizarEstadoVisualBotonFav(btnFav, esFavorita) {
+      if (!btnFav) return;
+      btnFav.classList.toggle('activo', esFavorita);
+      btnFav.setAttribute('aria-pressed', String(esFavorita));
+      btnFav.setAttribute('title', esFavorita ? 'Quitar de favoritas' : 'Sumar a favoritas');
+      const icono = btnFav.querySelector('.icono-card-fav');
+      if (icono) {
+        icono.className = esFavorita
+          ? 'bi bi-heart-fill icono-card-fav'
+          : 'bi bi-heart icono-card-fav';
+      }
+    }
+
+    async #manejarToggleFavorita(btnFav) {
+      const peliculaId = btnFav.dataset.peliculaId;
+      if (!peliculaId) return;
+
+      const rawUser = localStorage.getItem('usuario');
+      if (!rawUser) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const eraFavorita = btnFav.classList.contains('activo');
+      const nuevoEstado = !eraFavorita;
+      this.#actualizarEstadoVisualBotonFav(btnFav, nuevoEstado);
+
+      try {
+        const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+        const res = await fetchFn(`/api/usuarios/favoritas/${encodeURIComponent(peliculaId)}`, {
+          method: 'POST',
+          credentials: 'same-origin'
+        });
+
+        if (res.status === 401) {
+          this.#actualizarEstadoVisualBotonFav(btnFav, eraFavorita);
+          window.location.href = '/login.html';
+          return;
+        }
+
+        if (!res.ok) {
+          this.#actualizarEstadoVisualBotonFav(btnFav, eraFavorita);
+          return;
+        }
+
+        const usuarioActualizado = await res.json();
+        const favsServer = Array.isArray(usuarioActualizado.favoritas)
+          ? usuarioActualizado.favoritas.map(String)
+          : [];
+        const quedoFavorita = favsServer.includes(String(peliculaId));
+        this.#actualizarEstadoVisualBotonFav(btnFav, quedoFavorita);
+
+        try {
+          const parsed = JSON.parse(rawUser);
+          if (parsed && typeof parsed === 'object') {
+            parsed.favoritas = favsServer;
+            localStorage.setItem('usuario', JSON.stringify(parsed));
+          }
+        } catch {
+        }
+      } catch {
+        this.#actualizarEstadoVisualBotonFav(btnFav, eraFavorita);
+      }
     }
 
     async #cambiarPagina(nuevaPagina) {
@@ -293,6 +389,7 @@
       if (this.#estadoVacio) this.#estadoVacio.classList.add('d-none');
 
       const fragmento = document.createDocumentFragment();
+      const favoritasSet = this.#obtenerFavoritasUsuarioLocal();
 
       lista.forEach((pelicula) => {
         const clone = this.#template.content.cloneNode(true);
@@ -303,11 +400,23 @@
         const anio = clone.querySelector('.pelicula-card-anio');
         const estrellas = clone.querySelector('.pelicula-card-estrellas');
         const ratingNum = clone.querySelector('.pelicula-card-rating-num');
+        const btnFav = clone.querySelector('.btn-card-favorita');
+        const btnWatch = clone.querySelector('.btn-card-watchlist');
 
         const urlDetalle = `/detallePelicula.html?id=${encodeURIComponent(pelicula.id)}`;
 
         if (link) {
           link.setAttribute('href', urlDetalle);
+        }
+
+        if (btnFav) {
+          btnFav.dataset.peliculaId = pelicula.id;
+          const esFav = favoritasSet.has(String(pelicula.id));
+          this.#actualizarEstadoVisualBotonFav(btnFav, esFav);
+        }
+
+        if (btnWatch) {
+          btnWatch.dataset.peliculaId = pelicula.id;
         }
 
         if (poster) {

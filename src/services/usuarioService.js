@@ -166,6 +166,35 @@ class UsuarioService {
 
     return existente;
   }
+
+  async toggleFavorita(userId, peliculaId) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (!peliculaId || String(peliculaId).trim() === '') {
+      throw new ValidationError('El id de película es obligatorio');
+    }
+
+    const idLimpio = userId.trim();
+    const peliLimpia = String(peliculaId).trim();
+    const existente = await this.obtenerPorId(idLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    if (existente.esFavorita(peliLimpia)) {
+      existente.quitarDeFavoritas(peliLimpia);
+    } else {
+      existente.agregarAFavoritas(peliLimpia);
+    }
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(existente);
+    }
+
+    return existente;
+  }
 }
 
 module.exports = UsuarioService;
