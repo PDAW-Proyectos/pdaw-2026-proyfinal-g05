@@ -32,8 +32,60 @@
     const btnCompartir = document.getElementById('btn-compartir-resena');
     const feedbackCompartir = document.getElementById('feedback-compartir');
     const btnEditarDetalle = document.getElementById('btn-editar-resena-detalle');
+    const btnPromoverCritico = document.getElementById('btn-promover-critico');
+    const btnMarcarSpoilerDetalle = document.getElementById('btn-marcar-spoiler-detalle');
 
     let datosResenaActual = null;
+    let esModeradorSesion = false;
+
+    function actualizarBotonRol(rolActual) {
+      if (!btnPromoverCritico || !datosResenaActual) return;
+      const rolNorm = String(rolActual || 'Espectador').toLowerCase();
+      if (esModeradorSesion && datosResenaActual.autorId && rolNorm !== 'moderador') {
+        btnPromoverCritico.classList.remove('d-none');
+        if (rolNorm === 'critico') {
+          btnPromoverCritico.dataset.accion = 'quitar-critico';
+          btnPromoverCritico.className = 'btn btn-outline-secondary btn-sm py-0 px-2 small';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-person-x me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnPromoverCritico.replaceChildren(icono, document.createTextNode(' Quitar Crítico'));
+        } else {
+          btnPromoverCritico.dataset.accion = 'hacer-critico';
+          btnPromoverCritico.className = 'btn btn-outline-pink btn-sm py-0 px-2 small';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-award me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnPromoverCritico.replaceChildren(icono, document.createTextNode(' Hacer Crítico'));
+        }
+      } else {
+        btnPromoverCritico.classList.add('d-none');
+      }
+    }
+
+    function actualizarBotonSpoiler(tieneSpoilers) {
+      if (!btnMarcarSpoilerDetalle || !datosResenaActual) return;
+      if (esModeradorSesion && datosResenaActual.id) {
+        btnMarcarSpoilerDetalle.classList.remove('d-none');
+        if (tieneSpoilers) {
+          btnMarcarSpoilerDetalle.className = 'btn btn-outline-secondary btn-sm py-2';
+          btnMarcarSpoilerDetalle.dataset.contieneSpoilers = 'true';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-eye me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnMarcarSpoilerDetalle.replaceChildren(icono, document.createTextNode(' Quitar Spoiler'));
+        } else {
+          btnMarcarSpoilerDetalle.className = 'btn btn-outline-warning btn-sm py-2';
+          btnMarcarSpoilerDetalle.dataset.contieneSpoilers = 'false';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-exclamation-triangle me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnMarcarSpoilerDetalle.replaceChildren(icono, document.createTextNode(' Contiene Spoiler'));
+        }
+      } else {
+        btnMarcarSpoilerDetalle.classList.add('d-none');
+      }
+    }
 
     function formatearFecha(isoString) {
       if (!isoString) return '—';
@@ -215,6 +267,10 @@
           } else {
             panelAccionesAutor.classList.add('d-none');
           }
+
+          esModeradorSesion = esModerador;
+          actualizarBotonRol(data.rolAutor);
+          actualizarBotonSpoiler(Boolean(data.contieneSpoilers));
         }
 
         document.title = `${tituloPeli} - Reseña de ${data.nombreAutor || 'MovieClub'} | MovieClub`;
@@ -329,6 +385,91 @@
         } catch {
           btnConfirmarEliminar.disabled = false;
           btnConfirmarEliminar.textContent = 'Error al eliminar';
+        }
+      });
+    }
+
+    if (btnPromoverCritico) {
+      btnPromoverCritico.addEventListener('click', async () => {
+        if (!datosResenaActual || !datosResenaActual.autorId) return;
+        const accion = btnPromoverCritico.dataset.accion || 'hacer-critico';
+        const nuevoRol = accion === 'quitar-critico' ? 'Espectador' : 'Critico';
+        btnPromoverCritico.disabled = true;
+        btnPromoverCritico.textContent = 'Actualizando...';
+        try {
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          const resp = await fetchFn(`/api/usuarios/${encodeURIComponent(datosResenaActual.autorId)}/rol`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ rol: nuevoRol })
+          });
+          if (resp && !resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            const err = new Error(errData.error || errData.message || 'No se pudo actualizar el rol');
+            err.status = resp.status;
+            throw err;
+          }
+          datosResenaActual.rolAutor = nuevoRol;
+          if (autorRol) {
+            autorRol.textContent = nuevoRol.toUpperCase();
+          }
+          actualizarBotonRol(nuevoRol);
+        } catch (err) {
+          actualizarBotonRol(datosResenaActual.rolAutor);
+          if (err && (err.status === 401 || err.message?.includes('iniciar sesión') || err.message?.includes('autorizado'))) {
+            if (typeof window.mostrarCartelSesionExpirada === 'function') {
+              window.mostrarCartelSesionExpirada(err.message);
+            }
+          } else if (err && err.message) {
+            alert(err.message);
+          }
+        } finally {
+          btnPromoverCritico.disabled = false;
+        }
+      });
+    }
+
+    if (btnMarcarSpoilerDetalle) {
+      btnMarcarSpoilerDetalle.addEventListener('click', async () => {
+        if (!datosResenaActual || !datosResenaActual.id) return;
+        const tieneSpoilersActual = btnMarcarSpoilerDetalle.dataset.contieneSpoilers === 'true';
+        const nuevoEstado = !tieneSpoilersActual;
+        btnMarcarSpoilerDetalle.disabled = true;
+        btnMarcarSpoilerDetalle.textContent = 'Actualizando...';
+        try {
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          const resp = await fetchFn(`/api/resenas/${encodeURIComponent(datosResenaActual.id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ contieneSpoilers: nuevoEstado })
+          });
+          if (resp && !resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            const err = new Error(errData.error || errData.message || 'No se pudo actualizar el estado de spoiler');
+            err.status = resp.status;
+            throw err;
+          }
+          datosResenaActual.contieneSpoilers = nuevoEstado;
+          if (alertaSpoilers) {
+            alertaSpoilers.classList.toggle('d-none', !nuevoEstado);
+          }
+          if (resenaTexto) {
+            resenaTexto.classList.toggle('spoiler-blureado', nuevoEstado);
+          }
+          actualizarBotonSpoiler(nuevoEstado);
+        } catch (err) {
+          actualizarBotonSpoiler(Boolean(datosResenaActual.contieneSpoilers));
+          if (err && (err.status === 401 || err.message?.includes('iniciar sesión') || err.message?.includes('autorizado'))) {
+            if (typeof window.mostrarCartelSesionExpirada === 'function') {
+              window.mostrarCartelSesionExpirada(err.message);
+            }
+          } else if (err && err.message) {
+            alert(err.message);
+          }
+        } finally {
+          btnMarcarSpoilerDetalle.disabled = false;
         }
       });
     }

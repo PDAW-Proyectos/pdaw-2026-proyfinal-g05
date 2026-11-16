@@ -116,9 +116,12 @@
                   <i class="bi bi-person-fill text-pink fs-6" aria-hidden="true"></i>
                 </div>
                 <div>
-                  <div class="d-flex align-items-center gap-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
                     <span class="text-white fw-bold small text-uppercase resena-autor-nombre"></span>
                     <span class="badge bg-dark border border-secondary border-opacity-50 text-pink small resena-autor-rol"></span>
+                    <button type="button" class="btn btn-outline-pink btn-sm py-0 px-2 small d-none btn-promover-critico" title="Promover usuario a Crítico">
+                      <i class="bi bi-award me-1" aria-hidden="true"></i> Hacer Crítico
+                    </button>
                   </div>
                   <span class="text-secondary small resena-fecha"></span>
                 </div>
@@ -158,7 +161,10 @@
           </div>
 
           <div class="d-flex justify-content-between align-items-center border-top border-secondary border-opacity-25 pt-3 mt-3">
-            <div class="d-flex gap-2 resena-acciones-autor d-none">
+            <div class="d-flex gap-2 flex-wrap resena-acciones-autor d-none">
+              <button type="button" class="btn btn-outline-warning btn-sm py-1 px-2.5 small btn-marcar-spoiler d-none" aria-label="Marcar como spoiler" title="Marcar reseña con spoiler">
+                <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i> Contiene Spoiler
+              </button>
               <button type="button" class="btn btn-outline-light btn-sm py-1 px-2.5 small btn-editar-resena" aria-label="Editar reseña">
                 <i class="bi bi-pencil me-1" aria-hidden="true"></i> Editar
               </button>
