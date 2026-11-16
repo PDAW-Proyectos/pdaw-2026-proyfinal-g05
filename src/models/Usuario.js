@@ -164,18 +164,30 @@ class Usuario {
   }
 
   agregarAWatchlist(idPelicula) {
-    if (!idPelicula || typeof idPelicula !== "string") {
+    if (
+      idPelicula === undefined ||
+      idPelicula === null ||
+      typeof idPelicula === "boolean" ||
+      typeof idPelicula === "object" ||
+      String(idPelicula).trim() === ""
+    ) {
       throw new ValidationError("El id de película es obligatorio");
     }
-    const trimmed = idPelicula.trim();
+    const trimmed = String(idPelicula).trim();
     if (!this.#watchlist.includes(trimmed)) {
       this.#watchlist = [...this.#watchlist, trimmed];
     }
   }
 
   quitarDeWatchlist(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return;
     const trimmed = String(idPelicula).trim();
     this.#watchlist = this.#watchlist.filter((id) => id !== trimmed);
+  }
+
+  estaEnWatchlist(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return false;
+    return this.#watchlist.includes(String(idPelicula).trim());
   }
 
   agregarAFavoritas(idPelicula) {

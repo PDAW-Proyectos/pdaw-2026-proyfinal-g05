@@ -1,6 +1,12 @@
 const bcrypt = require('bcryptjs');
 const { Usuario, Espectador } = require('../models/Usuario');
-const { ValidationError, UnauthorizedError, ConflictError, NotFoundError } = require('../utils/errors');
+const {
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  NotFoundError
+} = require('../utils/errors');
 
 class UsuarioService {
   #usuarioRepository;
@@ -187,6 +193,69 @@ class UsuarioService {
       existente.quitarDeFavoritas(peliLimpia);
     } else {
       existente.agregarAFavoritas(peliLimpia);
+    }
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(existente);
+    }
+
+    return existente;
+  }
+
+  async actualizarWatchlist(targetUserId, { sessionUserId, peliculaId, idPelicula, accion } = {}) {
+    const idSesion = sessionUserId !== undefined ? sessionUserId : targetUserId;
+    if (!idSesion || typeof idSesion !== 'string' || idSesion.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El id de usuario es obligatorio');
+    }
+
+    const targetLimpio = targetUserId.trim();
+    const sesionLimpia = idSesion.trim();
+
+    if (targetLimpio !== sesionLimpia) {
+      throw new ForbiddenError('No tienes permisos para modificar la watchlist de otro usuario');
+    }
+
+    const rawPeli = peliculaId !== undefined ? peliculaId : idPelicula;
+    if (
+      rawPeli === undefined ||
+      rawPeli === null ||
+      typeof rawPeli === 'boolean' ||
+      typeof rawPeli === 'object' ||
+      String(rawPeli).trim() === ''
+    ) {
+      throw new ValidationError('El id de película es obligatorio');
+    }
+
+    const peliLimpia = String(rawPeli).trim();
+
+    if (accion !== undefined && accion !== null) {
+      const accionNorm = String(accion).trim().toLowerCase();
+      if (!['agregar', 'quitar', 'add', 'remove', 'toggle'].includes(accionNorm)) {
+        throw new ValidationError('La acción debe ser "agregar" o "quitar"');
+      }
+    }
+
+    const existente = await this.obtenerPorId(targetLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    const accionNorm = accion ? String(accion).trim().toLowerCase() : 'toggle';
+
+    if (accionNorm === 'agregar' || accionNorm === 'add') {
+      existente.agregarAWatchlist(peliLimpia);
+    } else if (accionNorm === 'quitar' || accionNorm === 'remove') {
+      existente.quitarDeWatchlist(peliLimpia);
+    } else {
+      if (existente.estaEnWatchlist(peliLimpia)) {
+        existente.quitarDeWatchlist(peliLimpia);
+      } else {
+        existente.agregarAWatchlist(peliLimpia);
+      }
     }
 
     if (typeof this.#usuarioRepository.guardar === 'function') {

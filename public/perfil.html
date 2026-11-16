@@ -668,6 +668,39 @@
     </div>
   </div>
 
+  <div class="modal fade" id="modal-confirmar-quitar-watchlist" tabindex="-1"
+    aria-labelledby="modalConfirmarQuitarWatchlistTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+      <div class="modal-content modal-custom-dark">
+        <div class="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
+          <h5 class="modal-title fs-5 fw-bold text-white text-uppercase mb-0" id="modalConfirmarQuitarWatchlistTitulo"
+            style="font-family: var(--font-display);">
+            Quitar de Watchlist
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body px-4 py-3">
+          <p class="text-light mb-2" id="modal-confirmar-quitar-watchlist-mensaje">
+            ¿Confirmás que querés quitar esta película de tu watchlist?
+          </p>
+          <p class="text-secondary small mb-0">
+            Podrás volver a agregarla en cualquier momento desde el catálogo.
+          </p>
+        </div>
+        <div
+          class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-danger btn-sm px-3 py-2 fw-bold text-uppercase"
+            id="btn-confirmar-quitar-watchlist">
+            Quitar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <template id="template-item-pelicula">
     <div
       class="item-pelicula list-group-item list-group-item-action d-flex align-items-center gap-3 p-2 rounded border-0"
@@ -759,6 +792,11 @@
       <article class="perfil-watchlist-card h-100 d-flex flex-column">
         <div class="position-relative">
           <img src="/img/logoMovieClub.png" alt="" class="perfil-watchlist-poster watchlist-poster" loading="lazy">
+          <button type="button"
+            class="movie-card-action-btn activo position-absolute top-0 start-0 m-2 btn-quitar-watchlist"
+            title="Quitar de watchlist" aria-label="Quitar de watchlist" aria-pressed="true">
+            <i class="bi bi-bookmark-check-fill" aria-hidden="true"></i>
+          </button>
           <span
             class="badge bg-dark border border-secondary border-opacity-50 text-pink position-absolute top-0 end-0 m-2 small watchlist-rating d-none"></span>
         </div>
@@ -781,10 +819,11 @@
       <article class="perfil-watchlist-card h-100 d-flex flex-column">
         <div class="position-relative">
           <img src="/img/logoMovieClub.png" alt="" class="perfil-watchlist-poster favorita-poster" loading="lazy">
-          <span class="badge bg-dark border border-pink text-pink position-absolute top-0 start-0 m-2 small"
-            title="Película favorita" aria-label="Película favorita">
+          <button type="button"
+            class="movie-card-action-btn activo position-absolute top-0 start-0 m-2 btn-quitar-favorita"
+            title="Quitar de favoritas" aria-label="Quitar de favoritas" aria-pressed="true">
             <i class="bi bi-heart-fill" aria-hidden="true"></i>
-          </span>
+          </button>
           <span
             class="badge bg-dark border border-secondary border-opacity-50 text-pink position-absolute top-0 end-0 m-2 small favorita-rating d-none"></span>
         </div>

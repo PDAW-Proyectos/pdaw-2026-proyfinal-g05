@@ -60,6 +60,34 @@ class UsuarioController {
       next(error);
     }
   }
+
+  async actualizarWatchlist(req, res, next) {
+    try {
+      const sessionUserId = req?.session?.userId;
+      if (!sessionUserId || typeof sessionUserId !== 'string' || sessionUserId.trim() === '') {
+        return res.status(401).json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      const { id } = req.params || {};
+      const { peliculaId, idPelicula, accion } = req.body || {};
+
+      const usuarioActualizado = await this.#usuarioService.actualizarWatchlist(id, {
+        sessionUserId,
+        peliculaId,
+        idPelicula,
+        accion
+      });
+
+      const respuesta =
+        usuarioActualizado && typeof usuarioActualizado.paraExponer === 'function'
+          ? usuarioActualizado.paraExponer()
+          : usuarioActualizado;
+
+      return res.status(200).json(respuesta);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = UsuarioController;

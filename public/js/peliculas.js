@@ -43,6 +43,12 @@
     #btnPaginaSiguiente;
     #indicadorPagina;
     #indicadorPaginaHeader;
+    #modalRemoverElem;
+    #modalRemoverInstance;
+    #modalRemoverTitulo;
+    #modalRemoverMensaje;
+    #btnConfirmarRemover;
+    #accionRemoverPendiente = null;
     #peliculas = [];
     #paginaActual = 1;
     #totalPaginas = 1;
@@ -66,6 +72,10 @@
       this.#btnPaginaSiguiente = document.getElementById('btn-pagina-siguiente');
       this.#indicadorPagina = document.getElementById('indicador-pagina-actual');
       this.#indicadorPaginaHeader = document.getElementById('indicador-pagina-header');
+      this.#modalRemoverElem = document.getElementById('modal-confirmar-remover-lista');
+      this.#modalRemoverTitulo = document.getElementById('modalConfirmarRemoverTitulo');
+      this.#modalRemoverMensaje = document.getElementById('modal-confirmar-remover-mensaje');
+      this.#btnConfirmarRemover = document.getElementById('btn-confirmar-remover-lista');
     }
 
     async init() {
@@ -197,8 +207,71 @@
           if (btnWatch) {
             e.preventDefault();
             e.stopPropagation();
+            this.#manejarToggleWatchlist(btnWatch);
           }
         });
+      }
+
+      if (this.#btnConfirmarRemover) {
+        this.#btnConfirmarRemover.addEventListener('click', () => {
+          this.#confirmarAccionRemover();
+        });
+      }
+    }
+
+    #abrirModalConfirmarRemover({ tipo, btn, peliculaId, titulo }) {
+      this.#accionRemoverPendiente = { tipo, btn, peliculaId };
+
+      if (this.#modalRemoverTitulo) {
+        this.#modalRemoverTitulo.textContent =
+          tipo === 'favorita' ? 'Quitar de Favoritas' : 'Quitar de Watchlist';
+      }
+
+      if (this.#modalRemoverMensaje) {
+        const nombreLista = tipo === 'favorita' ? 'tus favoritas' : 'tu watchlist';
+        this.#modalRemoverMensaje.textContent = titulo
+          ? `¿Confirmás que querés quitar "${titulo}" de ${nombreLista}?`
+          : `¿Confirmás que querés quitar esta película de ${nombreLista}?`;
+      }
+
+      if (this.#btnConfirmarRemover) {
+        this.#btnConfirmarRemover.disabled = false;
+        this.#btnConfirmarRemover.textContent = 'Quitar';
+      }
+
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal && this.#modalRemoverElem) {
+        if (!this.#modalRemoverInstance) {
+          this.#modalRemoverInstance = bootstrap.Modal.getOrCreateInstance(this.#modalRemoverElem);
+        }
+        this.#modalRemoverInstance.show();
+      }
+    }
+
+    async #confirmarAccionRemover() {
+      const pendiente = this.#accionRemoverPendiente;
+      if (!pendiente) return;
+
+      if (this.#btnConfirmarRemover) {
+        this.#btnConfirmarRemover.disabled = true;
+        this.#btnConfirmarRemover.textContent = 'Quitando...';
+      }
+
+      try {
+        if (pendiente.tipo === 'favorita') {
+          await this.#ejecutarCambioFavorita(pendiente.btn, pendiente.peliculaId, false);
+        } else if (pendiente.tipo === 'watchlist') {
+          await this.#ejecutarCambioWatchlist(pendiente.btn, pendiente.peliculaId, false);
+        }
+
+        if (this.#modalRemoverInstance) {
+          this.#modalRemoverInstance.hide();
+        }
+      } finally {
+        this.#accionRemoverPendiente = null;
+        if (this.#btnConfirmarRemover) {
+          this.#btnConfirmarRemover.disabled = false;
+          this.#btnConfirmarRemover.textContent = 'Quitar';
+        }
       }
     }
 
@@ -209,6 +282,19 @@
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.favoritas)) {
           return new Set(parsed.favoritas.map((id) => String(id).trim()));
+        }
+      } catch {
+      }
+      return new Set();
+    }
+
+    #obtenerWatchlistUsuarioLocal() {
+      try {
+        const raw = localStorage.getItem('usuario');
+        if (!raw) return new Set();
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.watchlist)) {
+          return new Set(parsed.watchlist.map((id) => String(id).trim()));
         }
       } catch {
       }
@@ -228,6 +314,19 @@
       }
     }
 
+    #actualizarEstadoVisualBotonWatchlist(btnWatch, enWatchlist) {
+      if (!btnWatch) return;
+      btnWatch.classList.toggle('activo', enWatchlist);
+      btnWatch.setAttribute('aria-pressed', String(enWatchlist));
+      btnWatch.setAttribute('title', enWatchlist ? 'Quitar de watchlist' : 'Añadir a watchlist');
+      const icono = btnWatch.querySelector('.icono-card-watchlist');
+      if (icono) {
+        icono.className = enWatchlist
+          ? 'bi bi-bookmark-check-fill icono-card-watchlist'
+          : 'bi bi-bookmark-plus icono-card-watchlist';
+      }
+    }
+
     async #manejarToggleFavorita(btnFav) {
       const peliculaId = btnFav.dataset.peliculaId;
       if (!peliculaId) return;
@@ -239,7 +338,27 @@
       }
 
       const eraFavorita = btnFav.classList.contains('activo');
-      const nuevoEstado = !eraFavorita;
+      if (eraFavorita) {
+        this.#abrirModalConfirmarRemover({
+          tipo: 'favorita',
+          btn: btnFav,
+          peliculaId,
+          titulo: btnFav.dataset.titulo || ''
+        });
+        return;
+      }
+
+      await this.#ejecutarCambioFavorita(btnFav, peliculaId, true);
+    }
+
+    async #ejecutarCambioFavorita(btnFav, peliculaId, nuevoEstado) {
+      const rawUser = localStorage.getItem('usuario');
+      if (!rawUser) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const estadoPrevio = !nuevoEstado;
       this.#actualizarEstadoVisualBotonFav(btnFav, nuevoEstado);
 
       try {
@@ -250,13 +369,13 @@
         });
 
         if (res.status === 401) {
-          this.#actualizarEstadoVisualBotonFav(btnFav, eraFavorita);
+          this.#actualizarEstadoVisualBotonFav(btnFav, estadoPrevio);
           window.location.href = '/login.html';
           return;
         }
 
         if (!res.ok) {
-          this.#actualizarEstadoVisualBotonFav(btnFav, eraFavorita);
+          this.#actualizarEstadoVisualBotonFav(btnFav, estadoPrevio);
           return;
         }
 
@@ -276,7 +395,102 @@
         } catch {
         }
       } catch {
-        this.#actualizarEstadoVisualBotonFav(btnFav, eraFavorita);
+        this.#actualizarEstadoVisualBotonFav(btnFav, estadoPrevio);
+      }
+    }
+
+    async #manejarToggleWatchlist(btnWatch) {
+      const peliculaId = btnWatch.dataset.peliculaId;
+      if (!peliculaId) return;
+
+      const rawUser = localStorage.getItem('usuario');
+      if (!rawUser) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const estabaEnWatchlist = btnWatch.classList.contains('activo');
+      if (estabaEnWatchlist) {
+        this.#abrirModalConfirmarRemover({
+          tipo: 'watchlist',
+          btn: btnWatch,
+          peliculaId,
+          titulo: btnWatch.dataset.titulo || ''
+        });
+        return;
+      }
+
+      await this.#ejecutarCambioWatchlist(btnWatch, peliculaId, true);
+    }
+
+    async #ejecutarCambioWatchlist(btnWatch, peliculaId, nuevoEstado) {
+      const rawUser = localStorage.getItem('usuario');
+      if (!rawUser) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      let userId = null;
+      try {
+        const parsed = JSON.parse(rawUser);
+        userId = parsed?.id ? String(parsed.id).trim() : null;
+      } catch {
+      }
+
+      if (!userId) {
+        userId = localStorage.getItem('userId');
+      }
+
+      if (!userId) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      const estadoPrevio = !nuevoEstado;
+      this.#actualizarEstadoVisualBotonWatchlist(btnWatch, nuevoEstado);
+
+      try {
+        const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+        const res = await fetchFn(`/api/usuarios/${encodeURIComponent(userId)}/watchlist`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            peliculaId: String(peliculaId),
+            accion: nuevoEstado ? 'agregar' : 'quitar'
+          }),
+          credentials: 'same-origin'
+        });
+
+        if (res.status === 401) {
+          this.#actualizarEstadoVisualBotonWatchlist(btnWatch, estadoPrevio);
+          window.location.href = '/login.html';
+          return;
+        }
+
+        if (!res.ok) {
+          this.#actualizarEstadoVisualBotonWatchlist(btnWatch, estadoPrevio);
+          return;
+        }
+
+        const usuarioActualizado = await res.json();
+        const watchlistServer = Array.isArray(usuarioActualizado.watchlist)
+          ? usuarioActualizado.watchlist.map(String)
+          : [];
+        const quedoEnWatchlist = watchlistServer.includes(String(peliculaId));
+        this.#actualizarEstadoVisualBotonWatchlist(btnWatch, quedoEnWatchlist);
+
+        try {
+          const parsed = JSON.parse(rawUser);
+          if (parsed && typeof parsed === 'object') {
+            parsed.watchlist = watchlistServer;
+            localStorage.setItem('usuario', JSON.stringify(parsed));
+          }
+        } catch {
+        }
+      } catch {
+        this.#actualizarEstadoVisualBotonWatchlist(btnWatch, estadoPrevio);
       }
     }
 
@@ -390,6 +604,7 @@
 
       const fragmento = document.createDocumentFragment();
       const favoritasSet = this.#obtenerFavoritasUsuarioLocal();
+      const watchlistSet = this.#obtenerWatchlistUsuarioLocal();
 
       lista.forEach((pelicula) => {
         const clone = this.#template.content.cloneNode(true);
@@ -411,12 +626,16 @@
 
         if (btnFav) {
           btnFav.dataset.peliculaId = pelicula.id;
+          btnFav.dataset.titulo = pelicula.titulo;
           const esFav = favoritasSet.has(String(pelicula.id));
           this.#actualizarEstadoVisualBotonFav(btnFav, esFav);
         }
 
         if (btnWatch) {
           btnWatch.dataset.peliculaId = pelicula.id;
+          btnWatch.dataset.titulo = pelicula.titulo;
+          const enWatch = watchlistSet.has(String(pelicula.id));
+          this.#actualizarEstadoVisualBotonWatchlist(btnWatch, enWatch);
         }
 
         if (poster) {

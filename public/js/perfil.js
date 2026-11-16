@@ -144,6 +144,14 @@
     #mensajeConfirmarEliminar;
     #resenaIdAEliminar = null;
 
+    #modalConfirmarWatchlistElem;
+    #modalConfirmarWatchlistInstance;
+    #modalConfirmarWatchlistTitulo;
+    #btnConfirmarQuitarWatchlist;
+    #mensajeConfirmarQuitarWatchlist;
+    #peliculaIdQuitarWatchlist = null;
+    #tipoListaQuitar = 'watchlist';
+
     #usuario = null;
     #resenasUsuario = [];
     #peliculasCache = new Map();
@@ -160,6 +168,7 @@
     #favoritasAbortController = null;
     #watchlistAbortController = null;
     #deleteAbortController = null;
+    #watchlistRemoveAbortController = null;
     #perfilUpdateAbortController = null;
 
     constructor() {
@@ -231,6 +240,11 @@
       this.#modalConfirmarEliminarElem = document.getElementById('modal-confirmar-eliminar');
       this.#btnConfirmarEliminar = document.getElementById('btn-confirmar-eliminar');
       this.#mensajeConfirmarEliminar = document.getElementById('modal-confirmar-eliminar-mensaje');
+
+      this.#modalConfirmarWatchlistElem = document.getElementById('modal-confirmar-quitar-watchlist');
+      this.#modalConfirmarWatchlistTitulo = document.getElementById('modalConfirmarQuitarWatchlistTitulo');
+      this.#btnConfirmarQuitarWatchlist = document.getElementById('btn-confirmar-quitar-watchlist');
+      this.#mensajeConfirmarQuitarWatchlist = document.getElementById('modal-confirmar-quitar-watchlist-mensaje');
     }
 
     init() {
@@ -357,8 +371,23 @@
         });
       }
 
+      if (this.#contenedorFavoritas) {
+        this.#contenedorFavoritas.addEventListener('click', (e) => {
+          const btnQuitarFav = e.target.closest('.btn-quitar-favorita');
+          if (btnQuitarFav) {
+            this.#abrirModalQuitarWatchlist(btnQuitarFav, 'favoritas');
+          }
+        });
+      }
+
       if (this.#contenedorWatchlist) {
         this.#contenedorWatchlist.addEventListener('click', (e) => {
+          const btnQuitar = e.target.closest('.btn-quitar-watchlist');
+          if (btnQuitar) {
+            this.#abrirModalQuitarWatchlist(btnQuitar, 'watchlist');
+            return;
+          }
+
           const btnResenar = e.target.closest('.btn-resenar-watchlist');
           if (!btnResenar) return;
 
@@ -401,6 +430,12 @@
       if (this.#btnConfirmarEliminar) {
         this.#btnConfirmarEliminar.addEventListener('click', () => {
           this.#ejecutarEliminacionResena();
+        });
+      }
+
+      if (this.#btnConfirmarQuitarWatchlist) {
+        this.#btnConfirmarQuitarWatchlist.addEventListener('click', () => {
+          this.#ejecutarQuitarWatchlist();
         });
       }
 
@@ -678,6 +713,151 @@
         }
       } finally {
         this.#resenaIdAEliminar = null;
+      }
+    }
+
+    #abrirModalQuitarWatchlist(btnQuitar, tipo = 'watchlist') {
+      const peliculaId = btnQuitar.dataset.peliculaId;
+      if (!peliculaId) return;
+
+      this.#peliculaIdQuitarWatchlist = peliculaId;
+      this.#tipoListaQuitar = tipo;
+      const tituloPelicula = btnQuitar.dataset.titulo;
+
+      if (this.#modalConfirmarWatchlistTitulo) {
+        this.#modalConfirmarWatchlistTitulo.textContent =
+          tipo === 'favoritas' ? 'Quitar de Favoritas' : 'Quitar de Watchlist';
+      }
+
+      if (this.#mensajeConfirmarQuitarWatchlist) {
+        const nombreLista = tipo === 'favoritas' ? 'tus favoritas' : 'tu watchlist';
+        if (tituloPelicula) {
+          this.#mensajeConfirmarQuitarWatchlist.textContent = `¿Confirmás que querés quitar "${tituloPelicula}" de ${nombreLista}?`;
+        } else {
+          this.#mensajeConfirmarQuitarWatchlist.textContent = `¿Confirmás que querés quitar esta película de ${nombreLista}?`;
+        }
+      }
+
+      if (this.#btnConfirmarQuitarWatchlist) {
+        this.#btnConfirmarQuitarWatchlist.disabled = false;
+        this.#btnConfirmarQuitarWatchlist.textContent = 'Quitar';
+      }
+
+      if (typeof bootstrap !== 'undefined' && bootstrap.Modal && this.#modalConfirmarWatchlistElem) {
+        if (!this.#modalConfirmarWatchlistInstance) {
+          this.#modalConfirmarWatchlistInstance = bootstrap.Modal.getOrCreateInstance(this.#modalConfirmarWatchlistElem);
+        }
+        this.#modalConfirmarWatchlistInstance.show();
+      }
+    }
+
+    async #ejecutarQuitarWatchlist() {
+      const peliculaId = this.#peliculaIdQuitarWatchlist;
+      const tipo = this.#tipoListaQuitar;
+      if (!peliculaId || !this.#usuario?.id) return;
+
+      if (this.#watchlistRemoveAbortController) {
+        this.#watchlistRemoveAbortController.abort();
+      }
+      this.#watchlistRemoveAbortController = new AbortController();
+
+      if (this.#btnConfirmarQuitarWatchlist) {
+        this.#btnConfirmarQuitarWatchlist.disabled = true;
+        this.#btnConfirmarQuitarWatchlist.textContent = 'Quitando...';
+      }
+
+      try {
+        const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+        let resp;
+
+        if (tipo === 'favoritas') {
+          resp = await fetchFn(
+            `/api/usuarios/favoritas/${encodeURIComponent(peliculaId)}`,
+            {
+              method: 'POST',
+              credentials: 'same-origin',
+              signal: this.#watchlistRemoveAbortController.signal
+            }
+          );
+        } else {
+          resp = await fetchFn(
+            `/api/usuarios/${encodeURIComponent(this.#usuario.id)}/watchlist`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                peliculaId: String(peliculaId),
+                accion: 'quitar'
+              }),
+              credentials: 'same-origin',
+              signal: this.#watchlistRemoveAbortController.signal
+            }
+          );
+        }
+
+        if (!resp.ok) {
+          throw new Error('No se pudo quitar la película de la lista.');
+        }
+
+        const usuarioActualizado = await resp.json();
+
+        if (tipo === 'favoritas') {
+          const favsActualizadas = Array.isArray(usuarioActualizado.favoritas)
+            ? usuarioActualizado.favoritas
+            : (this.#usuario.favoritas || []).filter((id) => String(id) !== String(peliculaId));
+          this.#usuario = {
+            ...this.#usuario,
+            ...usuarioActualizado,
+            favoritas: favsActualizadas
+          };
+          this.#resenasUsuario = this.#resenasUsuario.map((r) =>
+            String(r.peliculaId) === String(peliculaId) ? { ...r, esFavorita: false } : r
+          );
+        } else {
+          this.#usuario = {
+            ...this.#usuario,
+            ...usuarioActualizado,
+            watchlist: Array.isArray(usuarioActualizado.watchlist)
+              ? usuarioActualizado.watchlist
+              : (this.#usuario.watchlist || []).filter((id) => String(id) !== String(peliculaId))
+          };
+        }
+
+        try {
+          const rawUser = localStorage.getItem('usuario');
+          if (rawUser) {
+            const parsed = JSON.parse(rawUser);
+            if (parsed && typeof parsed === 'object') {
+              parsed.watchlist = this.#usuario.watchlist;
+              parsed.favoritas = this.#usuario.favoritas;
+              localStorage.setItem('usuario', JSON.stringify(parsed));
+            }
+          }
+        } catch {
+        }
+
+        if (this.#modalConfirmarWatchlistInstance) {
+          this.#modalConfirmarWatchlistInstance.hide();
+        }
+
+        this.#actualizarContadores();
+        if (tipo === 'favoritas') {
+          this.#favoritasCargada = false;
+          this.#cargarFavoritas();
+        } else {
+          this.#watchlistCargada = false;
+          this.#cargarWatchlist();
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        if (this.#btnConfirmarQuitarWatchlist) {
+          this.#btnConfirmarQuitarWatchlist.disabled = false;
+          this.#btnConfirmarQuitarWatchlist.textContent = 'Error al quitar';
+        }
+      } finally {
+        this.#peliculaIdQuitarWatchlist = null;
       }
     }
 
@@ -1300,6 +1480,7 @@
           const rating = clone.querySelector('.favorita-rating');
           const titulo = clone.querySelector('.favorita-titulo');
           const anio = clone.querySelector('.favorita-anio');
+          const btnQuitarFav = clone.querySelector('.btn-quitar-favorita');
 
           if (poster) {
             poster.src = peli.poster;
@@ -1307,6 +1488,11 @@
             poster.addEventListener('error', () => {
               poster.src = '/img/logoMovieClub.png';
             });
+          }
+
+          if (btnQuitarFav) {
+            btnQuitarFav.dataset.peliculaId = peli.id;
+            btnQuitarFav.dataset.titulo = peli.titulo;
           }
 
           if (rating) {
@@ -1376,6 +1562,7 @@
           const titulo = clone.querySelector('.watchlist-titulo');
           const anio = clone.querySelector('.watchlist-anio');
           const btnResenar = clone.querySelector('.btn-resenar-watchlist');
+          const btnQuitar = clone.querySelector('.btn-quitar-watchlist');
 
           if (poster) {
             poster.src = peli.poster;
@@ -1383,6 +1570,11 @@
             poster.addEventListener('error', () => {
               poster.src = '/img/logoMovieClub.png';
             });
+          }
+
+          if (btnQuitar) {
+            btnQuitar.dataset.peliculaId = peli.id;
+            btnQuitar.dataset.titulo = peli.titulo;
           }
 
           if (rating) {
