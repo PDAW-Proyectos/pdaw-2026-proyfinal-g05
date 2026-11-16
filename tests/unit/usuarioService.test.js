@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const UsuarioService = require('../../src/services/usuarioService');
 const { Usuario, Espectador } = require('../../src/models/Usuario');
-const { ValidationError, UnauthorizedError } = require('../../src/utils/errors');
+const { ValidationError, UnauthorizedError, ForbiddenError, NotFoundError } = require('../../src/utils/errors');
 
 describe('UsuarioService - login', () => {
   let mockUsuarioRepository;
@@ -80,5 +80,56 @@ describe('UsuarioService - login', () => {
     expect(usuario.id).toBe('usr-1');
     expect(usuario.nombre).toBe('Tyler Durden');
     expect(usuario.email).toBe('tyler@teste.com');
+  });
+
+  describe('actualizarWatchlist', () => {
+    test('agrega una película a la watchlist y guarda el usuario', async () => {
+      const actualizado = await usuarioService.actualizarWatchlist('usr-1', {
+        sessionUserId: 'usr-1',
+        peliculaId: '550'
+      });
+
+      expect(actualizado.watchlist).toContain('550');
+      expect(actualizado.watchlist).toContain('peli-1');
+      expect(mockUsuarioRepository.guardar).toHaveBeenCalledTimes(1);
+    });
+
+    test('quita una película de la watchlist cuando ya existe (modo toggle) o con accion quitar', async () => {
+      const actualizado = await usuarioService.actualizarWatchlist('usr-1', {
+        sessionUserId: 'usr-1',
+        peliculaId: 'peli-1'
+      });
+
+      expect(actualizado.watchlist).not.toContain('peli-1');
+      expect(mockUsuarioRepository.guardar).toHaveBeenCalledTimes(1);
+    });
+
+    test('lanza ForbiddenError si sessionUserId no coincide con targetUserId', async () => {
+      await expect(
+        usuarioService.actualizarWatchlist('usr-1', {
+          sessionUserId: 'usr-2',
+          peliculaId: '550'
+        })
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    test('lanza ValidationError si no se envía peliculaId', async () => {
+      await expect(
+        usuarioService.actualizarWatchlist('usr-1', {
+          sessionUserId: 'usr-1',
+          peliculaId: ''
+        })
+      ).rejects.toThrow(ValidationError);
+    });
+
+    test('lanza NotFoundError si el usuario no existe', async () => {
+      mockUsuarioRepository.leer.mockResolvedValue([]);
+      await expect(
+        usuarioService.actualizarWatchlist('usr-999', {
+          sessionUserId: 'usr-999',
+          peliculaId: '550'
+        })
+      ).rejects.toThrow(NotFoundError);
+    });
   });
 });

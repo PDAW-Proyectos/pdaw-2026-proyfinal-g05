@@ -148,5 +148,73 @@ describe('PATCH /api/usuarios/perfil (Integration)', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/entre 2 y 28 caracteres/i);
   });
+
+  describe('PATCH /api/usuarios/:id/watchlist', () => {
+    test('rechaza con 401 si no hay sesión activa', async () => {
+      const res = await request(app)
+        .patch('/api/usuarios/usr-1/watchlist')
+        .send({ peliculaId: '550' });
+
+      expect(res.status).toBe(401);
+    });
+
+    test('agrega una película a la watchlist del usuario autenticado y la persiste', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-1/watchlist')
+        .send({ peliculaId: '550' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.watchlist).toEqual(['550']);
+      expect(mockUsuarios[0].watchlist).toEqual(['550']);
+    });
+
+    test('quita una película de la watchlist si ya estaba presente (toggle) o con accion quitar', async () => {
+      mockUsuarios[0].watchlist = ['550', '680'];
+
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-1/watchlist')
+        .send({ peliculaId: '550', accion: 'quitar' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.watchlist).toEqual(['680']);
+      expect(mockUsuarios[0].watchlist).toEqual(['680']);
+    });
+
+    test('rechaza con 403 si un usuario intenta modificar la watchlist de otro usuario', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-2/watchlist')
+        .send({ peliculaId: '550' });
+
+      expect(res.status).toBe(403);
+    });
+
+    test('rechaza con 400 si no se envía peliculaId', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent
+        .patch('/api/usuarios/usr-1/watchlist')
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+  });
 });
 
