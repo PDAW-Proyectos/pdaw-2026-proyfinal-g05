@@ -150,12 +150,17 @@
 
       this.#resenaIdAEliminar = resenaId;
       const tituloPelicula = btnEliminar.dataset.peliculaTitulo;
+      const esAutor = btnEliminar.dataset.esAutor !== 'false';
 
       if (this.#mensajeConfirmarEliminar) {
         if (tituloPelicula) {
-          this.#mensajeConfirmarEliminar.textContent = `¿Confirmás que querés eliminar tu reseña de "${tituloPelicula}"?`;
+          this.#mensajeConfirmarEliminar.textContent = esAutor
+            ? `¿Confirmás que querés eliminar tu reseña de "${tituloPelicula}"?`
+            : `¿Confirmás que querés eliminar la reseña de "${tituloPelicula}" como moderador?`;
         } else {
-          this.#mensajeConfirmarEliminar.textContent = '¿Confirmás que querés eliminar esta reseña?';
+          this.#mensajeConfirmarEliminar.textContent = esAutor
+            ? '¿Confirmás que querés eliminar esta reseña?'
+            : '¿Confirmás que querés eliminar esta reseña como moderador?';
         }
       }
 
@@ -413,10 +418,6 @@
       }
 
       const btnEliminar = clone.querySelector('.btn-eliminar-resena');
-      if (btnEliminar) {
-        btnEliminar.dataset.resenaId = resena.id || '';
-        btnEliminar.dataset.peliculaTitulo = tituloPeli;
-      }
 
       const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');
       if (contenedorAccionesAutor) {
@@ -459,6 +460,17 @@
           usuarioActivo.id &&
           String(usuarioActivo.rol || '').toLowerCase() === 'moderador'
         );
+
+        if (btnEliminar) {
+          btnEliminar.dataset.resenaId = resena.id || '';
+          btnEliminar.dataset.peliculaTitulo = tituloPeli;
+          btnEliminar.dataset.esAutor = esAutor ? 'true' : 'false';
+          btnEliminar.dataset.esModerador = esModerador ? 'true' : 'false';
+          if (esModerador && !esAutor) {
+            btnEliminar.setAttribute('title', 'Eliminar reseña (Moderación)');
+            btnEliminar.innerHTML = '<i class="bi bi-shield-x me-1" aria-hidden="true"></i> Eliminar';
+          }
+        }
 
         if (esAutor || esModerador) {
           contenedorAccionesAutor.classList.remove('d-none');

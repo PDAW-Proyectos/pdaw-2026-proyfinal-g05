@@ -151,30 +151,64 @@
 
         const panelAccionesAutor = document.getElementById('resena-acciones-autor-detalle');
         if (panelAccionesAutor) {
-          const idUsuarioActivo = (() => {
+          const usuarioActivo = (() => {
             try {
-              if (typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
-                const id = window.API.getUserId();
-                if (id) return String(id);
+              let parsedUser = null;
+              if (typeof window.API !== 'undefined' && typeof window.API.getUsuario === 'function') {
+                parsedUser = window.API.getUsuario();
               }
-              const directId = localStorage.getItem('userId');
-              if (directId) return String(directId);
-              const rawUser = localStorage.getItem('usuario');
-              if (rawUser) {
-                const parsed = JSON.parse(rawUser);
-                if (parsed?.id) return String(parsed.id);
+              if (!parsedUser) {
+                const rawUser = localStorage.getItem('usuario');
+                if (rawUser) {
+                  parsedUser = JSON.parse(rawUser);
+                }
               }
-            } catch {}
-            return null;
+              let id = parsedUser?.id ? String(parsedUser.id) : null;
+              if (!id && typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
+                const apiId = window.API.getUserId();
+                if (apiId) id = String(apiId);
+              }
+              if (!id) {
+                const directId = localStorage.getItem('userId');
+                if (directId) id = String(directId);
+              }
+              return {
+                id,
+                rol: parsedUser?.rol ? String(parsedUser.rol) : null
+              };
+            } catch {
+              return { id: null, rol: null };
+            }
           })();
 
           const esAutor = Boolean(
-            idUsuarioActivo &&
+            usuarioActivo.id &&
             data.autorId &&
-            String(idUsuarioActivo) === String(data.autorId)
+            String(usuarioActivo.id) === String(data.autorId)
+          );
+          const esModerador = Boolean(
+            usuarioActivo.id &&
+            String(usuarioActivo.rol || '').toLowerCase() === 'moderador'
           );
 
-          panelAccionesAutor.classList.toggle('d-none', !esAutor);
+          if (esAutor || esModerador) {
+            panelAccionesAutor.classList.remove('d-none');
+            if (btnEditarDetalle) {
+              btnEditarDetalle.classList.toggle('d-none', !esAutor);
+            }
+            if (btnEliminarDetalle) {
+              btnEliminarDetalle.classList.remove('d-none');
+              btnEliminarDetalle.dataset.esAutor = esAutor ? 'true' : 'false';
+              btnEliminarDetalle.dataset.esModerador = esModerador ? 'true' : 'false';
+              if (esModerador && !esAutor) {
+                btnEliminarDetalle.innerHTML = '<i class="bi bi-shield-x me-1" aria-hidden="true"></i> Eliminar reseña (Moderación)';
+              } else {
+                btnEliminarDetalle.innerHTML = '<i class="bi bi-trash me-1" aria-hidden="true"></i> Eliminar reseña';
+              }
+            }
+          } else {
+            panelAccionesAutor.classList.add('d-none');
+          }
         }
 
         document.title = `${tituloPeli} - Reseña de ${data.nombreAutor || 'MovieClub'} | MovieClub`;
@@ -239,10 +273,19 @@
       btnEliminarDetalle.addEventListener('click', () => {
         if (!datosResenaActual) return;
         const peliTitulo = datosResenaActual.pelicula?.titulo;
+        const esAutor = btnEliminarDetalle.dataset.esAutor !== 'false';
+        const tituloFinal = peliTitulo || tituloPeli;
+
         if (msgConfirmarEliminar) {
-          msgConfirmarEliminar.textContent = peliTitulo
-            ? `¿Confirmás que querés eliminar tu reseña de "${peliTitulo}"?`
-            : '¿Confirmás que querés eliminar esta reseña?';
+          if (tituloFinal) {
+            msgConfirmarEliminar.textContent = esAutor
+              ? `¿Confirmás que querés eliminar tu reseña de "${tituloFinal}"?`
+              : `¿Confirmás que querés eliminar la reseña de "${tituloFinal}" como moderador?`;
+          } else {
+            msgConfirmarEliminar.textContent = esAutor
+              ? '¿Confirmás que querés eliminar esta reseña?'
+              : '¿Confirmás que querés eliminar esta reseña como moderador?';
+          }
         }
         if (btnConfirmarEliminar) {
           btnConfirmarEliminar.disabled = false;
@@ -275,7 +318,8 @@
             bsModalEliminar.hide();
           }
 
-          window.location.href = '/perfil.html';
+          const esAutor = btnEliminarDetalle ? btnEliminarDetalle.dataset.esAutor !== 'false' : true;
+          window.location.href = esAutor ? '/perfil.html' : '/resenas.html';
         } catch {
           btnConfirmarEliminar.disabled = false;
           btnConfirmarEliminar.textContent = 'Error al eliminar';
