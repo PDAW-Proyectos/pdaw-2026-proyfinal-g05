@@ -36,6 +36,38 @@ class UsuarioController {
       next(error);
     }
   }
+
+  async cambiarRol(req, res, next) {
+    try {
+      const moderadorId = req?.session?.userId;
+      const targetUserId = req.params.id;
+      const { rol, medioDePrensa } = req.body || {};
+
+      if (!moderadorId) {
+        return res.status(401).json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      if (!rol) {
+        return res.status(400).json({ error: 'El rol es obligatorio' });
+      }
+
+      const usuarioActualizado = await this.#usuarioService.cambiarRol(
+        moderadorId,
+        targetUserId,
+        rol,
+        { medioDePrensa }
+      );
+
+      const respuesta =
+        usuarioActualizado && typeof usuarioActualizado.paraExponer === 'function'
+          ? usuarioActualizado.paraExponer()
+          : usuarioActualizado;
+
+      return res.status(200).json(respuesta);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = UsuarioController;

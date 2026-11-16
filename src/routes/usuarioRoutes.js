@@ -14,6 +14,10 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
     controller.actualizarPerfil(req, res, next)
   );
 
+  router.patch('/:id/rol', requireAuth, (req, res, next) =>
+    controller.cambiarRol(req, res, next)
+  );
+
   return router;
 }
 

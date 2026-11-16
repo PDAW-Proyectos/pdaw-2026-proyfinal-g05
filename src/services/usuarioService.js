@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
-const { Usuario, Espectador } = require('../models/Usuario');
-const { ValidationError, UnauthorizedError, ConflictError, NotFoundError } = require('../utils/errors');
+const { Usuario, Espectador, Moderador } = require('../models/Usuario');
+const { ValidationError, UnauthorizedError, ConflictError, NotFoundError, ForbiddenError } = require('../utils/errors');
 
 class UsuarioService {
   #usuarioRepository;
@@ -165,6 +165,51 @@ class UsuarioService {
     }
 
     return existente;
+  }
+
+  async cambiarRol(moderadorId, targetUserId, nuevoRol, { medioDePrensa } = {}) {
+    if (!moderadorId || typeof moderadorId !== 'string' || moderadorId.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    const moderador = await this.obtenerPorId(moderadorId.trim());
+    if (
+      !moderador ||
+      (!moderador.puedeModerar?.() && !(moderador instanceof Moderador) && moderador.rol !== 'Moderador')
+    ) {
+      throw new ForbiddenError('Acceso denegado: permisos insuficientes para realizar esta acción');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El ID del usuario es requerido');
+    }
+
+    const targetUser = await this.obtenerPorId(targetUserId.trim());
+    if (!targetUser) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    const rolesValidos = ['Espectador', 'Critico', 'Moderador'];
+    if (!rolesValidos.includes(nuevoRol)) {
+      throw new ValidationError('El rol especificado es inválido');
+    }
+
+    const usuarioConNuevoRol = typeof moderador.cambiarRolUsuario === 'function'
+      ? moderador.cambiarRolUsuario(targetUser, nuevoRol, { medioDePrensa })
+      : (() => {
+          const raw = targetUser.toJSON();
+          raw.rol = nuevoRol;
+          if (nuevoRol === 'Critico') {
+            raw.medioDePrensa = medioDePrensa || raw.medioDePrensa || 'Prensa Oficial MovieClub';
+          }
+          return Usuario.fromJSON(raw);
+        })();
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(usuarioConNuevoRol);
+    }
+
+    return usuarioConNuevoRol;
   }
 }
 
