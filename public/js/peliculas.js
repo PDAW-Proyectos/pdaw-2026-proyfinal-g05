@@ -37,7 +37,6 @@
     #inputBuscar;
     #filtroGenero;
     #filtroAnio;
-    #filtroPeriodo;
     #tituloSeccion;
     #paginacionContenedor;
     #btnPaginaAnterior;
@@ -61,7 +60,6 @@
       this.#inputBuscar = document.getElementById('input-buscar-catalogo');
       this.#filtroGenero = document.getElementById('filtro-genero');
       this.#filtroAnio = document.getElementById('filtro-anio');
-      this.#filtroPeriodo = document.getElementById('filtro-periodo');
       this.#tituloSeccion = document.getElementById('titulo-seccion-peliculas');
       this.#paginacionContenedor = document.getElementById('paginacion-peliculas');
       this.#btnPaginaAnterior = document.getElementById('btn-pagina-anterior');
@@ -169,13 +167,6 @@
         });
       }
 
-      if (this.#filtroPeriodo) {
-        this.#filtroPeriodo.addEventListener('change', () => {
-          this.#actualizarTituloPeriodo();
-          this.#aplicarFiltros();
-        });
-      }
-
       if (this.#btnPaginaAnterior) {
         this.#btnPaginaAnterior.addEventListener('click', () => {
           if (this.#paginaActual > 1) {
@@ -207,13 +198,13 @@
       this.#ultimoTextoBuscado = texto;
 
       if (!texto) {
-        this.#actualizarTituloPeriodo();
+        this.#actualizarTituloDefault();
         await this.#cargarPaginaAPI(1);
         return;
       }
 
       if (this.#tituloSeccion) {
-        this.#tituloSeccion.textContent = `RESULTADOS PARA: "${texto.toUpperCase()}"`;
+        this.#tituloSeccion.textContent = 'Esto es lo que el club encontró para vos:';
       }
 
       if (texto.length >= 2) {
@@ -224,34 +215,15 @@
       this.#aplicarFiltros();
     }
 
-    #actualizarTituloPeriodo() {
+    #actualizarTituloDefault() {
       if (!this.#tituloSeccion) return;
-      const periodo = this.#filtroPeriodo?.value || 'semana';
-      switch (periodo) {
-        case 'semana':
-          this.#tituloSeccion.textContent = 'PELÍCULAS POPULARES ESTA SEMANA';
-          break;
-        case 'mes':
-          this.#tituloSeccion.textContent = 'PELÍCULAS POPULARES ESTE MES';
-          break;
-        case 'anio':
-          this.#tituloSeccion.textContent = 'PELÍCULAS POPULARES ESTE AÑO';
-          break;
-        case 'historico':
-          this.#tituloSeccion.textContent = 'CLÁSICOS DEL CLUB';
-          break;
-        case 'todos':
-        default:
-          this.#tituloSeccion.textContent = 'CATÁLOGO DE PELÍCULAS';
-          break;
-      }
+      this.#tituloSeccion.textContent = 'POPULARES';
     }
 
     #aplicarFiltros() {
       const texto = (this.#inputBuscar?.value || '').trim().toLowerCase();
       const genero = this.#filtroGenero?.value || 'todos';
       const anio = this.#filtroAnio?.value || 'todos';
-      const periodo = this.#filtroPeriodo?.value || 'todos';
 
       const filtradas = this.#peliculas.filter((p) => {
         if (texto && texto.length < 2 && !p.titulo.toLowerCase().includes(texto)) {
@@ -268,14 +240,6 @@
             if (p.anio >= 2020) return false;
           } else if (Number(anio) !== p.anio) {
             return false;
-          }
-        }
-
-        if (periodo !== 'todos' && !texto) {
-          if (periodo === 'historico') {
-            if (p.anio >= 2020) return false;
-          } else if (periodo === 'anio') {
-            if (p.anio < new Date().getFullYear()) return false;
           }
         }
 

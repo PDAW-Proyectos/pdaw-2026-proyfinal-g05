@@ -61,7 +61,7 @@
   <main class="container-xl px-4 px-md-5 py-4 flex-grow-1">
 
     <div class="row align-items-center g-3 mb-2">
-      <div class="col-12 col-lg-3 d-flex align-items-center gap-2">
+      <div class="col-12 col-lg-4 d-flex align-items-center gap-2">
         <label for="filtro-genero" class="text-secondary small text-uppercase fw-bold mb-0" style="font-size: 0.72rem; letter-spacing: 0.08em;">GÉNERO</label>
         <select id="filtro-genero" class="form-select form-select-sm bg-dark text-white border-secondary border-opacity-50 py-1" style="font-size: 0.78rem;">
           <option value="todos">Todos</option>
@@ -87,28 +87,15 @@
         </select>
       </div>
 
-      <div class="col-12 col-lg-6 d-flex justify-content-center">
-        <div class="d-flex align-items-center gap-2 w-100" style="max-width: 440px;">
+      <div class="col-12 col-lg-8">
+        <div class="d-flex align-items-center gap-2 w-100">
           <label for="input-buscar-catalogo" class="text-secondary small text-uppercase fw-bold text-nowrap mb-0" style="font-size: 0.75rem; letter-spacing: 0.12em;">
             BUSCAR PELÍCULA
           </label>
           <div class="position-relative flex-grow-1">
-            <input type="text" id="input-buscar-catalogo" class="form-control form-control-sm text-white border-secondary border-opacity-50 ps-3 pe-4 py-1" placeholder="Buscar por título..." autocomplete="off" style="background-color: #1a2228 !important; font-size: 0.82rem;">
+            <input type="text" id="input-buscar-catalogo" class="form-control form-control-sm text-white border-secondary border-opacity-50 ps-3 pe-4 py-1 w-100" placeholder="Buscar por título..." autocomplete="off" style="background-color: #1a2228 !important; font-size: 0.82rem;">
             <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-2 text-secondary small"></i>
           </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-lg-3 d-flex justify-content-lg-end">
-        <div class="d-flex align-items-center gap-2">
-          <label for="filtro-periodo" class="visually-hidden">Período</label>
-          <select id="filtro-periodo" class="form-select form-select-sm text-white border-secondary border-opacity-50 py-1" style="font-size: 0.8rem; background-color: #1a2228 !important; width: auto; min-width: 140px;">
-            <option value="semana" selected>Esta semana</option>
-            <option value="mes">Este mes</option>
-            <option value="anio">Este año</option>
-            <option value="todos">Todas las películas</option>
-            <option value="historico">Clásicos del Club</option>
-          </select>
         </div>
       </div>
     </div>
@@ -118,7 +105,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <div class="d-flex align-items-baseline gap-2">
         <h2 class="text-uppercase fw-bold text-secondary mb-0" id="titulo-seccion-peliculas" style="letter-spacing: 0.12em; font-size: 0.8rem; font-family: var(--font-body);">
-          PELÍCULAS POPULARES ESTA SEMANA
+          POPULARES
         </h2>
       </div>
       <div class="d-flex align-items-center gap-2">
