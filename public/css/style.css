@@ -305,7 +305,7 @@ h4,
   border-radius: 4px;
   display: block;
   background-color: var(--bg-surface);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .movie-card-poster-wrapper {
@@ -334,9 +334,7 @@ h4,
 }
 
 .movie-card:hover .movie-poster {
-  transform: translateY(-4px);
   border-color: var(--accent-pink);
-  box-shadow: 0 8px 20px rgba(255, 102, 153, 0.25);
 }
 
 .movie-review-preview {
@@ -1058,13 +1056,11 @@ h4,
   border: 1px solid var(--border-color);
   border-radius: 4px;
   overflow: hidden;
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease;
 }
 
 .perfil-watchlist-card:hover {
   border-color: var(--accent-pink);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(255, 102, 153, 0.18);
 }
 
 .perfil-watchlist-poster {

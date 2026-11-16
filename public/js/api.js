@@ -94,23 +94,13 @@ function mostrarCartelSesionExpirada(mensajePersonalizado) {
 
   const footer = document.createElement('div');
   footer.style.display = 'flex';
-  footer.style.justifyContent = 'flex-end';
-  footer.style.gap = '0.75rem';
-
-  const btnCerrar = document.createElement('button');
-  btnCerrar.type = 'button';
-  btnCerrar.className = 'btn btn-outline-secondary btn-sm px-3 py-2';
-  btnCerrar.textContent = 'Cerrar';
-  btnCerrar.addEventListener('click', () => {
-    backdrop.remove();
-  });
+  footer.style.justifyContent = 'stretch';
 
   const btnLogin = document.createElement('a');
   btnLogin.href = '/login.html';
-  btnLogin.className = 'btn btn-pink btn-sm px-4 py-2 fw-bold text-uppercase';
+  btnLogin.className = 'btn btn-pink w-100 py-2.5 fw-bold text-uppercase text-center text-decoration-none';
   btnLogin.textContent = 'Iniciar Sesión';
 
-  footer.appendChild(btnCerrar);
   footer.appendChild(btnLogin);
 
   tarjeta.appendChild(cabecera);
