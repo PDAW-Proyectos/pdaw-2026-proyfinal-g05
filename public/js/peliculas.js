@@ -39,7 +39,16 @@
     #filtroAnio;
     #filtroPeriodo;
     #tituloSeccion;
+    #paginacionContenedor;
+    #btnPaginaAnterior;
+    #btnPaginaSiguiente;
+    #indicadorPagina;
+    #indicadorPaginaHeader;
     #peliculas = [];
+    #paginaActual = 1;
+    #totalPaginas = 1;
+    #tieneMasPaginas = true;
+    #ultimoTextoBuscado = '';
     #debounceTimer = null;
     #abortController = null;
 
@@ -54,6 +63,11 @@
       this.#filtroAnio = document.getElementById('filtro-anio');
       this.#filtroPeriodo = document.getElementById('filtro-periodo');
       this.#tituloSeccion = document.getElementById('titulo-seccion-peliculas');
+      this.#paginacionContenedor = document.getElementById('paginacion-peliculas');
+      this.#btnPaginaAnterior = document.getElementById('btn-pagina-anterior');
+      this.#btnPaginaSiguiente = document.getElementById('btn-pagina-siguiente');
+      this.#indicadorPagina = document.getElementById('indicador-pagina-actual');
+      this.#indicadorPaginaHeader = document.getElementById('indicador-pagina-header');
     }
 
     async init() {
@@ -62,29 +76,75 @@
       }
 
       this.#configurarListeners();
-      await this.#cargarPopularesAPI();
-      this.#aplicarFiltros();
+      await this.#cargarPaginaAPI(1);
     }
 
-    async #cargarPopularesAPI() {
+    async #cargarPaginaAPI(pagina = 1) {
+      const texto = (this.#inputBuscar?.value || '').trim();
+      const esBusqueda = texto.length >= 2;
+
+      if (this.#abortController) {
+        this.#abortController.abort();
+      }
+      this.#abortController = new AbortController();
+
       try {
         if (this.#estadoCargando) this.#estadoCargando.classList.remove('d-none');
+        if (this.#estadoVacio) this.#estadoVacio.classList.add('d-none');
+        if (this.#paginacionContenedor) this.#paginacionContenedor.classList.add('d-none');
+        this.#contenedor.textContent = '';
+
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
-        const res = await fetchFn('/api/peliculas/populares');
+        const url = esBusqueda
+          ? `/api/peliculas/buscar?q=${encodeURIComponent(texto)}&page=${pagina}`
+          : `/api/peliculas/populares?page=${pagina}`;
+
+        const res = await fetchFn(url, {
+          signal: this.#abortController.signal
+        });
 
         if (!res.ok) {
-          if (this.#estadoCargando) this.#estadoCargando.classList.add('d-none');
+          this.#peliculas = [];
+          this.#tieneMasPaginas = false;
+          this.#aplicarFiltros();
           return;
         }
 
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          this.#peliculas = data.map((p) => normalizarPeliculaApi(p, 'semana'));
+        const headerTotalPages = typeof res.headers?.get === 'function'
+          ? Number(res.headers.get('X-Total-Pages'))
+          : NaN;
+
+        if (Array.isArray(data)) {
+          if (data.length === 0 && pagina > 1) {
+            this.#tieneMasPaginas = false;
+            this.#totalPaginas = pagina - 1;
+            this.#actualizarPaginacionUI();
+            return;
+          }
+
+          this.#paginaActual = pagina;
+          if (!Number.isNaN(headerTotalPages) && headerTotalPages > 0) {
+            this.#totalPaginas = headerTotalPages;
+            this.#tieneMasPaginas = pagina < headerTotalPages && data.length > 0;
+          } else {
+            this.#totalPaginas = data.length < 20 ? pagina : pagina + 1;
+            this.#tieneMasPaginas = data.length >= 20;
+          }
+          this.#peliculas = data.map((p) => normalizarPeliculaApi(p, esBusqueda ? 'todos' : 'semana'));
+        } else {
+          this.#peliculas = [];
+          this.#tieneMasPaginas = false;
         }
-      } catch {
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+        this.#peliculas = [];
+        this.#tieneMasPaginas = false;
       } finally {
         if (this.#estadoCargando) this.#estadoCargando.classList.add('d-none');
       }
+
+      this.#aplicarFiltros();
     }
 
     #configurarListeners() {
@@ -115,14 +175,40 @@
           this.#aplicarFiltros();
         });
       }
+
+      if (this.#btnPaginaAnterior) {
+        this.#btnPaginaAnterior.addEventListener('click', () => {
+          if (this.#paginaActual > 1) {
+            this.#cambiarPagina(this.#paginaActual - 1);
+          }
+        });
+      }
+
+      if (this.#btnPaginaSiguiente) {
+        this.#btnPaginaSiguiente.addEventListener('click', () => {
+          if (this.#tieneMasPaginas) {
+            this.#cambiarPagina(this.#paginaActual + 1);
+          }
+        });
+      }
+    }
+
+    async #cambiarPagina(nuevaPagina) {
+      await this.#cargarPaginaAPI(nuevaPagina);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async #manejarBusqueda() {
       const texto = (this.#inputBuscar?.value || '').trim();
 
+      if (texto === this.#ultimoTextoBuscado) {
+        return;
+      }
+      this.#ultimoTextoBuscado = texto;
+
       if (!texto) {
         this.#actualizarTituloPeriodo();
-        this.#aplicarFiltros();
+        await this.#cargarPaginaAPI(1);
         return;
       }
 
@@ -131,28 +217,8 @@
       }
 
       if (texto.length >= 2) {
-        if (this.#abortController) {
-          this.#abortController.abort();
-        }
-        this.#abortController = new AbortController();
-
-        try {
-          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
-          const res = await fetchFn(`/api/peliculas/buscar?q=${encodeURIComponent(texto)}`, {
-            signal: this.#abortController.signal
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-              const resultados = data.map((p) => normalizarPeliculaApi(p, 'todos'));
-              this.#renderizar(resultados);
-              return;
-            }
-          }
-        } catch (err) {
-          if (err.name === 'AbortError') return;
-        }
+        await this.#cargarPaginaAPI(1);
+        return;
       }
 
       this.#aplicarFiltros();
@@ -188,7 +254,7 @@
       const periodo = this.#filtroPeriodo?.value || 'todos';
 
       const filtradas = this.#peliculas.filter((p) => {
-        if (texto && !p.titulo.toLowerCase().includes(texto)) {
+        if (texto && texto.length < 2 && !p.titulo.toLowerCase().includes(texto)) {
           return false;
         }
 
@@ -217,13 +283,42 @@
       });
 
       this.#renderizar(filtradas);
+      this.#actualizarPaginacionUI();
+    }
+
+    #actualizarPaginacionUI() {
+      if (this.#indicadorPaginaHeader) {
+        this.#indicadorPaginaHeader.textContent = `Página ${this.#paginaActual}`;
+      }
+
+      if (!this.#paginacionContenedor) return;
+
+      const mostrarPaginacion = this.#peliculas.length > 0 || this.#paginaActual > 1;
+      if (!mostrarPaginacion) {
+        this.#paginacionContenedor.classList.add('d-none');
+        return;
+      }
+
+      this.#paginacionContenedor.classList.remove('d-none');
+
+      if (this.#indicadorPagina) {
+        this.#indicadorPagina.textContent = String(this.#paginaActual);
+      }
+
+      if (this.#btnPaginaAnterior) {
+        this.#btnPaginaAnterior.disabled = this.#paginaActual <= 1;
+      }
+
+      if (this.#btnPaginaSiguiente) {
+        this.#btnPaginaSiguiente.disabled = !this.#tieneMasPaginas;
+      }
     }
 
     #renderizar(lista) {
       this.#contenedor.textContent = '';
 
       if (this.#contador) {
-        this.#contador.textContent = `${lista.length} ${lista.length === 1 ? 'película' : 'películas'}`;
+        this.#contador.textContent = `Mostrando ${lista.length} ${lista.length === 1 ? 'película' : 'películas'}`;
       }
 
       if (lista.length === 0) {

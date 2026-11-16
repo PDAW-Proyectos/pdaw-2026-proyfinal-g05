@@ -8,13 +8,25 @@ class PeliculasController {
   async buscar(req, res, next) {
     try {
       const query = req.query.q;
+      const page = req.query.page ? Number(req.query.page) : undefined;
 
       if (!query || typeof query !== 'string' || query.trim() === '') {
         return res.status(400).json({ error: 'El parámetro de búsqueda (q) es obligatorio' });
       }
 
-      const respuesta = await this.#adapter.buscarPeliculas(query);
+      const respuesta = page !== undefined
+        ? await this.#adapter.buscarPeliculas(query, page)
+        : await this.#adapter.buscarPeliculas(query);
       const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
+
+      const totalPages = respuesta?.totalPages || respuesta?.total_pages || null;
+      const totalResults = respuesta?.totalResults ?? respuesta?.total_results ?? null;
+      if (totalPages !== null && typeof res.setHeader === 'function') {
+        res.setHeader('X-Total-Pages', String(totalPages));
+      }
+      if (totalResults !== null && typeof res.setHeader === 'function') {
+        res.setHeader('X-Total-Results', String(totalResults));
+      }
 
       const peliculas = resultados.map(p => ({
         id: p.id,
@@ -22,7 +34,8 @@ class PeliculasController {
         sinopsis: (p.sinopsis !== undefined ? p.sinopsis : p.overview) || '',
         posterPath: (p.posterPath !== undefined ? p.posterPath : p.poster_path) || null,
         fechaEstreno: (p.fechaEstreno !== undefined ? p.fechaEstreno : p.release_date) || null,
-        calificacion: (p.calificacion !== undefined ? p.calificacion : p.vote_average) || 0
+        calificacion: (p.calificacion !== undefined ? p.calificacion : p.vote_average) || 0,
+        ...(p.generos !== undefined ? { generos: p.generos } : {})
       }));
 
       return res.status(200).json(peliculas);
@@ -47,6 +60,15 @@ class PeliculasController {
 
       const respuesta = await fn(page);
       const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
+
+      const totalPages = respuesta?.totalPages || respuesta?.total_pages || null;
+      const totalResults = respuesta?.totalResults ?? respuesta?.total_results ?? null;
+      if (totalPages !== null && typeof res.setHeader === 'function') {
+        res.setHeader('X-Total-Pages', String(totalPages));
+      }
+      if (totalResults !== null && typeof res.setHeader === 'function') {
+        res.setHeader('X-Total-Results', String(totalResults));
+      }
 
       const peliculas = resultados.map(p => ({
         id: String(p.id),

@@ -115,12 +115,15 @@
 
     <hr class="border-secondary border-opacity-25 my-3">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <div class="d-flex align-items-baseline gap-2">
         <h2 class="text-uppercase fw-bold text-secondary mb-0" id="titulo-seccion-peliculas" style="letter-spacing: 0.12em; font-size: 0.8rem; font-family: var(--font-body);">
           PELÍCULAS POPULARES ESTA SEMANA
         </h2>
-        <span id="contador-peliculas" class="badge bg-dark border border-secondary border-opacity-50 text-secondary" style="font-size: 0.65rem;"></span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span id="indicador-pagina-header" class="badge bg-dark border border-secondary border-opacity-50 text-pink text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.08em;">Página 1</span>
+        <span id="contador-peliculas" class="badge bg-dark border border-secondary border-opacity-50 text-secondary text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;"></span>
       </div>
     </div>
 
@@ -132,6 +135,18 @@
     </div>
 
     <div id="grid-peliculas" class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 g-md-4" aria-live="polite"></div>
+
+    <nav id="paginacion-peliculas" class="d-flex justify-content-center align-items-center gap-2 mt-5 mb-3 d-none" aria-label="Paginación de películas">
+      <button type="button" id="btn-pagina-anterior" class="btn btn-outline-pink btn-sm px-3 py-1 fw-bold paginacion-fightclub-btn" aria-label="Página anterior">
+        &lt;
+      </button>
+      <span class="btn btn-outline-pink btn-sm px-3 py-1 fw-bold paginacion-fightclub-num" id="indicador-pagina-actual" aria-live="polite">
+        1
+      </span>
+      <button type="button" id="btn-pagina-siguiente" class="btn btn-outline-pink btn-sm px-3 py-1 fw-bold paginacion-fightclub-btn" aria-label="Página siguiente">
+        &gt;
+      </button>
+    </nav>
 
     <div id="estado-vacio-peliculas" class="text-center py-5 my-5 d-none">
       <i class="bi bi-film text-secondary display-4 d-block mb-3 opacity-50"></i>

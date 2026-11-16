@@ -1102,3 +1102,24 @@ h4,
   border-color: var(--accent-pink) !important;
   box-shadow: 0 0 0 1px var(--accent-pink) !important;
 }
+
+.paginacion-fightclub-btn,
+.paginacion-fightclub-num {
+  font-family: var(--font-display) !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.05em !important;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.paginacion-fightclub-btn:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+.paginacion-fightclub-num {
+  pointer-events: none;
+  user-select: none;
+}
