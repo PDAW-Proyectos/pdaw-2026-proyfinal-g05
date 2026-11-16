@@ -22,6 +22,10 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
     controller.actualizarWatchlist(req, res, next)
   );
 
+  router.patch('/:id/rol', requireAuth, (req, res, next) =>
+    controller.cambiarRol(req, res, next)
+  );
+
   return router;
 }
 
