@@ -50,6 +50,11 @@
     #btnConfirmarRemover;
     #accionRemoverPendiente = null;
     #peliculas = [];
+    #peliculasPool = [];
+    #proximaPaginaAPI = 1;
+    #apiFinResultados = false;
+    #criterioActual = '';
+    #idsVistos = new Set();
     #paginaActual = 1;
     #totalPaginas = 1;
     #tieneMasPaginas = true;
@@ -87,9 +92,26 @@
       await this.#cargarPaginaAPI(1);
     }
 
-    async #cargarPaginaAPI(pagina = 1) {
+    async #cargarPaginaAPI(pagina = 1, forzarReset = false) {
       const texto = (this.#inputBuscar?.value || '').trim();
+      const genero = this.#filtroGenero?.value || 'todos';
+      const anio = this.#filtroAnio?.value || 'todos';
       const esBusqueda = texto.length >= 2;
+
+      const nuevoCriterio = `${esBusqueda ? texto.toLowerCase() : ''}|${genero}|${anio}`;
+
+      if (forzarReset || nuevoCriterio !== this.#criterioActual) {
+        this.#criterioActual = nuevoCriterio;
+        this.#peliculasPool = [];
+        this.#proximaPaginaAPI = 1;
+        this.#apiFinResultados = false;
+        this.#idsVistos = new Set();
+      }
+
+      this.#paginaActual = pagina;
+      const PELIS_POR_PAGINA = 20;
+      const indiceInicio = (pagina - 1) * PELIS_POR_PAGINA;
+      const indiceFin = indiceInicio + PELIS_POR_PAGINA;
 
       if (this.#abortController) {
         this.#abortController.abort();
@@ -103,56 +125,98 @@
         this.#contenedor.textContent = '';
 
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
-        const url = esBusqueda
-          ? `/api/peliculas/buscar?q=${encodeURIComponent(texto)}&page=${pagina}`
-          : `/api/peliculas/populares?page=${pagina}`;
+        let intentos = 0;
+        const maxIntentos = 15;
 
-        const res = await fetchFn(url, {
-          signal: this.#abortController.signal
-        });
+        while (this.#peliculasPool.length < indiceFin && !this.#apiFinResultados && intentos < maxIntentos) {
+          intentos++;
+          const params = new URLSearchParams();
+          params.set('page', String(this.#proximaPaginaAPI));
+          if (anio !== 'todos') params.set('anio', anio);
+          if (genero !== 'todos') params.set('genero', genero);
 
-        if (!res.ok) {
-          this.#peliculas = [];
-          this.#tieneMasPaginas = false;
-          this.#aplicarFiltros();
-          return;
-        }
-
-        const data = await res.json();
-        const headerTotalPages = typeof res.headers?.get === 'function'
-          ? Number(res.headers.get('X-Total-Pages'))
-          : NaN;
-
-        if (Array.isArray(data)) {
-          if (data.length === 0 && pagina > 1) {
-            this.#tieneMasPaginas = false;
-            this.#totalPaginas = pagina - 1;
-            this.#actualizarPaginacionUI();
-            return;
-          }
-
-          this.#paginaActual = pagina;
-          if (!Number.isNaN(headerTotalPages) && headerTotalPages > 0) {
-            this.#totalPaginas = headerTotalPages;
-            this.#tieneMasPaginas = pagina < headerTotalPages && data.length > 0;
+          let url;
+          if (esBusqueda) {
+            params.set('q', texto);
+            url = `/api/peliculas/buscar?${params.toString()}`;
           } else {
-            this.#totalPaginas = data.length < 20 ? pagina : pagina + 1;
-            this.#tieneMasPaginas = data.length >= 20;
+            url = `/api/peliculas/populares?${params.toString()}`;
           }
-          this.#peliculas = data.map((p) => normalizarPeliculaApi(p, esBusqueda ? 'todos' : 'semana'));
-        } else {
-          this.#peliculas = [];
-          this.#tieneMasPaginas = false;
+
+          const res = await fetchFn(url, {
+            signal: this.#abortController.signal
+          });
+
+          if (!res.ok) {
+            this.#apiFinResultados = true;
+            break;
+          }
+
+          const data = await res.json();
+          const headerTotalPages = typeof res.headers?.get === 'function'
+            ? Number(res.headers.get('X-Total-Pages'))
+            : NaN;
+
+          if (!Array.isArray(data) || data.length === 0) {
+            this.#apiFinResultados = true;
+            break;
+          }
+
+          const normalizadas = data.map((p) => normalizarPeliculaApi(p, esBusqueda ? 'todos' : 'semana'));
+
+          for (const p of normalizadas) {
+            const idStr = String(p.id);
+            if (this.#idsVistos.has(idStr)) {
+              continue;
+            }
+
+            if (texto && texto.length < 2 && !p.titulo.toLowerCase().includes(texto.toLowerCase())) {
+              continue;
+            }
+
+            if (genero !== 'todos') {
+              const tieneGenero = Array.isArray(p.generos) && p.generos.some((g) => g.toLowerCase() === genero.toLowerCase());
+              if (!tieneGenero) continue;
+            }
+
+            if (anio !== 'todos') {
+              if (anio === 'clasicos') {
+                if (p.anio >= 2020) continue;
+              } else if (Number(anio) !== p.anio) {
+                continue;
+              }
+            }
+
+            this.#idsVistos.add(idStr);
+            this.#peliculasPool.push(p);
+          }
+
+          if (!Number.isNaN(headerTotalPages) && headerTotalPages > 0 && this.#proximaPaginaAPI >= headerTotalPages) {
+            this.#apiFinResultados = true;
+          } else if (data.length < 20) {
+            this.#apiFinResultados = true;
+          }
+
+          this.#proximaPaginaAPI++;
         }
+
+        const peliculasParaMostrar = this.#peliculasPool.slice(indiceInicio, indiceFin);
+        this.#peliculas = peliculasParaMostrar;
+
+        this.#tieneMasPaginas = this.#peliculasPool.length > indiceFin || (!this.#apiFinResultados && intentos < maxIntentos);
+        this.#totalPaginas = Math.max(1, Math.ceil(this.#peliculasPool.length / PELIS_POR_PAGINA) + (this.#tieneMasPaginas ? 1 : 0));
+
+        this.#renderizar(peliculasParaMostrar);
+        this.#actualizarPaginacionUI();
       } catch (err) {
         if (err && err.name === 'AbortError') return;
         this.#peliculas = [];
         this.#tieneMasPaginas = false;
+        this.#renderizar([]);
+        this.#actualizarPaginacionUI();
       } finally {
         if (this.#estadoCargando) this.#estadoCargando.classList.add('d-none');
       }
-
-      this.#aplicarFiltros();
     }
 
     #configurarListeners() {
@@ -161,19 +225,19 @@
           clearTimeout(this.#debounceTimer);
           this.#debounceTimer = setTimeout(() => {
             this.#manejarBusqueda();
-          }, 300);
+          }, 400);
         });
       }
 
       if (this.#filtroGenero) {
         this.#filtroGenero.addEventListener('change', () => {
-          this.#aplicarFiltros();
+          this.#cargarPaginaAPI(1, true);
         });
       }
 
       if (this.#filtroAnio) {
         this.#filtroAnio.addEventListener('change', () => {
-          this.#aplicarFiltros();
+          this.#cargarPaginaAPI(1, true);
         });
       }
 
@@ -509,7 +573,7 @@
 
       if (!texto) {
         this.#actualizarTituloDefault();
-        await this.#cargarPaginaAPI(1);
+        await this.#cargarPaginaAPI(1, true);
         return;
       }
 
@@ -517,12 +581,7 @@
         this.#tituloSeccion.textContent = 'Esto es lo que el club encontró para vos:';
       }
 
-      if (texto.length >= 2) {
-        await this.#cargarPaginaAPI(1);
-        return;
-      }
-
-      this.#aplicarFiltros();
+      await this.#cargarPaginaAPI(1, true);
     }
 
     #actualizarTituloDefault() {
@@ -531,33 +590,7 @@
     }
 
     #aplicarFiltros() {
-      const texto = (this.#inputBuscar?.value || '').trim().toLowerCase();
-      const genero = this.#filtroGenero?.value || 'todos';
-      const anio = this.#filtroAnio?.value || 'todos';
-
-      const filtradas = this.#peliculas.filter((p) => {
-        if (texto && texto.length < 2 && !p.titulo.toLowerCase().includes(texto)) {
-          return false;
-        }
-
-        if (genero !== 'todos') {
-          const tieneGenero = p.generos.some((g) => g.toLowerCase() === genero.toLowerCase());
-          if (!tieneGenero) return false;
-        }
-
-        if (anio !== 'todos') {
-          if (anio === 'clasicos') {
-            if (p.anio >= 2020) return false;
-          } else if (Number(anio) !== p.anio) {
-            return false;
-          }
-        }
-
-        return true;
-      });
-
-      this.#renderizar(filtradas);
-      this.#actualizarPaginacionUI();
+      this.#cargarPaginaAPI(1, true);
     }
 
     #actualizarPaginacionUI() {

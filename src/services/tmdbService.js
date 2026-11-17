@@ -1,5 +1,32 @@
 const { AppError, NotFoundError, ValidationError } = require('../utils/errors');
 
+const GENEROS_IDS = {
+  'accion': 28,
+  'aventura': 12,
+  'animacion': 16,
+  'comedia': 35,
+  'crimen': 80,
+  'documental': 99,
+  'drama': 18,
+  'familia': 10751,
+  'fantasia': 14,
+  'historia': 36,
+  'terror': 27,
+  'musica': 10402,
+  'misterio': 9648,
+  'romance': 10749,
+  'ciencia ficcion': 878,
+  'pelicula de tv': 10770,
+  'thriller': 53,
+  'belica': 10752,
+  'western': 37
+};
+
+function normalizarTextoGenero(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
 class TmdbService {
   #apiKey;
   #baseUrl;
@@ -81,13 +108,16 @@ class TmdbService {
     return await response.json();
   }
 
-  async buscarPeliculas(query, page = 1) {
+  async buscarPeliculas(query, page = 1, options = {}) {
     if (!query || typeof query !== 'string' || query.trim() === '') {
       throw new ValidationError('El término de búsqueda es obligatorio');
     }
 
     const cleanQuery = query.trim();
-    const cacheKey = `${cleanQuery.toLowerCase()}:${page}`;
+    const { anio } = options || {};
+    const cleanAnio = anio && anio !== 'todos' ? String(anio).trim() : null;
+
+    const cacheKey = `${cleanQuery.toLowerCase()}:${page}:${cleanAnio || ''}`;
     const cached = this.#cache.get(cacheKey);
 
     if (cached && (Date.now() - cached.timestamp < 120000)) {
@@ -99,10 +129,16 @@ class TmdbService {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const data = await this.#request('/search/movie', {
+        const params = {
           query: cleanQuery,
           page
-        });
+        };
+
+        if (cleanAnio && cleanAnio !== 'clasicos' && /^\d{4}$/.test(cleanAnio)) {
+          params.primary_release_year = cleanAnio;
+        }
+
+        const data = await this.#request('/search/movie', params);
 
         this.#cache.set(cacheKey, {
           data,
@@ -140,20 +176,60 @@ class TmdbService {
     });
   }
 
-  async obtenerPopulares(page = 1) {
+  async obtenerPopulares(page = 1, options = {}) {
+    const { anio, genero } = options || {};
+    const cleanAnio = anio && anio !== 'todos' ? String(anio).trim() : null;
+    const cleanGenero = genero && genero !== 'todos' ? String(genero).trim() : null;
+
+    if (cleanAnio || cleanGenero) {
+      const params = {
+        sort_by: 'popularity.desc',
+        page
+      };
+
+      if (cleanAnio) {
+        if (cleanAnio === 'clasicos') {
+          params['primary_release_date.lte'] = '2019-12-31';
+        } else if (/^\d{4}$/.test(cleanAnio)) {
+          params.primary_release_year = cleanAnio;
+        }
+      }
+
+      if (cleanGenero) {
+        const norm = normalizarTextoGenero(cleanGenero);
+        const generoId = GENEROS_IDS[norm];
+        if (generoId) {
+          params.with_genres = generoId;
+        }
+      }
+
+      const cacheKey = `discover:${page}:${cleanAnio || ''}:${cleanGenero || ''}`;
+      const cached = this.#cache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < 120000)) {
+        return cached.data;
+      }
+
+      const data = await this.#request('/discover/movie', params);
+      this.#cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      return data;
+    }
+
     return await this.#request('/movie/popular', { page });
   }
 
-  async searchMovies(query, page = 1) {
-    return await this.buscarPeliculas(query, page);
+  async searchMovies(query, page = 1, options = {}) {
+    return await this.buscarPeliculas(query, page, options);
   }
 
   async getMovieById(id) {
     return await this.obtenerPeliculaPorId(id);
   }
 
-  async getPopular(page = 1) {
-    return await this.obtenerPopulares(page);
+  async getPopular(page = 1, options = {}) {
+    return await this.obtenerPopulares(page, options);
   }
 }
 
