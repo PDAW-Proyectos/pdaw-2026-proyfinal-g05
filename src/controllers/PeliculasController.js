@@ -120,6 +120,7 @@ class PeliculasController {
         tagline: p.tagline || '',
         sinopsis: (p.sinopsis !== undefined ? p.sinopsis : p.overview) || '',
         posterPath: (p.posterPath !== undefined ? p.posterPath : p.poster_path) || null,
+        backdropPath: (p.backdropPath !== undefined ? p.backdropPath : p.backdrop_path) || null,
         fechaEstreno: (p.fechaEstreno !== undefined ? p.fechaEstreno : p.release_date) || null,
         calificacion: (p.calificacion !== undefined ? p.calificacion : p.vote_average) || 0,
         duracion: p.runtime || p.duracion || null,

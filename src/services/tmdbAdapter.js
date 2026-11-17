@@ -75,6 +75,7 @@ class TmdbAdapter {
       tagline: p.tagline || '',
       sinopsis: p.overview || '',
       posterPath: p.poster_path || null,
+      backdropPath: p.backdrop_path || null,
       fechaEstreno: p.release_date || null,
       calificacion: p.vote_average || 0,
       duracion: p.runtime || null,

@@ -57,6 +57,10 @@
       }
       const heroTitulo = document.getElementById('pelicula-hero-titulo');
       if (heroTitulo) heroTitulo.textContent = 'Película no encontrada';
+      const heroElement = document.getElementById('pelicula-hero') || document.querySelector('.pelicula-hero-backdrop');
+      if (heroElement) {
+        heroElement.style.backgroundImage = '';
+      }
     }
 
     async #cargarPelicula(id) {
@@ -84,6 +88,18 @@
         : '/img/logoMovieClub.png';
 
       document.title = `${p.titulo} (${anio}) | MovieClub`;
+
+      const heroElement = document.getElementById('pelicula-hero') || document.querySelector('.pelicula-hero-backdrop');
+      if (heroElement) {
+        if (p.backdropPath) {
+          const backdropUrl = p.backdropPath.startsWith('http')
+            ? p.backdropPath
+            : `https://image.tmdb.org/t/p/w1280${p.backdropPath}`;
+          heroElement.style.backgroundImage = `url("${backdropUrl}")`;
+        } else {
+          heroElement.style.backgroundImage = '';
+        }
+      }
 
       const heroTitulo = document.getElementById('pelicula-hero-titulo');
       if (heroTitulo) heroTitulo.textContent = p.titulo;

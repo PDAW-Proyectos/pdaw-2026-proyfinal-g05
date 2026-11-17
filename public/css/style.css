@@ -972,10 +972,34 @@ h4,
 }
 
 .pelicula-hero-backdrop {
-  background: linear-gradient(180deg, rgba(16, 21, 25, 0.4) 0%, rgba(16, 21, 25, 0.95) 75%, #101519 100%),
-    radial-gradient(circle at 50% 20%, rgba(255, 102, 153, 0.08) 0%, transparent 60%),
-    #12181e;
+  position: relative;
+  background-color: #12181e;
+  background-position: center 25%;
+  background-size: cover;
+  background-repeat: no-repeat;
   border-bottom: 1px solid var(--border-color);
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.pelicula-hero-backdrop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(90deg, rgba(16, 21, 25, 0.95) 0%, rgba(16, 21, 25, 0.8) 40%, rgba(16, 21, 25, 0.4) 100%),
+    linear-gradient(180deg, rgba(16, 21, 25, 0.3) 0%, rgba(16, 21, 25, 0.75) 70%, var(--bg-main, #101519) 100%);
+  pointer-events: none;
+}
+
+.pelicula-hero-backdrop .container-xl {
+  position: relative;
+  z-index: 1;
 }
 
 .feed-resena-card {
