@@ -1208,10 +1208,14 @@
           badgeTop4.classList.toggle('d-none', !top4ResenaIds.has(String(resena.id)));
         }
 
+        const card = clone.querySelector('.feed-resena-card');
         const badgeDestacada = clone.querySelector('.resena-badge-destacada');
+        const esDestacada = Boolean(resena.esDestacada || resena.destacada);
         if (badgeDestacada) {
-          const esDestacada = Boolean(resena.esDestacada || resena.destacada);
           badgeDestacada.classList.toggle('d-none', !esDestacada);
+        }
+        if (card && esDestacada) {
+          card.classList.add('resena-card-destacada');
         }
 
         const pelicula = resena.pelicula || {};

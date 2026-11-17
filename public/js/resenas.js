@@ -417,12 +417,16 @@
         fechaElem.textContent = fechaTxt;
       }
 
+      const card = clone.querySelector('.feed-resena-card');
       const contenedorDestacada = clone.querySelector('.resena-contenedor-destacada');
+      const esDestacada = Boolean(resena.esDestacada || resena.destacada);
       if (contenedorDestacada) {
-        const esDestacada = Boolean(resena.esDestacada || resena.destacada);
         if (!esDestacada) {
           contenedorDestacada.classList.add('d-none');
         }
+      }
+      if (card && esDestacada) {
+        card.classList.add('resena-card-destacada');
       }
 
       const pelicula = resena.pelicula || {};

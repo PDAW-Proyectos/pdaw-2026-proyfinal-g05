@@ -986,6 +986,12 @@ h4,
   box-shadow: 0 4px 16px rgba(255, 102, 153, 0.15);
 }
 
+.feed-resena-card.resena-card-destacada,
+.resena-panel-box.resena-card-destacada {
+  border-color: var(--accent-pink) !important;
+  box-shadow: 0 0 12px rgba(232, 154, 170, 0.18);
+}
+
 .pelicula-cast-card {
   background-color: #12181e;
   border: 1px solid rgba(255, 255, 255, 0.08);

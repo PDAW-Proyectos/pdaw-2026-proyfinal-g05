@@ -184,6 +184,10 @@
         if (badgeDestacada) {
           badgeDestacada.classList.toggle('d-none', !esDest);
         }
+        const panelBox = document.querySelector('.resena-panel-box');
+        if (panelBox && esDest) {
+          panelBox.classList.add('resena-card-destacada');
+        }
 
         if (alertaSpoilers) {
           const tieneSpoilers = Boolean(data.contieneSpoilers);
