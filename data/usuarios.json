@@ -4,80 +4,196 @@
     "nombre": "Maxi Martinez",
     "email": "maxi@movieclub.com",
     "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
-    "rol": "Espectador",
-    "watchlist": [],
+    "rol": "Moderador",
+    "watchlist": [
+      "680",
+      "157336"
+    ],
     "favoritas": [
       "414906",
-      "43429",
-      "1318297",
-      "969681"
+      "550",
+      "25376"
     ],
-    "top4": [],
+    "top4": [
+      "414906",
+      "550",
+      "25376",
+      "18079"
+    ],
     "fechaRegistro": "2026-10-25T23:00:00.000Z"
   },
   {
     "id": "usr-2",
-    "nombre": "Tyler Durden",
-    "email": "tyler@movieclub.com",
+    "nombre": "Branco Chamusco",
+    "email": "branco@movieclub.com",
     "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
     "rol": "Espectador",
-    "watchlist": [],
+    "watchlist": [
+      "872585"
+    ],
     "favoritas": [
+      "603",
+      "680",
+      "18079"
+    ],
+    "top4": [
+      "603",
+      "680",
+      "18079",
       "550"
     ],
-    "top4": [],
-    "fechaRegistro": "2026-10-26T20:00:00.000Z"
+    "fechaRegistro": "2026-10-26T18:00:00.000Z"
   },
   {
     "id": "usr-3",
-    "nombre": "Mia Wallace",
-    "email": "mia@movieclub.com",
+    "nombre": "Lucas Safe",
+    "email": "lucas@movieclub.com",
     "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
-    "rol": "Espectador",
-    "watchlist": [],
-    "favoritas": [
-      "680"
+    "rol": "Critico",
+    "medioDePrensa": "Prensa Oficial MovieClub",
+    "watchlist": [
+      "414906"
     ],
-    "top4": [],
-    "fechaRegistro": "2026-10-27T18:00:00.000Z"
+    "favoritas": [
+      "157336",
+      "27205",
+      "265195"
+    ],
+    "top4": [
+      "157336",
+      "27205",
+      "265195",
+      "155"
+    ],
+    "fechaRegistro": "2026-10-27T14:30:00.000Z"
   },
   {
     "id": "usr-4",
-    "nombre": "Thomas Anderson",
-    "email": "neo@movieclub.com",
+    "nombre": "Gonzalo Perez",
+    "email": "gonzalo.perez@movieclub.com",
     "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
-    "rol": "Moderador",
-    "watchlist": [],
-    "favoritas": [
-      "603"
+    "rol": "Critico",
+    "medioDePrensa": "Prensa Oficial MovieClub",
+    "watchlist": [
+      "414906"
     ],
-    "top4": [],
-    "fechaRegistro": "2026-10-28T14:00:00.000Z"
+    "favoritas": [
+      "25376",
+      "238"
+    ],
+    "top4": [
+      "25376",
+      "238",
+      "550",
+      "680"
+    ],
+    "fechaRegistro": "2026-10-28T10:00:00.000Z"
   },
   {
     "id": "usr-5",
-    "nombre": "Joseph Cooper",
-    "email": "cooper@movieclub.com",
+    "nombre": "Valentina Gomez",
+    "email": "valentina.gomez@movieclub.com",
     "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
-    "rol": "Espectador",
-    "watchlist": [],
-    "favoritas": [
-      "157336"
+    "rol": "Critico",
+    "medioDePrensa": "Prensa Oficial MovieClub",
+    "watchlist": [
+      "27205"
     ],
-    "top4": [],
-    "fechaRegistro": "2026-10-29T11:00:00.000Z"
+    "favoritas": [
+      "157336",
+      "414906"
+    ],
+    "top4": [
+      "157336",
+      "414906",
+      "872585",
+      "603"
+    ],
+    "fechaRegistro": "2026-10-29T12:00:00.000Z"
   },
   {
     "id": "usr-6",
-    "nombre": "Dom Cobb",
-    "email": "cobb@movieclub.com",
+    "nombre": "Facundo Rodriguez",
+    "email": "facundo.rodriguez@movieclub.com",
+    "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
+    "rol": "Critico",
+    "medioDePrensa": "Prensa Oficial MovieClub",
+    "watchlist": [
+      "238"
+    ],
+    "favoritas": [
+      "18079",
+      "680"
+    ],
+    "top4": [
+      "18079",
+      "680",
+      "550",
+      "265195"
+    ],
+    "fechaRegistro": "2026-10-30T15:00:00.000Z"
+  },
+  {
+    "id": "usr-7",
+    "nombre": "Camila Fernandez",
+    "email": "camila.fernandez@movieclub.com",
     "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
     "rol": "Espectador",
-    "watchlist": [],
+    "watchlist": [
+      "157336"
+    ],
     "favoritas": [
+      "265195",
+      "155"
+    ],
+    "top4": [
+      "265195",
+      "155",
+      "414906",
+      "18079"
+    ],
+    "fechaRegistro": "2026-10-31T09:30:00.000Z"
+  },
+  {
+    "id": "usr-8",
+    "nombre": "Mateo Alvarez",
+    "email": "mateo.alvarez@movieclub.com",
+    "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
+    "rol": "Espectador",
+    "watchlist": [
+      "550"
+    ],
+    "favoritas": [
+      "603",
       "27205"
     ],
-    "top4": [],
-    "fechaRegistro": "2026-10-30T16:00:00.000Z"
+    "top4": [
+      "603",
+      "27205",
+      "872585",
+      "157336"
+    ],
+    "fechaRegistro": "2026-11-01T17:15:00.000Z"
+  },
+  {
+    "id": "usr-9",
+    "nombre": "Sofia Rossi",
+    "email": "sofia.rossi@movieclub.com",
+    "passwordHash": "$2a$10$bNlKdV58Gbzut.BZEXFpQucTMIJKzxvVWjRwHnT2maZHiikW552Ju",
+    "rol": "Espectador",
+    "watchlist": [
+      "603"
+    ],
+    "favoritas": [
+      "872585",
+      "25376"
+    ],
+    "top4": [
+      "872585",
+      "25376",
+      "155",
+      "238"
+    ],
+    "fechaRegistro": "2026-11-02T19:00:00.000Z"
   }
 ]

@@ -34,10 +34,9 @@ Para facilitar la evaluación integral del proyecto sin necesidad de crear cuent
 
 | Rol | Nombre | Correo Electrónico | Contraseña | Propósito en la Evaluación |
 | :--- | :--- | :--- | :--- | :--- |
-| **Moderador** | Thomas Anderson | `neo@movieclub.com` | `password123` | Evaluar control de spoilers en cualquier reseña y cambio de roles de usuarios. |
-| **Espectador** | Maxi Martinez | `maxi@movieclub.com` | `password123` | Evaluar flujo estándar de reseñas, favoritos y edición de perfil. |
-| **Espectador** | Tyler Durden | `tyler@movieclub.com` | `password123` | Cuenta candidata para probar la promoción a Crítico por parte del Moderador. |
-| **Espectador** | Mia Wallace | `mia@movieclub.com` | `password123` | Pruebas de interacción comunitaria y lectura protegida de spoilers. |
+| **Moderador** | Maxi Martinez | `maxi@movieclub.com` | `password123` | Control de spoilers, promoción/degradación de roles a Crítico y moderación de contenido. |
+| **Espectador** | Branco Chamusco | `branco@movieclub.com` | `password123` | Flujo estándar de usuario: exploración, creación de reseñas, favoritos, watchlist y candidato a promoción. |
+| **Crítico** | Lucas Safe | `lucas@movieclub.com` | `password123` | Reseñas con badge oficial de Crítico, medio de prensa asignado y reseñas destacadas. |
 
 ---
 

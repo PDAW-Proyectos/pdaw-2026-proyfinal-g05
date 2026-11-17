@@ -22,6 +22,10 @@ function mostrarCartelSesionExpirada(mensajePersonalizado) {
     return;
   }
 
+  if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cerrandoSesion') === 'true') {
+    return;
+  }
+
   if (document.getElementById('cartel-sesion-expirada-overlay')) {
     return;
   }
@@ -166,7 +170,11 @@ async function apiFetch(url, options = {}) {
       const rutaActual = (typeof window !== 'undefined' && window.location && typeof window.location.pathname === 'string')
         ? window.location.pathname
         : '';
-      if (!rutaActual.includes('login.html') && !rutaActual.includes('registro.html')) {
+      const urlStr = String(url || '');
+      const esLogout = urlStr.includes('/api/auth/logout');
+      const cerrando = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cerrandoSesion') === 'true';
+
+      if (!rutaActual.includes('login.html') && !rutaActual.includes('registro.html') && !esLogout && !cerrando) {
         if (typeof API !== 'undefined' && typeof API.limpiarSesion === 'function') {
           API.limpiarSesion();
         }
@@ -221,9 +229,11 @@ const API = {
   limpiarSesion() {
     this.clearUserId();
     try {
+      localStorage.removeItem('token');
       localStorage.removeItem('usuarioNombre');
+      localStorage.removeItem('usuarioRol');
       localStorage.removeItem('usuario');
-    } catch (e) { }
+    } catch (_) { }
   },
 
   getUsuario() {
@@ -277,12 +287,21 @@ const API = {
   },
 
   async logout({ signal } = {}) {
+    if (typeof sessionStorage !== 'undefined') {
+      try {
+        sessionStorage.setItem('cerrandoSesion', 'true');
+      } catch (_) { }
+    }
+    this.limpiarSesion();
     try {
-      const response = await apiFetch('/api/auth/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
+        credentials: 'same-origin',
         signal
       });
       return response;
+    } catch (_) {
+      return null;
     } finally {
       this.limpiarSesion();
     }
@@ -308,6 +327,9 @@ function iniciarVerificadorSesion() {
   }
 
   async function verificarSesionActiva() {
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cerrandoSesion') === 'true') {
+      return;
+    }
     const userId = API.getUserId();
     if (!userId) return;
 
@@ -320,6 +342,9 @@ function iniciarVerificadorSesion() {
 
       if (resp.status === 401) {
         API.limpiarSesion();
+        if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('cerrandoSesion') === 'true') {
+          return;
+        }
         mostrarCartelSesionExpirada();
       }
     } catch (_) { }
