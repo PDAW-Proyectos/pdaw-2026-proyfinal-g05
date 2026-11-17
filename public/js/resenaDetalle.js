@@ -13,9 +13,12 @@
     const autorNombre = document.getElementById('resena-autor-nombre');
     const autorRol = document.getElementById('resena-autor-rol');
     const peliculaTitulo = document.getElementById('resena-pelicula-titulo');
+    const linkPeliculaTitulo = document.getElementById('resena-pelicula-titulo-link');
     const posterTitulo = document.getElementById('resena-poster-titulo');
+    const linkPosterTitulo = document.getElementById('resena-poster-titulo-link');
     const peliculaAnio = document.getElementById('resena-pelicula-anio');
     const peliculaPoster = document.getElementById('resena-pelicula-poster');
+    const linkPeliculaPoster = document.getElementById('resena-pelicula-poster-link');
     const peliculaSinopsis = document.getElementById('resena-pelicula-sinopsis');
     const estrellasCabecera = document.getElementById('resena-estrellas-cabecera');
     const corazonCabecera = document.getElementById('resena-icono-corazon-cabecera');
@@ -148,6 +151,14 @@
         if (peliculaTitulo) peliculaTitulo.textContent = tituloPeli;
         if (posterTitulo) posterTitulo.textContent = tituloPeli;
         if (peliculaAnio) peliculaAnio.textContent = peli.anio ? `(${peli.anio})` : '';
+
+        const peliculaId = data.peliculaId || peli.id;
+        if (peliculaId) {
+          const urlDetallePeli = `/detallePelicula.html?id=${encodeURIComponent(peliculaId)}`;
+          if (linkPeliculaTitulo) linkPeliculaTitulo.setAttribute('href', urlDetallePeli);
+          if (linkPosterTitulo) linkPosterTitulo.setAttribute('href', urlDetallePeli);
+          if (linkPeliculaPoster) linkPeliculaPoster.setAttribute('href', urlDetallePeli);
+        }
 
         if (peliculaPoster) {
           peliculaPoster.src = peli.poster || '/img/logoMovieClub.png';

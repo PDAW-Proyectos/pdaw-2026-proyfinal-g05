@@ -154,7 +154,11 @@
           </div>
 
           <div class="mb-3">
-            <h1 class="display-5 fw-bold text-uppercase text-white mb-1" id="resena-pelicula-titulo" style="font-family: var(--font-display);"></h1>
+            <h1 class="display-5 fw-bold text-uppercase mb-1" style="font-family: var(--font-display);">
+              <a id="resena-pelicula-titulo-link" class="text-white text-decoration-none hover-pink">
+                <span id="resena-pelicula-titulo"></span>
+              </a>
+            </h1>
             <div class="d-flex align-items-center gap-3">
               <span class="fs-4 text-pink fw-semibold" id="resena-pelicula-anio"></span>
               <div class="fs-5 text-pink" id="resena-estrellas-cabecera"></div>
@@ -178,8 +182,14 @@
 
         <aside class="col-lg-3 col-md-12 order-3">
           <div class="text-center text-lg-start">
-            <img id="resena-pelicula-poster" class="movie-poster mb-3 mx-auto" src="/img/logoMovieClub.png" alt="Póster de la película">
-            <h2 class="h5 text-uppercase text-white mb-2" id="resena-poster-titulo" style="font-family: var(--font-display);"></h2>
+            <a id="resena-pelicula-poster-link" class="d-block mb-3 text-decoration-none">
+              <img id="resena-pelicula-poster" class="movie-poster mx-auto" src="/img/logoMovieClub.png" alt="Póster de la película">
+            </a>
+            <h2 class="h5 text-uppercase mb-2" style="font-family: var(--font-display);">
+              <a id="resena-poster-titulo-link" class="text-white text-decoration-none hover-pink">
+                <span id="resena-poster-titulo"></span>
+              </a>
+            </h2>
             <p class="small text-secondary mb-0" id="resena-pelicula-sinopsis" style="line-height: 1.5;"></p>
           </div>
         </aside>
