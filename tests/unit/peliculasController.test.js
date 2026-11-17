@@ -101,4 +101,40 @@ describe('PeliculasController (Unit)', () => {
 
     expect(next).toHaveBeenCalledWith(errorSimulado);
   });
+
+  test('populares pasa anio y genero al servicio y retorna 200 con resultados mapeados', async () => {
+    mockTmdbService.obtenerPopulares = jest.fn().mockResolvedValue({
+      results: [
+        {
+          id: '123',
+          title: 'Película 2024',
+          overview: 'Descripción',
+          poster_path: '/p.jpg',
+          release_date: '2024-05-10',
+          vote_average: 7.5,
+          generos: ['Acción']
+        }
+      ],
+      total_pages: 5,
+      total_results: 100
+    });
+
+    req.query = { page: '2', anio: '2024', genero: 'Acción' };
+
+    await controller.populares(req, res, next);
+
+    expect(mockTmdbService.obtenerPopulares).toHaveBeenCalledWith(2, { anio: '2024', genero: 'Acción' });
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith([
+      {
+        id: '123',
+        titulo: 'Película 2024',
+        sinopsis: 'Descripción',
+        posterPath: '/p.jpg',
+        fechaEstreno: '2024-05-10',
+        calificacion: 7.5,
+        generos: ['Acción']
+      }
+    ]);
+  });
 });

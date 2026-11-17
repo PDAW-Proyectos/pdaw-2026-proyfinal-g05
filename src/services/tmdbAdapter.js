@@ -7,8 +7,8 @@ class TmdbAdapter {
     this.#tmdbService = options.tmdbService || new TmdbService(options);
   }
 
-  async buscarPeliculas(query, page = 1) {
-    const respuesta = await this.#tmdbService.buscarPeliculas(query, page);
+  async buscarPeliculas(query, page = 1, options = {}) {
+    const respuesta = await this.#tmdbService.buscarPeliculas(query, page, options);
     const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
 
     const GENEROS_TMDB = {
@@ -85,8 +85,8 @@ class TmdbAdapter {
     };
   }
 
-  async obtenerPopulares(page = 1) {
-    const respuesta = await this.#tmdbService.obtenerPopulares(page);
+  async obtenerPopulares(page = 1, options = {}) {
+    const respuesta = await this.#tmdbService.obtenerPopulares(page, options);
     const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
 
     const GENEROS_TMDB = {

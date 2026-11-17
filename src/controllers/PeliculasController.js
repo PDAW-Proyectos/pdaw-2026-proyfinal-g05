@@ -9,13 +9,15 @@ class PeliculasController {
     try {
       const query = req.query.q;
       const page = req.query.page ? Number(req.query.page) : undefined;
+      const anio = req.query.anio;
+      const genero = req.query.genero;
 
       if (!query || typeof query !== 'string' || query.trim() === '') {
         return res.status(400).json({ error: 'El parámetro de búsqueda (q) es obligatorio' });
       }
 
       const respuesta = page !== undefined
-        ? await this.#adapter.buscarPeliculas(query, page)
+        ? await this.#adapter.buscarPeliculas(query, page, { anio, genero })
         : await this.#adapter.buscarPeliculas(query);
       const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
 
@@ -47,6 +49,8 @@ class PeliculasController {
   async populares(req, res, next) {
     try {
       const page = req.query.page ? Number(req.query.page) : 1;
+      const anio = req.query.anio;
+      const genero = req.query.genero;
       const fn =
         typeof this.#adapter?.obtenerPopulares === 'function'
           ? this.#adapter.obtenerPopulares.bind(this.#adapter)
@@ -58,7 +62,7 @@ class PeliculasController {
         return res.status(200).json([]);
       }
 
-      const respuesta = await fn(page);
+      const respuesta = await fn(page, { anio, genero });
       const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
 
       const totalPages = respuesta?.totalPages || respuesta?.total_pages || null;
