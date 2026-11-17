@@ -44,7 +44,7 @@
       }
 
       await this.#cargarPelicula(this.#peliculaId);
-      this.#configurarBotonesActividad(this.#peliculaId);
+      this.#inicializarStatsActividad();
       this.#cargarActividadUsuario(this.#peliculaId);
     }
 
@@ -219,139 +219,20 @@
       });
     }
 
-    #actualizarEstadoStatBtn(btn, selectorIcono, activo) {
-      if (!btn) return;
-      btn.classList.toggle('active', activo);
-      btn.setAttribute('aria-pressed', String(activo));
-      const icon = btn.querySelector(selectorIcono);
+    #actualizarEstadoStat(containerId, selectorIcono, activo) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const icon = container.querySelector(selectorIcono);
       if (icon) {
         icon.classList.toggle('text-pink', activo);
         icon.style.color = activo ? 'var(--accent-pink)' : '#64748b';
       }
     }
 
-    #configurarBotonesActividad(id) {
-      const btnFav = document.getElementById('btn-stat-favorita');
-      const btnWatch = document.getElementById('btn-stat-watchlist');
-      const btnVisto = document.getElementById('btn-stat-ya-la-vi');
-
-      this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', false);
-      this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', false);
-      this.#actualizarEstadoStatBtn(btnVisto, '.bi-eye-fill', false);
-
-      if (btnFav) {
-        btnFav.addEventListener('click', async () => {
-          const rawUser = localStorage.getItem('usuario');
-          if (!rawUser) {
-            window.location.href = '/login.html';
-            return;
-          }
-
-          const eraActiva = btnFav.classList.contains('active');
-          this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', !eraActiva);
-
-          try {
-            const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
-            const res = await fetchFn(`/api/usuarios/favoritas/${encodeURIComponent(id)}`, {
-              method: 'POST',
-              credentials: 'same-origin'
-            });
-
-            if (res.status === 401) {
-              this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', eraActiva);
-              window.location.href = '/login.html';
-              return;
-            }
-
-            if (!res.ok) {
-              this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', eraActiva);
-              return;
-            }
-
-            const actualizado = await res.json();
-            const favs = Array.isArray(actualizado.favoritas) ? actualizado.favoritas.map(String) : [];
-            const quedoFav = favs.includes(String(id));
-            this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', quedoFav);
-
-            try {
-              const parsed = JSON.parse(rawUser);
-              if (parsed && typeof parsed === 'object') {
-                parsed.favoritas = favs;
-                localStorage.setItem('usuario', JSON.stringify(parsed));
-              }
-            } catch {
-            }
-          } catch {
-            this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', eraActiva);
-          }
-        });
-      }
-
-      if (btnWatch) {
-        btnWatch.addEventListener('click', async () => {
-          const rawUser = localStorage.getItem('usuario');
-          if (!rawUser) {
-            window.location.href = '/login.html';
-            return;
-          }
-
-          let userId = null;
-          try {
-            const parsed = JSON.parse(rawUser);
-            userId = parsed?.id ? String(parsed.id).trim() : null;
-          } catch {
-          }
-          if (!userId) userId = localStorage.getItem('userId');
-          if (!userId) {
-            window.location.href = '/login.html';
-            return;
-          }
-
-          const eraActiva = btnWatch.classList.contains('active');
-          const nuevoEstado = !eraActiva;
-          this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', nuevoEstado);
-
-          try {
-            const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
-            const res = await fetchFn(`/api/usuarios/${encodeURIComponent(userId)}/watchlist`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                peliculaId: String(id),
-                accion: nuevoEstado ? 'agregar' : 'quitar'
-              }),
-              credentials: 'same-origin'
-            });
-
-            if (res.status === 401) {
-              this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', eraActiva);
-              window.location.href = '/login.html';
-              return;
-            }
-
-            if (!res.ok) {
-              this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', eraActiva);
-              return;
-            }
-
-            const actualizado = await res.json();
-            const watch = Array.isArray(actualizado.watchlist) ? actualizado.watchlist.map(String) : [];
-            const quedoWatch = watch.includes(String(id));
-            this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', quedoWatch);
-
-            try {
-              const parsed = JSON.parse(rawUser);
-              if (parsed && typeof parsed === 'object') {
-                parsed.watchlist = watch;
-                localStorage.setItem('usuario', JSON.stringify(parsed));
-              }
-            } catch {
-            }
-          } catch {
-            this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', eraActiva);
-          }
-        });
-      }
+    #inicializarStatsActividad() {
+      this.#actualizarEstadoStat('stat-ya-la-vi', '.bi-eye-fill', false);
+      this.#actualizarEstadoStat('stat-favorita', '.bi-heart-fill', false);
+      this.#actualizarEstadoStat('stat-watchlist', '.bi-clock-fill', false);
     }
 
     async #cargarActividadUsuario(id) {
@@ -361,16 +242,12 @@
         const u = JSON.parse(raw);
         if (!u?.id) return;
 
-        const btnFav = document.getElementById('btn-stat-favorita');
-        const btnWatch = document.getElementById('btn-stat-watchlist');
-        const btnVisto = document.getElementById('btn-stat-ya-la-vi');
-
-        if (btnFav && Array.isArray(u.favoritas) && u.favoritas.map(String).includes(String(id))) {
-          this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', true);
+        if (Array.isArray(u.favoritas) && u.favoritas.map(String).includes(String(id))) {
+          this.#actualizarEstadoStat('stat-favorita', '.bi-heart-fill', true);
         }
 
-        if (btnWatch && Array.isArray(u.watchlist) && u.watchlist.map(String).includes(String(id))) {
-          this.#actualizarEstadoStatBtn(btnWatch, '.bi-clock-fill', true);
+        if (Array.isArray(u.watchlist) && u.watchlist.map(String).includes(String(id))) {
+          this.#actualizarEstadoStat('stat-watchlist', '.bi-clock-fill', true);
         }
 
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
@@ -386,10 +263,10 @@
             String(r.autorId || r.usuarioId) === String(u.id)
         );
         if (miResena) {
-          this.#actualizarEstadoStatBtn(btnVisto, '.bi-eye-fill', true);
+          this.#actualizarEstadoStat('stat-ya-la-vi', '.bi-eye-fill', true);
 
-          if (miResena.esFavorita && btnFav) {
-            this.#actualizarEstadoStatBtn(btnFav, '.bi-heart-fill', true);
+          if (miResena.esFavorita) {
+            this.#actualizarEstadoStat('stat-favorita', '.bi-heart-fill', true);
           }
 
           if (miResena.puntuacion) {
