@@ -1,31 +1,35 @@
 const { AppError, NotFoundError, ValidationError } = require('../utils/errors');
 
-const GENEROS_IDS = {
-  'accion': 28,
-  'aventura': 12,
-  'animacion': 16,
-  'comedia': 35,
-  'crimen': 80,
-  'documental': 99,
-  'drama': 18,
-  'familia': 10751,
-  'fantasia': 14,
-  'historia': 36,
-  'terror': 27,
-  'musica': 10402,
-  'misterio': 9648,
-  'romance': 10749,
-  'ciencia ficcion': 878,
-  'pelicula de tv': 10770,
-  'thriller': 53,
-  'belica': 10752,
-  'western': 37
+const GENEROS_TMDB = {
+  28: 'Acción',
+  12: 'Aventura',
+  16: 'Animación',
+  35: 'Comedia',
+  80: 'Crimen',
+  99: 'Documental',
+  18: 'Drama',
+  10751: 'Familia',
+  14: 'Fantasía',
+  36: 'Historia',
+  27: 'Terror',
+  10402: 'Música',
+  9648: 'Misterio',
+  10749: 'Romance',
+  878: 'Ciencia Ficción',
+  10770: 'Película de TV',
+  53: 'Thriller',
+  10752: 'Bélica',
+  37: 'Western'
 };
 
 function normalizarTextoGenero(str) {
   if (!str || typeof str !== 'string') return '';
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 }
+
+const GENEROS_IDS = Object.fromEntries(
+  Object.entries(GENEROS_TMDB).map(([id, nombre]) => [normalizarTextoGenero(nombre), Number(id)])
+);
 
 class TmdbService {
   #apiKey;
@@ -232,5 +236,7 @@ class TmdbService {
     return await this.obtenerPopulares(page, options);
   }
 }
+
+TmdbService.GENEROS_TMDB = GENEROS_TMDB;
 
 module.exports = TmdbService;

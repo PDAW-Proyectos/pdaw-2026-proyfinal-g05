@@ -1,4 +1,5 @@
 const TmdbService = require('./tmdbService');
+const { GENEROS_TMDB } = TmdbService;
 
 class TmdbAdapter {
   #tmdbService;
@@ -10,28 +11,6 @@ class TmdbAdapter {
   async buscarPeliculas(query, page = 1, options = {}) {
     const respuesta = await this.#tmdbService.buscarPeliculas(query, page, options);
     const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
-
-    const GENEROS_TMDB = {
-      28: 'Acción',
-      12: 'Aventura',
-      16: 'Animación',
-      35: 'Comedia',
-      80: 'Crimen',
-      99: 'Documental',
-      18: 'Drama',
-      10751: 'Familia',
-      14: 'Fantasía',
-      36: 'Historia',
-      27: 'Terror',
-      10402: 'Música',
-      9648: 'Misterio',
-      10749: 'Romance',
-      878: 'Ciencia Ficción',
-      10770: 'Película de TV',
-      53: 'Thriller',
-      10752: 'Bélica',
-      37: 'Western'
-    };
 
     const peliculas = resultados.map(p => ({
       id: String(p.id),
@@ -88,28 +67,6 @@ class TmdbAdapter {
   async obtenerPopulares(page = 1, options = {}) {
     const respuesta = await this.#tmdbService.obtenerPopulares(page, options);
     const resultados = Array.isArray(respuesta) ? respuesta : (respuesta?.results || []);
-
-    const GENEROS_TMDB = {
-      28: 'Acción',
-      12: 'Aventura',
-      16: 'Animación',
-      35: 'Comedia',
-      80: 'Crimen',
-      99: 'Documental',
-      18: 'Drama',
-      10751: 'Familia',
-      14: 'Fantasía',
-      36: 'Historia',
-      27: 'Terror',
-      10402: 'Música',
-      9648: 'Misterio',
-      10749: 'Romance',
-      878: 'Ciencia Ficción',
-      10770: 'Película de TV',
-      53: 'Thriller',
-      10752: 'Bélica',
-      37: 'Western'
-    };
 
     const peliculas = resultados.map(p => ({
       id: String(p.id),
