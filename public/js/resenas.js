@@ -644,21 +644,17 @@
       btnAnterior.textContent = 'Anterior';
       btnAnterior.dataset.pagina = String(this.#paginaActual - 1);
       if (this.#paginaActual === 1) {
+        btnAnterior.disabled = true;
         btnAnterior.classList.add('disabled');
         btnAnterior.setAttribute('aria-disabled', 'true');
       }
       fragmento.appendChild(btnAnterior);
 
-      for (let p = 1; p <= totalPaginas; p += 1) {
-        const btnPag = document.createElement('button');
-        btnPag.type = 'button';
-        btnPag.className = (p === this.#paginaActual)
-          ? 'btn btn-pink btn-sm px-3 py-2 active'
-          : 'btn btn-outline-custom btn-sm px-3 py-2';
-        btnPag.textContent = String(p);
-        btnPag.dataset.pagina = String(p);
-        fragmento.appendChild(btnPag);
-      }
+      const btnPag = document.createElement('span');
+      btnPag.className = 'btn btn-pink btn-sm px-3 py-2 active';
+      btnPag.textContent = String(this.#paginaActual);
+      btnPag.setAttribute('aria-current', 'page');
+      fragmento.appendChild(btnPag);
 
       const btnSiguiente = document.createElement('button');
       btnSiguiente.type = 'button';
@@ -666,6 +662,7 @@
       btnSiguiente.textContent = 'Siguiente';
       btnSiguiente.dataset.pagina = String(this.#paginaActual + 1);
       if (this.#paginaActual === totalPaginas) {
+        btnSiguiente.disabled = true;
         btnSiguiente.classList.add('disabled');
         btnSiguiente.setAttribute('aria-disabled', 'true');
       }

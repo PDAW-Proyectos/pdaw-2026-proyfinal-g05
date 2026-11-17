@@ -39,9 +39,6 @@
     #filtroAnio;
     #tituloSeccion;
     #paginacionContenedor;
-    #btnPaginaAnterior;
-    #btnPaginaSiguiente;
-    #indicadorPagina;
     #indicadorPaginaHeader;
     #modalRemoverElem;
     #modalRemoverInstance;
@@ -73,9 +70,6 @@
       this.#filtroAnio = document.getElementById('filtro-anio');
       this.#tituloSeccion = document.getElementById('titulo-seccion-peliculas');
       this.#paginacionContenedor = document.getElementById('paginacion-peliculas');
-      this.#btnPaginaAnterior = document.getElementById('btn-pagina-anterior');
-      this.#btnPaginaSiguiente = document.getElementById('btn-pagina-siguiente');
-      this.#indicadorPagina = document.getElementById('indicador-pagina-actual');
       this.#indicadorPaginaHeader = document.getElementById('indicador-pagina-header');
       this.#modalRemoverElem = document.getElementById('modal-confirmar-remover-lista');
       this.#modalRemoverTitulo = document.getElementById('modalConfirmarRemoverTitulo');
@@ -241,18 +235,14 @@
         });
       }
 
-      if (this.#btnPaginaAnterior) {
-        this.#btnPaginaAnterior.addEventListener('click', () => {
-          if (this.#paginaActual > 1) {
-            this.#cambiarPagina(this.#paginaActual - 1);
-          }
-        });
-      }
+      if (this.#paginacionContenedor) {
+        this.#paginacionContenedor.addEventListener('click', (e) => {
+          const boton = e.target.closest('button[data-pagina]');
+          if (!boton || boton.disabled || boton.classList.contains('disabled')) return;
 
-      if (this.#btnPaginaSiguiente) {
-        this.#btnPaginaSiguiente.addEventListener('click', () => {
-          if (this.#tieneMasPaginas) {
-            this.#cambiarPagina(this.#paginaActual + 1);
+          const paginaDestino = Number(boton.dataset.pagina);
+          if (paginaDestino && paginaDestino > 0 && paginaDestino !== this.#paginaActual) {
+            this.#cambiarPagina(paginaDestino);
           }
         });
       }
@@ -599,6 +589,7 @@
       }
 
       if (!this.#paginacionContenedor) return;
+      this.#paginacionContenedor.textContent = '';
 
       const mostrarPaginacion = this.#peliculas.length > 0 || this.#paginaActual > 1;
       if (!mostrarPaginacion) {
@@ -608,17 +599,41 @@
 
       this.#paginacionContenedor.classList.remove('d-none');
 
-      if (this.#indicadorPagina) {
-        this.#indicadorPagina.textContent = String(this.#paginaActual);
-      }
+      const fragmento = document.createDocumentFragment();
 
-      if (this.#btnPaginaAnterior) {
-        this.#btnPaginaAnterior.disabled = this.#paginaActual <= 1;
+      const btnAnterior = document.createElement('button');
+      btnAnterior.type = 'button';
+      btnAnterior.className = 'btn btn-outline-custom btn-sm px-3 py-2';
+      btnAnterior.textContent = 'Anterior';
+      btnAnterior.dataset.pagina = String(this.#paginaActual - 1);
+      btnAnterior.setAttribute('aria-label', 'Página anterior');
+      if (this.#paginaActual <= 1) {
+        btnAnterior.disabled = true;
+        btnAnterior.classList.add('disabled');
+        btnAnterior.setAttribute('aria-disabled', 'true');
       }
+      fragmento.appendChild(btnAnterior);
 
-      if (this.#btnPaginaSiguiente) {
-        this.#btnPaginaSiguiente.disabled = !this.#tieneMasPaginas;
+      const spanPag = document.createElement('span');
+      spanPag.className = 'btn btn-pink btn-sm px-3 py-2 active';
+      spanPag.textContent = String(this.#paginaActual);
+      spanPag.setAttribute('aria-current', 'page');
+      fragmento.appendChild(spanPag);
+
+      const btnSiguiente = document.createElement('button');
+      btnSiguiente.type = 'button';
+      btnSiguiente.className = 'btn btn-outline-custom btn-sm px-3 py-2';
+      btnSiguiente.textContent = 'Siguiente';
+      btnSiguiente.dataset.pagina = String(this.#paginaActual + 1);
+      btnSiguiente.setAttribute('aria-label', 'Página siguiente');
+      if (!this.#tieneMasPaginas) {
+        btnSiguiente.disabled = true;
+        btnSiguiente.classList.add('disabled');
+        btnSiguiente.setAttribute('aria-disabled', 'true');
       }
+      fragmento.appendChild(btnSiguiente);
+
+      this.#paginacionContenedor.appendChild(fragmento);
     }
 
     #renderizar(lista) {
