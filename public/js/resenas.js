@@ -74,6 +74,19 @@
       this.#configurarFiltros();
       this.#configurarDelegacionEventos();
       this.cargarResenas();
+
+      window.addEventListener('movieclub:resena-guardada', () => {
+        this.#filtroActual = 'todas';
+        this.#filtroBotones.forEach((boton) => {
+          if (boton.dataset.filtro === 'todas') {
+            boton.classList.add('active');
+          } else {
+            boton.classList.remove('active');
+          }
+        });
+        this.#paginaActual = 1;
+        this.cargarResenas(true);
+      });
     }
 
     #configurarFiltros() {
@@ -313,13 +326,15 @@
       }
     }
 
-    async cargarResenas() {
+    async cargarResenas(silencioso = false) {
       if (this.#abortController) {
         this.#abortController.abort();
       }
       this.#abortController = new AbortController();
 
-      this.#mostrarCargando();
+      if (!silencioso) {
+        this.#mostrarCargando();
+      }
 
       try {
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
