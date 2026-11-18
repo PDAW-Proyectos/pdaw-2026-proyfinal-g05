@@ -795,6 +795,18 @@
     const movieSlider = document.querySelector('.movie-slider');
     if (movieSlider) {
       movieSlider.addEventListener('click', (e) => {
+        const btnToggleSpoiler = e.target.closest('.btn-toggle-spoiler');
+        if (btnToggleSpoiler) {
+          e.stopPropagation();
+          const card = btnToggleSpoiler.closest('.movie-card');
+          const snippet = card ? card.querySelector('.movie-review-snippet') : null;
+          if (snippet) {
+            const revelado = snippet.classList.toggle('revelado');
+            btnToggleSpoiler.textContent = revelado ? 'Ocultar' : 'Mostrar';
+          }
+          return;
+        }
+
         const item = e.target.closest('.movie-card');
         if (!item) return;
 
@@ -842,6 +854,7 @@
           const year = clon.querySelector('.movie-year');
           const rating = clon.querySelector('.movie-rating');
           const author = clon.querySelector('.movie-review-author');
+          const alertaSpoiler = clon.querySelector('.resena-alerta-spoiler');
           const snippet = clon.querySelector('.movie-review-snippet');
 
           const pelicula = resena.pelicula || {};
@@ -877,6 +890,14 @@
 
           if (author) {
             author.textContent = resena.nombreAutor || 'Miembro de MovieClub';
+          }
+
+          if (resena.contieneSpoilers) {
+            if (alertaSpoiler) alertaSpoiler.classList.remove('d-none');
+            if (snippet) snippet.classList.add('spoiler-blureado');
+          } else {
+            if (alertaSpoiler) alertaSpoiler.classList.add('d-none');
+            if (snippet) snippet.classList.remove('spoiler-blureado');
           }
 
           if (snippet) {
