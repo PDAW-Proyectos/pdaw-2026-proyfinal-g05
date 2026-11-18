@@ -1038,7 +1038,14 @@
       }
 
       if (this.#rolElem) {
-        this.#rolElem.textContent = String(u.rol || 'Espectador').toUpperCase();
+        const rolTexto = String(u.rol || 'Espectador').toUpperCase();
+        const esEspectador = rolTexto === 'ESPECTADOR';
+        this.#rolElem.textContent = rolTexto;
+        this.#rolElem.classList.toggle('text-secondary', esEspectador);
+        this.#rolElem.classList.toggle('border-secondary', esEspectador);
+        this.#rolElem.classList.toggle('border-opacity-50', esEspectador);
+        this.#rolElem.classList.toggle('text-pink', !esEspectador);
+        this.#rolElem.classList.toggle('border-pink', !esEspectador);
       }
 
       if (this.#medioPrensaElem) {

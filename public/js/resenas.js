@@ -399,14 +399,22 @@
     #crearTarjeta(resena) {
       const clone = this.#template.content.cloneNode(true);
 
+      const rolAutorNorm = String(resena.rolAutor || 'Espectador').toLowerCase();
+      const esAutorModerador = rolAutorNorm === 'moderador';
+      const esAutorEspectador = rolAutorNorm === 'espectador';
+
       const autorNombre = clone.querySelector('.resena-autor-nombre');
       if (autorNombre) {
         autorNombre.textContent = resena.nombreAutor || 'Miembro de MovieClub';
+        autorNombre.classList.toggle('text-pink', esAutorModerador);
+        autorNombre.classList.toggle('text-white', !esAutorModerador);
       }
 
       const autorRol = clone.querySelector('.resena-autor-rol');
       if (autorRol) {
         autorRol.textContent = (resena.rolAutor || 'Espectador').toUpperCase();
+        autorRol.classList.toggle('text-secondary', esAutorEspectador);
+        autorRol.classList.toggle('text-pink', !esAutorEspectador);
       }
 
       const fechaElem = clone.querySelector('.resena-fecha');

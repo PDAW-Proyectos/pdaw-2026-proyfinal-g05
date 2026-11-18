@@ -143,8 +143,20 @@
         const data = await respuesta.json();
         datosResenaActual = data;
 
-        if (autorNombre) autorNombre.textContent = data.nombreAutor || 'Miembro de MovieClub';
-        if (autorRol) autorRol.textContent = (data.rolAutor || 'Espectador').toUpperCase();
+        const rolAutorNorm = String(data.rolAutor || 'Espectador').toLowerCase();
+        const esAutorModerador = rolAutorNorm === 'moderador';
+        const esAutorEspectador = rolAutorNorm === 'espectador';
+
+        if (autorNombre) {
+          autorNombre.textContent = data.nombreAutor || 'Miembro de MovieClub';
+          autorNombre.classList.toggle('text-pink', esAutorModerador);
+          autorNombre.classList.toggle('text-light', !esAutorModerador);
+        }
+        if (autorRol) {
+          autorRol.textContent = (data.rolAutor || 'Espectador').toUpperCase();
+          autorRol.classList.toggle('text-secondary', esAutorEspectador);
+          autorRol.classList.toggle('text-pink', !esAutorEspectador);
+        }
 
         const peli = data.pelicula || {};
         const tituloPeli = peli.titulo || 'Película sin título';
@@ -426,8 +438,16 @@
             throw err;
           }
           datosResenaActual.rolAutor = nuevoRol;
+          const esNuevoEspectador = String(nuevoRol).toLowerCase() === 'espectador';
+          const esNuevoModerador = String(nuevoRol).toLowerCase() === 'moderador';
+          if (autorNombre) {
+            autorNombre.classList.toggle('text-pink', esNuevoModerador);
+            autorNombre.classList.toggle('text-light', !esNuevoModerador);
+          }
           if (autorRol) {
             autorRol.textContent = nuevoRol.toUpperCase();
+            autorRol.classList.toggle('text-secondary', esNuevoEspectador);
+            autorRol.classList.toggle('text-pink', !esNuevoEspectador);
           }
           actualizarBotonRol(nuevoRol);
         } catch (err) {
