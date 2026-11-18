@@ -238,7 +238,7 @@ h4,
 
 .hero-header {
   position: relative;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(16, 21, 25, 0.96) 0%, rgba(16, 21, 25, 0.88) 42%, rgba(16, 21, 25, 0.45) 75%, rgba(16, 21, 25, 0.12) 100%),
     linear-gradient(to top, var(--bg-main) 0%, transparent 18%),
     linear-gradient(to bottom, var(--bg-main) 0%, transparent 12%),
@@ -305,7 +305,7 @@ h4,
   border-radius: 4px;
   display: block;
   background-color: var(--bg-surface);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 
 .movie-card-poster-wrapper {
@@ -323,20 +323,62 @@ h4,
   flex-direction: column;
   justify-content: flex-end;
   padding: 0.75rem;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.25s ease;
 }
 
-.movie-card:hover .movie-card-overlay,
-.movie-card:focus-within .movie-card-overlay {
-  opacity: 1;
+.movie-card:hover .movie-card-overlay {
+  opacity: 0;
 }
 
 .movie-card:hover .movie-poster {
-  transform: translateY(-4px);
   border-color: var(--accent-pink);
-  box-shadow: 0 8px 20px rgba(255, 102, 153, 0.25);
+}
+
+#resena-pelicula-poster-link:hover .movie-poster {
+  border-color: var(--accent-pink);
+}
+
+.movie-card-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.movie-card-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  background-color: rgba(16, 21, 25, 0.82);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.movie-card-action-btn:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+  background-color: rgba(16, 21, 25, 0.95);
+  transform: scale(1.08);
+}
+
+.movie-card-action-btn.activo {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+  background-color: rgba(16, 21, 25, 0.92);
 }
 
 .movie-review-preview {
@@ -930,10 +972,34 @@ h4,
 }
 
 .pelicula-hero-backdrop {
-  background: linear-gradient(180deg, rgba(16, 21, 25, 0.4) 0%, rgba(16, 21, 25, 0.95) 75%, #101519 100%),
-              radial-gradient(circle at 50% 20%, rgba(255, 102, 153, 0.08) 0%, transparent 60%),
-              #12181e;
-  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  background-color: #12181e;
+  background-position: center 25%;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.pelicula-hero-backdrop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(90deg, rgba(16, 21, 25, 0.7) 0%, rgba(16, 21, 25, 0.4) 50%, rgba(16, 21, 25, 0.2) 100%),
+    linear-gradient(180deg, rgba(16, 21, 25, 0.2) 0%, rgba(16, 21, 25, 0.6) 80%, var(--bg-main, #101519) 100%);
+  pointer-events: none;
+}
+
+.pelicula-hero-backdrop .container-xl {
+  position: relative;
+  z-index: 1;
 }
 
 .feed-resena-card {
@@ -946,6 +1012,12 @@ h4,
   border-color: var(--accent-pink);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(255, 102, 153, 0.15);
+}
+
+.feed-resena-card.resena-card-destacada,
+.resena-panel-box.resena-card-destacada {
+  border-color: var(--accent-pink) !important;
+  box-shadow: 0 0 12px rgba(232, 154, 170, 0.18);
 }
 
 .pelicula-cast-card {
@@ -992,6 +1064,23 @@ h4,
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 1.5rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#perfil-nombre {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.1;
+  max-width: 100%;
+}
+
+#perfil-usuario,
+#perfil-email {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -1041,13 +1130,11 @@ h4,
   border: 1px solid var(--border-color);
   border-radius: 4px;
   overflow: hidden;
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: border-color 0.18s ease;
 }
 
 .perfil-watchlist-card:hover {
   border-color: var(--accent-pink);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(255, 102, 153, 0.18);
 }
 
 .perfil-watchlist-poster {
@@ -1090,6 +1177,23 @@ h4,
   box-shadow: 0 0 0 1px var(--accent-pink) !important;
 }
 
+.paginacion-fightclub-btn,
+.paginacion-fightclub-num {
+  font-family: var(--font-display) !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.05em !important;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.paginacion-fightclub-btn:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
 
-
+.paginacion-fightclub-num {
+  pointer-events: none;
+  user-select: none;
+}

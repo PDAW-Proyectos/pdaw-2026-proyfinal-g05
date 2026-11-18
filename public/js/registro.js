@@ -22,6 +22,48 @@
 
     if (!form) return;
 
+    const nombreInput = document.getElementById('nombre');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const errorNombre = document.getElementById('error-nombre');
+    const errorEmail = document.getElementById('error-email');
+    const errorPassword = document.getElementById('error-password');
+
+    function validarNombreEnTiempoReal() {
+      const val = nombreInput ? nombreInput.value.trim() : '';
+      if (val.length > 20) {
+        if (errorNombre) {
+          errorNombre.textContent = 'El nombre no puede tener más de 20 caracteres';
+          errorNombre.classList.add('d-block');
+        }
+        if (nombreInput) {
+          nombreInput.classList.add('is-invalid');
+        }
+        if (alertaError) {
+          alertaError.textContent = 'El nombre no puede tener más de 20 caracteres';
+          alertaError.classList.remove('d-none');
+        }
+        return false;
+      }
+      if (errorNombre) {
+        errorNombre.textContent = '';
+        errorNombre.classList.remove('d-block');
+      }
+      if (nombreInput) {
+        nombreInput.classList.remove('is-invalid');
+      }
+      if (alertaError && alertaError.textContent === 'El nombre no puede tener más de 20 caracteres') {
+        alertaError.classList.add('d-none');
+        alertaError.textContent = '';
+      }
+      return true;
+    }
+
+    if (nombreInput) {
+      nombreInput.addEventListener('input', validarNombreEnTiempoReal);
+      nombreInput.addEventListener('blur', validarNombreEnTiempoReal);
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -30,20 +72,48 @@
         alertaError.textContent = '';
       }
 
-      const nombreInput = document.getElementById('nombre');
-      const emailInput = document.getElementById('email');
-      const passwordInput = document.getElementById('password');
-
       const nombre = nombreInput ? nombreInput.value.trim() : '';
       const email = emailInput ? emailInput.value.trim() : '';
       const password = passwordInput ? passwordInput.value : '';
 
       if (!nombre) {
+        if (errorNombre) {
+          errorNombre.textContent = 'El nombre es obligatorio';
+          errorNombre.classList.add('d-block');
+        }
+        if (nombreInput) {
+          nombreInput.classList.add('is-invalid');
+          nombreInput.focus();
+        }
         if (alertaError) {
           alertaError.textContent = 'El nombre es obligatorio';
           alertaError.classList.remove('d-none');
         }
         return;
+      }
+
+      if (nombre.length > 20) {
+        if (errorNombre) {
+          errorNombre.textContent = 'El nombre no puede tener más de 20 caracteres';
+          errorNombre.classList.add('d-block');
+        }
+        if (nombreInput) {
+          nombreInput.classList.add('is-invalid');
+          nombreInput.focus();
+        }
+        if (alertaError) {
+          alertaError.textContent = 'El nombre no puede tener más de 20 caracteres';
+          alertaError.classList.remove('d-none');
+        }
+        return;
+      }
+
+      if (errorNombre) {
+        errorNombre.textContent = '';
+        errorNombre.classList.remove('d-block');
+      }
+      if (nombreInput) {
+        nombreInput.classList.remove('is-invalid');
       }
 
       if (!email || !email.includes('@')) {

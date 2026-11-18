@@ -61,7 +61,7 @@
   <main class="container-xl px-4 px-md-5 py-4 flex-grow-1">
 
     <div class="row align-items-center g-3 mb-2">
-      <div class="col-12 col-lg-3 d-flex align-items-center gap-2">
+      <div class="col-12 col-lg-4 d-flex align-items-center gap-2">
         <label for="filtro-genero" class="text-secondary small text-uppercase fw-bold mb-0" style="font-size: 0.72rem; letter-spacing: 0.08em;">GÉNERO</label>
         <select id="filtro-genero" class="form-select form-select-sm bg-dark text-white border-secondary border-opacity-50 py-1" style="font-size: 0.78rem;">
           <option value="todos">Todos</option>
@@ -87,40 +87,30 @@
         </select>
       </div>
 
-      <div class="col-12 col-lg-6 d-flex justify-content-center">
-        <div class="d-flex align-items-center gap-2 w-100" style="max-width: 440px;">
+      <div class="col-12 col-lg-8">
+        <div class="d-flex align-items-center gap-2 w-100">
           <label for="input-buscar-catalogo" class="text-secondary small text-uppercase fw-bold text-nowrap mb-0" style="font-size: 0.75rem; letter-spacing: 0.12em;">
             BUSCAR PELÍCULA
           </label>
           <div class="position-relative flex-grow-1">
-            <input type="text" id="input-buscar-catalogo" class="form-control form-control-sm text-white border-secondary border-opacity-50 ps-3 pe-4 py-1" placeholder="Buscar por título..." autocomplete="off" style="background-color: #1a2228 !important; font-size: 0.82rem;">
+            <input type="text" id="input-buscar-catalogo" class="form-control form-control-sm text-white border-secondary border-opacity-50 ps-3 pe-4 py-1 w-100" placeholder="Buscar por título..." autocomplete="off" style="background-color: #1a2228 !important; font-size: 0.82rem;">
             <i class="bi bi-search position-absolute top-50 end-0 translate-middle-y me-2 text-secondary small"></i>
           </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-lg-3 d-flex justify-content-lg-end">
-        <div class="d-flex align-items-center gap-2">
-          <label for="filtro-periodo" class="visually-hidden">Período</label>
-          <select id="filtro-periodo" class="form-select form-select-sm text-white border-secondary border-opacity-50 py-1" style="font-size: 0.8rem; background-color: #1a2228 !important; width: auto; min-width: 140px;">
-            <option value="semana" selected>Esta semana</option>
-            <option value="mes">Este mes</option>
-            <option value="anio">Este año</option>
-            <option value="todos">Todas las películas</option>
-            <option value="historico">Clásicos del Club</option>
-          </select>
         </div>
       </div>
     </div>
 
     <hr class="border-secondary border-opacity-25 my-3">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <div class="d-flex align-items-baseline gap-2">
         <h2 class="text-uppercase fw-bold text-secondary mb-0" id="titulo-seccion-peliculas" style="letter-spacing: 0.12em; font-size: 0.8rem; font-family: var(--font-body);">
-          PELÍCULAS POPULARES ESTA SEMANA
+          POPULARES
         </h2>
-        <span id="contador-peliculas" class="badge bg-dark border border-secondary border-opacity-50 text-secondary" style="font-size: 0.65rem;"></span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span id="indicador-pagina-header" class="badge bg-dark border border-secondary border-opacity-50 text-pink text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.08em;">Página 1</span>
+        <span id="contador-peliculas" class="badge bg-dark border border-secondary border-opacity-50 text-secondary text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.05em;"></span>
       </div>
     </div>
 
@@ -133,6 +123,8 @@
 
     <div id="grid-peliculas" class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-3 g-md-4" aria-live="polite"></div>
 
+    <nav id="paginacion-peliculas" class="d-flex justify-content-center align-items-center gap-2 mt-5 mb-3 d-none" aria-label="Paginación de películas"></nav>
+
     <div id="estado-vacio-peliculas" class="text-center py-5 my-5 d-none">
       <i class="bi bi-film text-secondary display-4 d-block mb-3 opacity-50"></i>
       <h3 class="h5 text-white text-uppercase fw-bold mb-2" style="font-family: var(--font-display);">No se encontraron películas</h3>
@@ -142,6 +134,14 @@
     <template id="template-pelicula-card">
       <div class="col">
         <article class="movie-card h-100 position-relative">
+          <div class="movie-card-actions">
+            <button type="button" class="movie-card-action-btn btn-card-favorita" aria-label="Marcar como favorita" aria-pressed="false" title="Sumar a favoritas">
+              <i class="bi bi-heart icono-card-fav" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="movie-card-action-btn btn-card-watchlist" aria-label="Añadir a watchlist" title="Añadir a watchlist">
+              <i class="bi bi-bookmark-plus icono-card-watchlist" aria-hidden="true"></i>
+            </button>
+          </div>
           <a href="#" class="text-decoration-none pelicula-card-link d-block movie-card-poster-wrapper">
             <img src="" alt="" class="movie-poster pelicula-card-poster" loading="lazy">
             <div class="movie-card-overlay">
@@ -303,6 +303,35 @@
             <button type="submit" id="btn-save-resena" class="btn btn-save-resena ms-auto">Publicar Reseña</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-confirmar-remover-lista" tabindex="-1" aria-labelledby="modalConfirmarRemoverTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 440px;">
+      <div class="modal-content modal-custom-dark">
+        <div class="modal-header border-bottom border-secondary border-opacity-25 px-4 py-3">
+          <h5 class="modal-title fs-5 fw-bold text-white text-uppercase mb-0" id="modalConfirmarRemoverTitulo" style="font-family: var(--font-display);">
+            Quitar de la lista
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body px-4 py-3">
+          <p class="text-light mb-2" id="modal-confirmar-remover-mensaje">
+            ¿Confirmás que querés quitar esta película?
+          </p>
+          <p class="text-secondary small mb-0" id="modal-confirmar-remover-subtitulo">
+            Podrás volver a agregarla en cualquier momento desde el catálogo.
+          </p>
+        </div>
+        <div class="modal-footer border-top border-secondary border-opacity-25 px-4 py-3 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-custom btn-sm px-3 py-2" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-danger btn-sm px-3 py-2 fw-bold text-uppercase" id="btn-confirmar-remover-lista">
+            Quitar
+          </button>
+        </div>
       </div>
     </div>
   </div>

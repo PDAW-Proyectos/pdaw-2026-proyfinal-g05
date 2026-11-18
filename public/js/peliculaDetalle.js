@@ -44,6 +44,7 @@
       }
 
       await this.#cargarPelicula(this.#peliculaId);
+      this.#inicializarStatsActividad();
       this.#cargarActividadUsuario(this.#peliculaId);
     }
 
@@ -56,6 +57,10 @@
       }
       const heroTitulo = document.getElementById('pelicula-hero-titulo');
       if (heroTitulo) heroTitulo.textContent = 'Película no encontrada';
+      const heroElement = document.getElementById('pelicula-hero') || document.querySelector('.pelicula-hero-backdrop');
+      if (heroElement) {
+        heroElement.style.backgroundImage = '';
+      }
     }
 
     async #cargarPelicula(id) {
@@ -83,6 +88,18 @@
         : '/img/logoMovieClub.png';
 
       document.title = `${p.titulo} (${anio}) | MovieClub`;
+
+      const heroElement = document.getElementById('pelicula-hero') || document.querySelector('.pelicula-hero-backdrop');
+      if (heroElement) {
+        if (p.backdropPath) {
+          const backdropUrl = p.backdropPath.startsWith('http')
+            ? p.backdropPath
+            : `https://image.tmdb.org/t/p/w1280${p.backdropPath}`;
+          heroElement.style.backgroundImage = `url("${backdropUrl}")`;
+        } else {
+          heroElement.style.backgroundImage = '';
+        }
+      }
 
       const heroTitulo = document.getElementById('pelicula-hero-titulo');
       if (heroTitulo) heroTitulo.textContent = p.titulo;
@@ -218,6 +235,22 @@
       });
     }
 
+    #actualizarEstadoStat(containerId, selectorIcono, activo) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const icon = container.querySelector(selectorIcono);
+      if (icon) {
+        icon.classList.toggle('text-pink', activo);
+        icon.style.color = activo ? 'var(--accent-pink)' : '#64748b';
+      }
+    }
+
+    #inicializarStatsActividad() {
+      this.#actualizarEstadoStat('stat-ya-la-vi', '.bi-eye-fill', false);
+      this.#actualizarEstadoStat('stat-favorita', '.bi-heart-fill', false);
+      this.#actualizarEstadoStat('stat-watchlist', '.bi-clock-fill', false);
+    }
+
     async #cargarActividadUsuario(id) {
       try {
         const raw = localStorage.getItem('usuario');
@@ -225,11 +258,12 @@
         const u = JSON.parse(raw);
         if (!u?.id) return;
 
-        const btnFav = document.getElementById('btn-stat-favorita');
-        if (btnFav && Array.isArray(u.favoritas) && u.favoritas.includes(String(id))) {
-          btnFav.classList.add('active');
-          const icon = btnFav.querySelector('.bi-heart-fill');
-          if (icon) icon.style.color = 'var(--accent-pink)';
+        if (Array.isArray(u.favoritas) && u.favoritas.map(String).includes(String(id))) {
+          this.#actualizarEstadoStat('stat-favorita', '.bi-heart-fill', true);
+        }
+
+        if (Array.isArray(u.watchlist) && u.watchlist.map(String).includes(String(id))) {
+          this.#actualizarEstadoStat('stat-watchlist', '.bi-clock-fill', true);
         }
 
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
@@ -239,27 +273,25 @@
         const todas = await res.json();
         if (!Array.isArray(todas)) return;
 
-        const miResena = todas.find((r) => String(r.peliculaId) === String(id) && String(r.usuarioId) === String(u.id));
+        const miResena = todas.find(
+          (r) =>
+            String(r.peliculaId) === String(id) &&
+            String(r.autorId || r.usuarioId) === String(u.id)
+        );
         if (miResena) {
-          const btnVisto = document.getElementById('btn-stat-ya-la-vi');
-          if (btnVisto) {
-            btnVisto.classList.add('active');
-            const icon = btnVisto.querySelector('.bi-eye-fill');
-            if (icon) icon.style.color = 'var(--accent-pink)';
-          }
+          this.#actualizarEstadoStat('stat-ya-la-vi', '.bi-eye-fill', true);
 
-          if (miResena.esFavorita && btnFav) {
-            btnFav.classList.add('active');
-            const icon = btnFav.querySelector('.bi-heart-fill');
-            if (icon) icon.style.color = 'var(--accent-pink)';
+          if (miResena.esFavorita) {
+            this.#actualizarEstadoStat('stat-favorita', '.bi-heart-fill', true);
           }
 
           if (miResena.puntuacion) {
+            const num = Math.floor(Number(miResena.puntuacion) || 0);
             const panelEstrellas = document.getElementById('panel-tu-puntuacion-estrellas');
-            if (panelEstrellas) panelEstrellas.textContent = '★'.repeat(miResena.puntuacion) + '☆'.repeat(5 - miResena.puntuacion);
+            if (panelEstrellas) panelEstrellas.textContent = '★'.repeat(num) + '☆'.repeat(Math.max(0, 5 - num));
 
             const panelTexto = document.getElementById('panel-tu-puntuacion-texto');
-            if (panelTexto) panelTexto.textContent = `${miResena.puntuacion}.0 de 5 estrellas`;
+            if (panelTexto) panelTexto.textContent = `${Number(miResena.puntuacion).toFixed(1)} de 5 estrellas`;
           }
         }
       } catch {}

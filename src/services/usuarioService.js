@@ -1,6 +1,12 @@
 const bcrypt = require('bcryptjs');
-const { Usuario, Espectador } = require('../models/Usuario');
-const { ValidationError, UnauthorizedError, ConflictError, NotFoundError } = require('../utils/errors');
+const { Usuario, Espectador, Moderador } = require('../models/Usuario');
+const {
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  NotFoundError
+} = require('../utils/errors');
 
 class UsuarioService {
   #usuarioRepository;
@@ -16,6 +22,10 @@ class UsuarioService {
   async registrar({ nombre, email, password, rol } = {}) {
     if (!nombre || typeof nombre !== 'string' || nombre.trim() === '') {
       throw new ValidationError('El nombre es obligatorio');
+    }
+
+    if (nombre.trim().length > 20) {
+      throw new ValidationError('El nombre no puede tener más de 20 caracteres');
     }
 
     if (!email || typeof email !== 'string' || !email.includes('@')) {
@@ -161,6 +171,168 @@ class UsuarioService {
     }
 
     return existente;
+  }
+
+  async toggleFavorita(userId, peliculaId) {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (!peliculaId || String(peliculaId).trim() === '') {
+      throw new ValidationError('El id de película es obligatorio');
+    }
+
+    const idLimpio = userId.trim();
+    const peliLimpia = String(peliculaId).trim();
+    const existente = await this.obtenerPorId(idLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    if (existente.esFavorita(peliLimpia)) {
+      existente.quitarDeFavoritas(peliLimpia);
+    } else {
+      existente.agregarAFavoritas(peliLimpia);
+    }
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(existente);
+    }
+
+    return existente;
+  }
+
+  async obtenerWatchlist(targetUserId, { sessionUserId } = {}) {
+    const idSesion = sessionUserId !== undefined ? sessionUserId : targetUserId;
+    if (!idSesion || typeof idSesion !== 'string' || idSesion.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El id de usuario es obligatorio');
+    }
+
+    const targetLimpio = targetUserId.trim();
+    const sesionLimpia = idSesion.trim();
+
+    if (targetLimpio !== sesionLimpia) {
+      throw new ForbiddenError('No tienes permisos para consultar la watchlist de otro usuario');
+    }
+
+    const existente = await this.obtenerPorId(targetLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    return Array.isArray(existente.watchlist) ? existente.watchlist : [];
+  }
+
+  async actualizarWatchlist(targetUserId, { sessionUserId, peliculaId, idPelicula, accion } = {}) {
+    const idSesion = sessionUserId !== undefined ? sessionUserId : targetUserId;
+    if (!idSesion || typeof idSesion !== 'string' || idSesion.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El id de usuario es obligatorio');
+    }
+
+    const targetLimpio = targetUserId.trim();
+    const sesionLimpia = idSesion.trim();
+
+    if (targetLimpio !== sesionLimpia) {
+      throw new ForbiddenError('No tienes permisos para modificar la watchlist de otro usuario');
+    }
+
+    const rawPeli = peliculaId !== undefined ? peliculaId : idPelicula;
+    if (
+      rawPeli === undefined ||
+      rawPeli === null ||
+      typeof rawPeli === 'boolean' ||
+      typeof rawPeli === 'object' ||
+      String(rawPeli).trim() === ''
+    ) {
+      throw new ValidationError('El id de película es obligatorio');
+    }
+
+    const peliLimpia = String(rawPeli).trim();
+
+    if (accion !== undefined && accion !== null) {
+      const accionNorm = String(accion).trim().toLowerCase();
+      if (!['agregar', 'quitar', 'add', 'remove', 'toggle'].includes(accionNorm)) {
+        throw new ValidationError('La acción debe ser "agregar" o "quitar"');
+      }
+    }
+
+    const existente = await this.obtenerPorId(targetLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    const accionNorm = accion ? String(accion).trim().toLowerCase() : 'toggle';
+
+    if (accionNorm === 'agregar' || accionNorm === 'add') {
+      existente.agregarAWatchlist(peliLimpia);
+    } else if (accionNorm === 'quitar' || accionNorm === 'remove') {
+      existente.quitarDeWatchlist(peliLimpia);
+    } else {
+      if (existente.estaEnWatchlist(peliLimpia)) {
+        existente.quitarDeWatchlist(peliLimpia);
+      } else {
+        existente.agregarAWatchlist(peliLimpia);
+      }
+    }
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(existente);
+    }
+
+    return existente;
+  }
+
+  async cambiarRol(moderadorId, targetUserId, nuevoRol, { medioDePrensa } = {}) {
+    if (!moderadorId || typeof moderadorId !== 'string' || moderadorId.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    const moderador = await this.obtenerPorId(moderadorId.trim());
+    if (
+      !moderador ||
+      (!moderador.puedeModerar?.() && !(moderador instanceof Moderador) && moderador.rol !== 'Moderador')
+    ) {
+      throw new ForbiddenError('Acceso denegado: permisos insuficientes para realizar esta acción');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El ID del usuario es requerido');
+    }
+
+    const targetUser = await this.obtenerPorId(targetUserId.trim());
+    if (!targetUser) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    const rolesValidos = ['Espectador', 'Critico', 'Moderador'];
+    if (!rolesValidos.includes(nuevoRol)) {
+      throw new ValidationError('El rol especificado es inválido');
+    }
+
+    const usuarioConNuevoRol = typeof moderador.cambiarRolUsuario === 'function'
+      ? moderador.cambiarRolUsuario(targetUser, nuevoRol, { medioDePrensa })
+      : (() => {
+          const raw = targetUser.toJSON();
+          raw.rol = nuevoRol;
+          if (nuevoRol === 'Critico') {
+            raw.medioDePrensa = medioDePrensa || raw.medioDePrensa || 'Prensa Oficial MovieClub';
+          }
+          return Usuario.fromJSON(raw);
+        })();
+
+    if (typeof this.#usuarioRepository.guardar === 'function') {
+      await this.#usuarioRepository.guardar(usuarioConNuevoRol);
+    }
+
+    return usuarioConNuevoRol;
   }
 }
 

@@ -14,6 +14,22 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
     controller.actualizarPerfil(req, res, next)
   );
 
+  router.post('/favoritas/:peliculaId', requireAuth, (req, res, next) =>
+    controller.toggleFavorita(req, res, next)
+  );
+
+  router.get('/:id/watchlist', requireAuth, (req, res, next) =>
+    controller.obtenerWatchlist(req, res, next)
+  );
+
+  router.patch('/:id/watchlist', requireAuth, (req, res, next) =>
+    controller.actualizarWatchlist(req, res, next)
+  );
+
+  router.patch('/:id/rol', requireAuth, (req, res, next) =>
+    controller.cambiarRol(req, res, next)
+  );
+
   return router;
 }
 

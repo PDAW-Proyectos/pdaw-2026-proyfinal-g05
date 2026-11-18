@@ -13,9 +13,12 @@
     const autorNombre = document.getElementById('resena-autor-nombre');
     const autorRol = document.getElementById('resena-autor-rol');
     const peliculaTitulo = document.getElementById('resena-pelicula-titulo');
+    const linkPeliculaTitulo = document.getElementById('resena-pelicula-titulo-link');
     const posterTitulo = document.getElementById('resena-poster-titulo');
+    const linkPosterTitulo = document.getElementById('resena-poster-titulo-link');
     const peliculaAnio = document.getElementById('resena-pelicula-anio');
     const peliculaPoster = document.getElementById('resena-pelicula-poster');
+    const linkPeliculaPoster = document.getElementById('resena-pelicula-poster-link');
     const peliculaSinopsis = document.getElementById('resena-pelicula-sinopsis');
     const estrellasCabecera = document.getElementById('resena-estrellas-cabecera');
     const corazonCabecera = document.getElementById('resena-icono-corazon-cabecera');
@@ -32,8 +35,60 @@
     const btnCompartir = document.getElementById('btn-compartir-resena');
     const feedbackCompartir = document.getElementById('feedback-compartir');
     const btnEditarDetalle = document.getElementById('btn-editar-resena-detalle');
+    const btnPromoverCritico = document.getElementById('btn-promover-critico');
+    const btnMarcarSpoilerDetalle = document.getElementById('btn-marcar-spoiler-detalle');
 
     let datosResenaActual = null;
+    let esModeradorSesion = false;
+
+    function actualizarBotonRol(rolActual) {
+      if (!btnPromoverCritico || !datosResenaActual) return;
+      const rolNorm = String(rolActual || 'Espectador').toLowerCase();
+      if (esModeradorSesion && datosResenaActual.autorId && rolNorm !== 'moderador') {
+        btnPromoverCritico.classList.remove('d-none');
+        if (rolNorm === 'critico') {
+          btnPromoverCritico.dataset.accion = 'quitar-critico';
+          btnPromoverCritico.className = 'btn btn-outline-secondary btn-sm py-0 px-2 small';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-person-x me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnPromoverCritico.replaceChildren(icono, document.createTextNode(' Quitar Crítico'));
+        } else {
+          btnPromoverCritico.dataset.accion = 'hacer-critico';
+          btnPromoverCritico.className = 'btn btn-outline-pink btn-sm py-0 px-2 small';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-award me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnPromoverCritico.replaceChildren(icono, document.createTextNode(' Hacer Crítico'));
+        }
+      } else {
+        btnPromoverCritico.classList.add('d-none');
+      }
+    }
+
+    function actualizarBotonSpoiler(tieneSpoilers) {
+      if (!btnMarcarSpoilerDetalle || !datosResenaActual) return;
+      if (esModeradorSesion && datosResenaActual.id) {
+        btnMarcarSpoilerDetalle.classList.remove('d-none');
+        if (tieneSpoilers) {
+          btnMarcarSpoilerDetalle.className = 'btn btn-outline-secondary btn-sm py-2';
+          btnMarcarSpoilerDetalle.dataset.contieneSpoilers = 'true';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-eye me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnMarcarSpoilerDetalle.replaceChildren(icono, document.createTextNode(' Quitar Spoiler'));
+        } else {
+          btnMarcarSpoilerDetalle.className = 'btn btn-outline-warning btn-sm py-2';
+          btnMarcarSpoilerDetalle.dataset.contieneSpoilers = 'false';
+          const icono = document.createElement('i');
+          icono.className = 'bi bi-exclamation-triangle me-1';
+          icono.setAttribute('aria-hidden', 'true');
+          btnMarcarSpoilerDetalle.replaceChildren(icono, document.createTextNode(' Contiene Spoiler'));
+        }
+      } else {
+        btnMarcarSpoilerDetalle.classList.add('d-none');
+      }
+    }
 
     function formatearFecha(isoString) {
       if (!isoString) return '—';
@@ -88,14 +143,34 @@
         const data = await respuesta.json();
         datosResenaActual = data;
 
-        if (autorNombre) autorNombre.textContent = data.nombreAutor || 'Miembro de MovieClub';
-        if (autorRol) autorRol.textContent = (data.rolAutor || 'Espectador').toUpperCase();
+        const rolAutorNorm = String(data.rolAutor || 'Espectador').toLowerCase();
+        const esAutorModerador = rolAutorNorm === 'moderador';
+        const esAutorEspectador = rolAutorNorm === 'espectador';
+
+        if (autorNombre) {
+          autorNombre.textContent = data.nombreAutor || 'Miembro de MovieClub';
+          autorNombre.classList.toggle('text-pink', esAutorModerador);
+          autorNombre.classList.toggle('text-light', !esAutorModerador);
+        }
+        if (autorRol) {
+          autorRol.textContent = (data.rolAutor || 'Espectador').toUpperCase();
+          autorRol.classList.toggle('text-secondary', esAutorEspectador);
+          autorRol.classList.toggle('text-pink', !esAutorEspectador);
+        }
 
         const peli = data.pelicula || {};
         const tituloPeli = peli.titulo || 'Película sin título';
         if (peliculaTitulo) peliculaTitulo.textContent = tituloPeli;
         if (posterTitulo) posterTitulo.textContent = tituloPeli;
         if (peliculaAnio) peliculaAnio.textContent = peli.anio ? `(${peli.anio})` : '';
+
+        const peliculaId = data.peliculaId || peli.id;
+        if (peliculaId) {
+          const urlDetallePeli = `/detallePelicula.html?id=${encodeURIComponent(peliculaId)}`;
+          if (linkPeliculaTitulo) linkPeliculaTitulo.setAttribute('href', urlDetallePeli);
+          if (linkPosterTitulo) linkPosterTitulo.setAttribute('href', urlDetallePeli);
+          if (linkPeliculaPoster) linkPeliculaPoster.setAttribute('href', urlDetallePeli);
+        }
 
         if (peliculaPoster) {
           peliculaPoster.src = peli.poster || '/img/logoMovieClub.png';
@@ -132,6 +207,10 @@
         if (badgeDestacada) {
           badgeDestacada.classList.toggle('d-none', !esDest);
         }
+        const panelBox = document.querySelector('.resena-panel-box');
+        if (panelBox && esDest) {
+          panelBox.classList.add('resena-card-destacada');
+        }
 
         if (alertaSpoilers) {
           const tieneSpoilers = Boolean(data.contieneSpoilers);
@@ -151,30 +230,74 @@
 
         const panelAccionesAutor = document.getElementById('resena-acciones-autor-detalle');
         if (panelAccionesAutor) {
-          const idUsuarioActivo = (() => {
+          const usuarioActivo = (() => {
             try {
-              if (typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
-                const id = window.API.getUserId();
-                if (id) return String(id);
+              let parsedUser = null;
+              if (typeof window.API !== 'undefined' && typeof window.API.getUsuario === 'function') {
+                parsedUser = window.API.getUsuario();
               }
-              const directId = localStorage.getItem('userId');
-              if (directId) return String(directId);
-              const rawUser = localStorage.getItem('usuario');
-              if (rawUser) {
-                const parsed = JSON.parse(rawUser);
-                if (parsed?.id) return String(parsed.id);
+              if (!parsedUser) {
+                const rawUser = localStorage.getItem('usuario');
+                if (rawUser) {
+                  parsedUser = JSON.parse(rawUser);
+                }
               }
-            } catch {}
-            return null;
+              let id = parsedUser?.id ? String(parsedUser.id) : null;
+              if (!id && typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
+                const apiId = window.API.getUserId();
+                if (apiId) id = String(apiId);
+              }
+              if (!id) {
+                const directId = localStorage.getItem('userId');
+                if (directId) id = String(directId);
+              }
+              return {
+                id,
+                rol: parsedUser?.rol ? String(parsedUser.rol) : null
+              };
+            } catch {
+              return { id: null, rol: null };
+            }
           })();
 
           const esAutor = Boolean(
-            idUsuarioActivo &&
+            usuarioActivo.id &&
             data.autorId &&
-            String(idUsuarioActivo) === String(data.autorId)
+            String(usuarioActivo.id) === String(data.autorId)
+          );
+          const esModerador = Boolean(
+            usuarioActivo.id &&
+            String(usuarioActivo.rol || '').toLowerCase() === 'moderador'
           );
 
-          panelAccionesAutor.classList.toggle('d-none', !esAutor);
+          if (esAutor || esModerador) {
+            panelAccionesAutor.classList.remove('d-none');
+            if (btnEditarDetalle) {
+              btnEditarDetalle.classList.toggle('d-none', !esAutor);
+            }
+            if (btnEliminarDetalle) {
+              btnEliminarDetalle.classList.remove('d-none');
+              btnEliminarDetalle.dataset.esAutor = esAutor ? 'true' : 'false';
+              btnEliminarDetalle.dataset.esModerador = esModerador ? 'true' : 'false';
+              if (esModerador && !esAutor) {
+                const iconoShield = document.createElement('i');
+                iconoShield.className = 'bi bi-shield-x me-1';
+                iconoShield.setAttribute('aria-hidden', 'true');
+                btnEliminarDetalle.replaceChildren(iconoShield, document.createTextNode(' Eliminar reseña (Moderación)'));
+              } else {
+                const iconoTrash = document.createElement('i');
+                iconoTrash.className = 'bi bi-trash me-1';
+                iconoTrash.setAttribute('aria-hidden', 'true');
+                btnEliminarDetalle.replaceChildren(iconoTrash, document.createTextNode(' Eliminar reseña'));
+              }
+            }
+          } else {
+            panelAccionesAutor.classList.add('d-none');
+          }
+
+          esModeradorSesion = esModerador;
+          actualizarBotonRol(data.rolAutor);
+          actualizarBotonSpoiler(Boolean(data.contieneSpoilers));
         }
 
         document.title = `${tituloPeli} - Reseña de ${data.nombreAutor || 'MovieClub'} | MovieClub`;
@@ -239,10 +362,19 @@
       btnEliminarDetalle.addEventListener('click', () => {
         if (!datosResenaActual) return;
         const peliTitulo = datosResenaActual.pelicula?.titulo;
+        const esAutor = btnEliminarDetalle.dataset.esAutor !== 'false';
+        const tituloFinal = peliTitulo || tituloPeli;
+
         if (msgConfirmarEliminar) {
-          msgConfirmarEliminar.textContent = peliTitulo
-            ? `¿Confirmás que querés eliminar tu reseña de "${peliTitulo}"?`
-            : '¿Confirmás que querés eliminar esta reseña?';
+          if (tituloFinal) {
+            msgConfirmarEliminar.textContent = esAutor
+              ? `¿Confirmás que querés eliminar tu reseña de "${tituloFinal}"?`
+              : `¿Confirmás que querés eliminar la reseña de "${tituloFinal}" como moderador?`;
+          } else {
+            msgConfirmarEliminar.textContent = esAutor
+              ? '¿Confirmás que querés eliminar esta reseña?'
+              : '¿Confirmás que querés eliminar esta reseña como moderador?';
+          }
         }
         if (btnConfirmarEliminar) {
           btnConfirmarEliminar.disabled = false;
@@ -275,10 +407,104 @@
             bsModalEliminar.hide();
           }
 
-          window.location.href = '/perfil.html';
+          const esAutor = btnEliminarDetalle ? btnEliminarDetalle.dataset.esAutor !== 'false' : true;
+          window.location.href = esAutor ? '/perfil.html' : '/resenas.html';
         } catch {
           btnConfirmarEliminar.disabled = false;
           btnConfirmarEliminar.textContent = 'Error al eliminar';
+        }
+      });
+    }
+
+    if (btnPromoverCritico) {
+      btnPromoverCritico.addEventListener('click', async () => {
+        if (!datosResenaActual || !datosResenaActual.autorId) return;
+        const accion = btnPromoverCritico.dataset.accion || 'hacer-critico';
+        const nuevoRol = accion === 'quitar-critico' ? 'Espectador' : 'Critico';
+        btnPromoverCritico.disabled = true;
+        btnPromoverCritico.textContent = 'Actualizando...';
+        try {
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          const resp = await fetchFn(`/api/usuarios/${encodeURIComponent(datosResenaActual.autorId)}/rol`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ rol: nuevoRol })
+          });
+          if (resp && !resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            const err = new Error(errData.error || errData.message || 'No se pudo actualizar el rol');
+            err.status = resp.status;
+            throw err;
+          }
+          datosResenaActual.rolAutor = nuevoRol;
+          const esNuevoEspectador = String(nuevoRol).toLowerCase() === 'espectador';
+          const esNuevoModerador = String(nuevoRol).toLowerCase() === 'moderador';
+          if (autorNombre) {
+            autorNombre.classList.toggle('text-pink', esNuevoModerador);
+            autorNombre.classList.toggle('text-light', !esNuevoModerador);
+          }
+          if (autorRol) {
+            autorRol.textContent = nuevoRol.toUpperCase();
+            autorRol.classList.toggle('text-secondary', esNuevoEspectador);
+            autorRol.classList.toggle('text-pink', !esNuevoEspectador);
+          }
+          actualizarBotonRol(nuevoRol);
+        } catch (err) {
+          actualizarBotonRol(datosResenaActual.rolAutor);
+          if (err && (err.status === 401 || err.message?.includes('iniciar sesión') || err.message?.includes('autorizado'))) {
+            if (typeof window.mostrarCartelSesionExpirada === 'function') {
+              window.mostrarCartelSesionExpirada(err.message);
+            }
+          } else if (err && err.message) {
+            alert(err.message);
+          }
+        } finally {
+          btnPromoverCritico.disabled = false;
+        }
+      });
+    }
+
+    if (btnMarcarSpoilerDetalle) {
+      btnMarcarSpoilerDetalle.addEventListener('click', async () => {
+        if (!datosResenaActual || !datosResenaActual.id) return;
+        const tieneSpoilersActual = btnMarcarSpoilerDetalle.dataset.contieneSpoilers === 'true';
+        const nuevoEstado = !tieneSpoilersActual;
+        btnMarcarSpoilerDetalle.disabled = true;
+        btnMarcarSpoilerDetalle.textContent = 'Actualizando...';
+        try {
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          const resp = await fetchFn(`/api/resenas/${encodeURIComponent(datosResenaActual.id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ contieneSpoilers: nuevoEstado })
+          });
+          if (resp && !resp.ok) {
+            const errData = await resp.json().catch(() => ({}));
+            const err = new Error(errData.error || errData.message || 'No se pudo actualizar el estado de spoiler');
+            err.status = resp.status;
+            throw err;
+          }
+          datosResenaActual.contieneSpoilers = nuevoEstado;
+          if (alertaSpoilers) {
+            alertaSpoilers.classList.toggle('d-none', !nuevoEstado);
+          }
+          if (resenaTexto) {
+            resenaTexto.classList.toggle('spoiler-blureado', nuevoEstado);
+          }
+          actualizarBotonSpoiler(nuevoEstado);
+        } catch (err) {
+          actualizarBotonSpoiler(Boolean(datosResenaActual.contieneSpoilers));
+          if (err && (err.status === 401 || err.message?.includes('iniciar sesión') || err.message?.includes('autorizado'))) {
+            if (typeof window.mostrarCartelSesionExpirada === 'function') {
+              window.mostrarCartelSesionExpirada(err.message);
+            }
+          } else if (err && err.message) {
+            alert(err.message);
+          }
+        } finally {
+          btnMarcarSpoilerDetalle.disabled = false;
         }
       });
     }

@@ -207,7 +207,30 @@ class ResenaService {
       throw new NotFoundError('Reseña no encontrada');
     }
 
-    if (!autorId || !resena.esAutor(autorId)) {
+    const solicitanteId =
+      typeof autorId === 'object' && autorId !== null
+        ? autorId.autorId
+        : autorId;
+
+    if (!solicitanteId || typeof solicitanteId !== 'string' || solicitanteId.trim() === '') {
+      throw new ForbiddenError('No tienes permisos para modificar esta reseña');
+    }
+
+    const idSolicitante = solicitanteId.trim();
+    let tienePermiso = resena.esAutor(idSolicitante);
+
+    if (!tienePermiso) {
+      const solicitante = await this.#obtenerUsuario(idSolicitante);
+      if (
+        solicitante &&
+        (solicitante instanceof Moderador ||
+          (typeof solicitante.puedeModerar === 'function' && solicitante.puedeModerar()))
+      ) {
+        tienePermiso = true;
+      }
+    }
+
+    if (!tienePermiso) {
       throw new ForbiddenError('No tienes permisos para modificar esta reseña');
     }
 

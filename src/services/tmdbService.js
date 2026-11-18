@@ -1,5 +1,36 @@
 const { AppError, NotFoundError, ValidationError } = require('../utils/errors');
 
+const GENEROS_TMDB = {
+  28: 'Acción',
+  12: 'Aventura',
+  16: 'Animación',
+  35: 'Comedia',
+  80: 'Crimen',
+  99: 'Documental',
+  18: 'Drama',
+  10751: 'Familia',
+  14: 'Fantasía',
+  36: 'Historia',
+  27: 'Terror',
+  10402: 'Música',
+  9648: 'Misterio',
+  10749: 'Romance',
+  878: 'Ciencia Ficción',
+  10770: 'Película de TV',
+  53: 'Thriller',
+  10752: 'Bélica',
+  37: 'Western'
+};
+
+function normalizarTextoGenero(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+const GENEROS_IDS = Object.fromEntries(
+  Object.entries(GENEROS_TMDB).map(([id, nombre]) => [normalizarTextoGenero(nombre), Number(id)])
+);
+
 class TmdbService {
   #apiKey;
   #baseUrl;
@@ -81,13 +112,16 @@ class TmdbService {
     return await response.json();
   }
 
-  async buscarPeliculas(query, page = 1) {
+  async buscarPeliculas(query, page = 1, options = {}) {
     if (!query || typeof query !== 'string' || query.trim() === '') {
       throw new ValidationError('El término de búsqueda es obligatorio');
     }
 
     const cleanQuery = query.trim();
-    const cacheKey = `${cleanQuery.toLowerCase()}:${page}`;
+    const { anio } = options || {};
+    const cleanAnio = anio && anio !== 'todos' ? String(anio).trim() : null;
+
+    const cacheKey = `${cleanQuery.toLowerCase()}:${page}:${cleanAnio || ''}`;
     const cached = this.#cache.get(cacheKey);
 
     if (cached && (Date.now() - cached.timestamp < 120000)) {
@@ -99,10 +133,16 @@ class TmdbService {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        const data = await this.#request('/search/movie', {
+        const params = {
           query: cleanQuery,
           page
-        });
+        };
+
+        if (cleanAnio && cleanAnio !== 'clasicos' && /^\d{4}$/.test(cleanAnio)) {
+          params.primary_release_year = cleanAnio;
+        }
+
+        const data = await this.#request('/search/movie', params);
 
         this.#cache.set(cacheKey, {
           data,
@@ -140,21 +180,63 @@ class TmdbService {
     });
   }
 
-  async obtenerPopulares(page = 1) {
+  async obtenerPopulares(page = 1, options = {}) {
+    const { anio, genero } = options || {};
+    const cleanAnio = anio && anio !== 'todos' ? String(anio).trim() : null;
+    const cleanGenero = genero && genero !== 'todos' ? String(genero).trim() : null;
+
+    if (cleanAnio || cleanGenero) {
+      const params = {
+        sort_by: 'popularity.desc',
+        page
+      };
+
+      if (cleanAnio) {
+        if (cleanAnio === 'clasicos') {
+          params['primary_release_date.lte'] = '2019-12-31';
+        } else if (/^\d{4}$/.test(cleanAnio)) {
+          params.primary_release_year = cleanAnio;
+        }
+      }
+
+      if (cleanGenero) {
+        const norm = normalizarTextoGenero(cleanGenero);
+        const generoId = GENEROS_IDS[norm];
+        if (generoId) {
+          params.with_genres = generoId;
+        }
+      }
+
+      const cacheKey = `discover:${page}:${cleanAnio || ''}:${cleanGenero || ''}`;
+      const cached = this.#cache.get(cacheKey);
+      if (cached && (Date.now() - cached.timestamp < 120000)) {
+        return cached.data;
+      }
+
+      const data = await this.#request('/discover/movie', params);
+      this.#cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      return data;
+    }
+
     return await this.#request('/movie/popular', { page });
   }
 
-  async searchMovies(query, page = 1) {
-    return await this.buscarPeliculas(query, page);
+  async searchMovies(query, page = 1, options = {}) {
+    return await this.buscarPeliculas(query, page, options);
   }
 
   async getMovieById(id) {
     return await this.obtenerPeliculaPorId(id);
   }
 
-  async getPopular(page = 1) {
-    return await this.obtenerPopulares(page);
+  async getPopular(page = 1, options = {}) {
+    return await this.obtenerPopulares(page, options);
   }
 }
+
+TmdbService.GENEROS_TMDB = GENEROS_TMDB;
 
 module.exports = TmdbService;

@@ -116,6 +116,91 @@
           return;
         }
 
+        const btnPromover = e.target.closest('.btn-promover-critico');
+        if (btnPromover) {
+          const autorId = btnPromover.dataset.autorId;
+          if (!autorId) return;
+          const accion = btnPromover.dataset.accion || 'hacer-critico';
+          const nuevoRol = accion === 'quitar-critico' ? 'Espectador' : 'Critico';
+          btnPromover.disabled = true;
+          btnPromover.textContent = 'Actualizando...';
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          fetchFn(`/api/usuarios/${encodeURIComponent(autorId)}/rol`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ rol: nuevoRol })
+          })
+            .then(async (resp) => {
+              if (resp && !resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                const err = new Error(errData.error || errData.message || 'Error al actualizar el rol');
+                err.status = resp.status;
+                throw err;
+              }
+              this.#todasLasResenas.forEach((r) => {
+                if (String(r.autorId) === String(autorId)) {
+                  r.rolAutor = nuevoRol;
+                }
+              });
+              this.#aplicarFiltroYRenderizar();
+            })
+            .catch((err) => {
+              btnPromover.disabled = false;
+              this.#aplicarFiltroYRenderizar();
+              if (err && (err.status === 401 || err.message?.includes('iniciar sesión') || err.message?.includes('autorizado'))) {
+                if (typeof window.mostrarCartelSesionExpirada === 'function') {
+                  window.mostrarCartelSesionExpirada(err.message);
+                }
+              } else if (err && err.message) {
+                alert(err.message);
+              }
+            });
+          return;
+        }
+
+        const btnMarcarSpoiler = e.target.closest('.btn-marcar-spoiler');
+        if (btnMarcarSpoiler) {
+          const resenaId = btnMarcarSpoiler.dataset.resenaId;
+          if (!resenaId) return;
+          const tieneSpoilersActual = btnMarcarSpoiler.dataset.contieneSpoilers === 'true';
+          const nuevoEstado = !tieneSpoilersActual;
+          btnMarcarSpoiler.disabled = true;
+          btnMarcarSpoiler.textContent = 'Actualizando...';
+          const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+          fetchFn(`/api/resenas/${encodeURIComponent(resenaId)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ contieneSpoilers: nuevoEstado })
+          })
+            .then(async (resp) => {
+              if (resp && !resp.ok) {
+                const errData = await resp.json().catch(() => ({}));
+                const err = new Error(errData.error || errData.message || 'Error al actualizar spoiler');
+                err.status = resp.status;
+                throw err;
+              }
+              const resena = this.#todasLasResenas.find((r) => String(r.id) === String(resenaId));
+              if (resena) {
+                resena.contieneSpoilers = nuevoEstado;
+              }
+              this.#aplicarFiltroYRenderizar();
+            })
+            .catch((err) => {
+              btnMarcarSpoiler.disabled = false;
+              this.#aplicarFiltroYRenderizar();
+              if (err && (err.status === 401 || err.message?.includes('iniciar sesión') || err.message?.includes('autorizado'))) {
+                if (typeof window.mostrarCartelSesionExpirada === 'function') {
+                  window.mostrarCartelSesionExpirada(err.message);
+                }
+              } else if (err && err.message) {
+                alert(err.message);
+              }
+            });
+          return;
+        }
+
         const btnToggle = e.target.closest('.btn-toggle-spoiler');
         if (!btnToggle) return;
 
@@ -150,12 +235,17 @@
 
       this.#resenaIdAEliminar = resenaId;
       const tituloPelicula = btnEliminar.dataset.peliculaTitulo;
+      const esAutor = btnEliminar.dataset.esAutor !== 'false';
 
       if (this.#mensajeConfirmarEliminar) {
         if (tituloPelicula) {
-          this.#mensajeConfirmarEliminar.textContent = `¿Confirmás que querés eliminar tu reseña de "${tituloPelicula}"?`;
+          this.#mensajeConfirmarEliminar.textContent = esAutor
+            ? `¿Confirmás que querés eliminar tu reseña de "${tituloPelicula}"?`
+            : `¿Confirmás que querés eliminar la reseña de "${tituloPelicula}" como moderador?`;
         } else {
-          this.#mensajeConfirmarEliminar.textContent = '¿Confirmás que querés eliminar esta reseña?';
+          this.#mensajeConfirmarEliminar.textContent = esAutor
+            ? '¿Confirmás que querés eliminar esta reseña?'
+            : '¿Confirmás que querés eliminar esta reseña como moderador?';
         }
       }
 
@@ -309,14 +399,22 @@
     #crearTarjeta(resena) {
       const clone = this.#template.content.cloneNode(true);
 
+      const rolAutorNorm = String(resena.rolAutor || 'Espectador').toLowerCase();
+      const esAutorModerador = rolAutorNorm === 'moderador';
+      const esAutorEspectador = rolAutorNorm === 'espectador';
+
       const autorNombre = clone.querySelector('.resena-autor-nombre');
       if (autorNombre) {
         autorNombre.textContent = resena.nombreAutor || 'Miembro de MovieClub';
+        autorNombre.classList.toggle('text-pink', esAutorModerador);
+        autorNombre.classList.toggle('text-white', !esAutorModerador);
       }
 
       const autorRol = clone.querySelector('.resena-autor-rol');
       if (autorRol) {
         autorRol.textContent = (resena.rolAutor || 'Espectador').toUpperCase();
+        autorRol.classList.toggle('text-secondary', esAutorEspectador);
+        autorRol.classList.toggle('text-pink', !esAutorEspectador);
       }
 
       const fechaElem = clone.querySelector('.resena-fecha');
@@ -327,12 +425,16 @@
         fechaElem.textContent = fechaTxt;
       }
 
+      const card = clone.querySelector('.feed-resena-card');
       const contenedorDestacada = clone.querySelector('.resena-contenedor-destacada');
+      const esDestacada = Boolean(resena.esDestacada || resena.destacada);
       if (contenedorDestacada) {
-        const esDestacada = Boolean(resena.esDestacada || resena.destacada);
         if (!esDestacada) {
           contenedorDestacada.classList.add('d-none');
         }
+      }
+      if (card && esDestacada) {
+        card.classList.add('resena-card-destacada');
       }
 
       const pelicula = resena.pelicula || {};
@@ -413,10 +515,6 @@
       }
 
       const btnEliminar = clone.querySelector('.btn-eliminar-resena');
-      if (btnEliminar) {
-        btnEliminar.dataset.resenaId = resena.id || '';
-        btnEliminar.dataset.peliculaTitulo = tituloPeli;
-      }
 
       const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');
       if (contenedorAccionesAutor) {
@@ -460,6 +558,71 @@
           String(usuarioActivo.rol || '').toLowerCase() === 'moderador'
         );
 
+        if (btnEliminar) {
+          btnEliminar.dataset.resenaId = resena.id || '';
+          btnEliminar.dataset.peliculaTitulo = tituloPeli;
+          btnEliminar.dataset.esAutor = esAutor ? 'true' : 'false';
+          btnEliminar.dataset.esModerador = esModerador ? 'true' : 'false';
+          if (esModerador && !esAutor) {
+            btnEliminar.setAttribute('title', 'Eliminar reseña (Moderación)');
+            const iconoShield = document.createElement('i');
+            iconoShield.className = 'bi bi-shield-x me-1';
+            iconoShield.setAttribute('aria-hidden', 'true');
+            btnEliminar.replaceChildren(iconoShield, document.createTextNode(' Eliminar'));
+          }
+        }
+
+        const btnPromoverCritico = clone.querySelector('.btn-promover-critico');
+        if (btnPromoverCritico) {
+          const rolNorm = String(resena.rolAutor || 'Espectador').toLowerCase();
+          if (esModerador && resena.autorId && rolNorm !== 'moderador') {
+            btnPromoverCritico.classList.remove('d-none');
+            btnPromoverCritico.dataset.autorId = resena.autorId;
+            if (rolNorm === 'critico') {
+              btnPromoverCritico.dataset.accion = 'quitar-critico';
+              btnPromoverCritico.className = 'btn btn-outline-secondary btn-sm py-0 px-2 small btn-promover-critico';
+              const icono = document.createElement('i');
+              icono.className = 'bi bi-person-x me-1';
+              icono.setAttribute('aria-hidden', 'true');
+              btnPromoverCritico.replaceChildren(icono, document.createTextNode(' Quitar Crítico'));
+            } else {
+              btnPromoverCritico.dataset.accion = 'hacer-critico';
+              btnPromoverCritico.className = 'btn btn-outline-pink btn-sm py-0 px-2 small btn-promover-critico';
+              const icono = document.createElement('i');
+              icono.className = 'bi bi-award me-1';
+              icono.setAttribute('aria-hidden', 'true');
+              btnPromoverCritico.replaceChildren(icono, document.createTextNode(' Hacer Crítico'));
+            }
+          } else {
+            btnPromoverCritico.classList.add('d-none');
+          }
+        }
+
+        const btnMarcarSpoiler = clone.querySelector('.btn-marcar-spoiler');
+        if (btnMarcarSpoiler) {
+          if (esModerador && resena.id) {
+            btnMarcarSpoiler.classList.remove('d-none');
+            btnMarcarSpoiler.dataset.resenaId = resena.id;
+            if (resena.contieneSpoilers) {
+              btnMarcarSpoiler.dataset.contieneSpoilers = 'true';
+              btnMarcarSpoiler.className = 'btn btn-outline-secondary btn-sm py-1 px-2.5 small btn-marcar-spoiler';
+              const icono = document.createElement('i');
+              icono.className = 'bi bi-eye me-1';
+              icono.setAttribute('aria-hidden', 'true');
+              btnMarcarSpoiler.replaceChildren(icono, document.createTextNode(' Quitar Spoiler'));
+            } else {
+              btnMarcarSpoiler.dataset.contieneSpoilers = 'false';
+              btnMarcarSpoiler.className = 'btn btn-outline-warning btn-sm py-1 px-2.5 small btn-marcar-spoiler';
+              const icono = document.createElement('i');
+              icono.className = 'bi bi-exclamation-triangle me-1';
+              icono.setAttribute('aria-hidden', 'true');
+              btnMarcarSpoiler.replaceChildren(icono, document.createTextNode(' Contiene Spoiler'));
+            }
+          } else {
+            btnMarcarSpoiler.classList.add('d-none');
+          }
+        }
+
         if (esAutor || esModerador) {
           contenedorAccionesAutor.classList.remove('d-none');
           if (btnEditar) {
@@ -489,21 +652,17 @@
       btnAnterior.textContent = 'Anterior';
       btnAnterior.dataset.pagina = String(this.#paginaActual - 1);
       if (this.#paginaActual === 1) {
+        btnAnterior.disabled = true;
         btnAnterior.classList.add('disabled');
         btnAnterior.setAttribute('aria-disabled', 'true');
       }
       fragmento.appendChild(btnAnterior);
 
-      for (let p = 1; p <= totalPaginas; p += 1) {
-        const btnPag = document.createElement('button');
-        btnPag.type = 'button';
-        btnPag.className = (p === this.#paginaActual)
-          ? 'btn btn-pink btn-sm px-3 py-2 active'
-          : 'btn btn-outline-custom btn-sm px-3 py-2';
-        btnPag.textContent = String(p);
-        btnPag.dataset.pagina = String(p);
-        fragmento.appendChild(btnPag);
-      }
+      const btnPag = document.createElement('span');
+      btnPag.className = 'btn btn-pink btn-sm px-3 py-2 active';
+      btnPag.textContent = String(this.#paginaActual);
+      btnPag.setAttribute('aria-current', 'page');
+      fragmento.appendChild(btnPag);
 
       const btnSiguiente = document.createElement('button');
       btnSiguiente.type = 'button';
@@ -511,6 +670,7 @@
       btnSiguiente.textContent = 'Siguiente';
       btnSiguiente.dataset.pagina = String(this.#paginaActual + 1);
       if (this.#paginaActual === totalPaginas) {
+        btnSiguiente.disabled = true;
         btnSiguiente.classList.add('disabled');
         btnSiguiente.setAttribute('aria-disabled', 'true');
       }

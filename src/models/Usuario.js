@@ -105,9 +105,9 @@ class Usuario {
 
   actualizarDatosPersonales({ nombre, usuario } = {}) {
     if (nombre !== undefined) {
-      if (typeof nombre !== "string" || nombre.trim().length < 2) {
+      if (typeof nombre !== "string" || nombre.trim().length < 2 || nombre.trim().length > 20) {
         throw new ValidationError(
-          "El nombre es obligatorio y debe tener al menos 2 caracteres",
+          "El nombre es obligatorio y debe tener entre 2 y 20 caracteres",
         );
       }
       this.#nombre = nombre.trim();
@@ -118,9 +118,9 @@ class Usuario {
         throw new ValidationError("El nombre de usuario (@) es inválido");
       }
       const limpio = usuario.trim().replace(/^@+/, "");
-      if (!/^[a-zA-Z0-9._-]{2,30}$/.test(limpio)) {
+      if (!/^[a-zA-Z0-9._-]{2,28}$/.test(limpio)) {
         throw new ValidationError(
-          "El usuario (@) debe tener entre 2 y 30 caracteres (letras, números, punto, guion o guion bajo)",
+          "El usuario (@) debe tener entre 2 y 28 caracteres (letras, números, punto, guion o guion bajo)",
         );
       }
       this.#usuario = limpio;
@@ -129,6 +129,18 @@ class Usuario {
 
   get passwordHash() {
     return this.#passwordHash;
+  }
+
+  get password() {
+    return this.#passwordHash;
+  }
+
+  iniciarSesion() {
+    return true;
+  }
+
+  registrarse() {
+    return true;
   }
 
   get rol() {
@@ -152,18 +164,30 @@ class Usuario {
   }
 
   agregarAWatchlist(idPelicula) {
-    if (!idPelicula || typeof idPelicula !== "string") {
+    if (
+      idPelicula === undefined ||
+      idPelicula === null ||
+      typeof idPelicula === "boolean" ||
+      typeof idPelicula === "object" ||
+      String(idPelicula).trim() === ""
+    ) {
       throw new ValidationError("El id de película es obligatorio");
     }
-    const trimmed = idPelicula.trim();
+    const trimmed = String(idPelicula).trim();
     if (!this.#watchlist.includes(trimmed)) {
       this.#watchlist = [...this.#watchlist, trimmed];
     }
   }
 
   quitarDeWatchlist(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return;
     const trimmed = String(idPelicula).trim();
     this.#watchlist = this.#watchlist.filter((id) => id !== trimmed);
+  }
+
+  estaEnWatchlist(idPelicula) {
+    if (idPelicula === undefined || idPelicula === null) return false;
+    return this.#watchlist.includes(String(idPelicula).trim());
   }
 
   agregarAFavoritas(idPelicula) {
@@ -327,6 +351,24 @@ class Moderador extends Usuario {
 
   eliminarResenaOfensiva() {
     return true;
+  }
+
+  cambiarRolUsuario(usuario, nuevoRol, { medioDePrensa } = {}) {
+    if (!usuario) {
+      throw new ValidationError('El usuario a modificar es requerido');
+    }
+    const rolesValidos = ['Espectador', 'Critico', 'Moderador'];
+    if (!rolesValidos.includes(nuevoRol)) {
+      throw new ValidationError(`Rol inválido: ${nuevoRol}`);
+    }
+    const dataJSON = typeof usuario.toJSON === 'function' ? usuario.toJSON() : { ...usuario };
+    dataJSON.rol = nuevoRol;
+    if (nuevoRol === 'Critico') {
+      dataJSON.medioDePrensa = medioDePrensa || dataJSON.medioDePrensa || 'Prensa Oficial MovieClub';
+    } else if (nuevoRol === 'Espectador') {
+      delete dataJSON.medioDePrensa;
+    }
+    return Usuario.fromJSON(dataJSON);
   }
 }
 

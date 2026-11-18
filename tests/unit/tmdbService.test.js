@@ -240,6 +240,49 @@ describe('TmdbService (Unit)', () => {
     expect(res).toEqual(mockPopular);
   });
 
+  test('obtenerPopulares con filtros de anio y genero llama a /discover/movie con parámetros correctos', async () => {
+    const mockDiscover = { results: [{ id: 10, title: 'Action 2024' }] };
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockDiscover)
+    });
+
+    const service = new TmdbService({
+      config: dummyConfig,
+      fetchFn: mockFetch
+    });
+
+    const res = await service.obtenerPopulares(1, { anio: '2024', genero: 'Acción' });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const calledUrl = mockFetch.mock.calls[0][0];
+    expect(calledUrl).toContain('/discover/movie');
+    expect(calledUrl).toContain('primary_release_year=2024');
+    expect(calledUrl).toContain('with_genres=28');
+    expect(calledUrl).toContain('sort_by=popularity.desc');
+    expect(res).toEqual(mockDiscover);
+  });
+
+  test('obtenerPopulares con anio clasicos filtra películas anteriores a 2020', async () => {
+    const mockDiscover = { results: [{ id: 11, title: 'Clasico' }] };
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockDiscover)
+    });
+
+    const service = new TmdbService({
+      config: dummyConfig,
+      fetchFn: mockFetch
+    });
+
+    await service.obtenerPopulares(1, { anio: 'clasicos' });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const calledUrl = mockFetch.mock.calls[0][0];
+    expect(calledUrl).toContain('/discover/movie');
+    expect(calledUrl).toContain('primary_release_date.lte=2019-12-31');
+  });
+
   test('lanza NotFoundError si TMDB responde 404', async () => {
     const mockFetch = jest.fn().mockResolvedValue({
       ok: false,
