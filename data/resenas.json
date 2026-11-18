@@ -93,7 +93,7 @@
     "vistaPreviamente": false,
     "esFavorita": true,
     "fechaVisionado": "2026-11-07T19:40:00.000Z",
-    "esDestacada": false,
+    "esDestacada": true,
     "fechaCreacion": "2026-11-09T16:00:00.000Z",
     "likes": [
       "usr-8"
@@ -126,7 +126,7 @@
     "vistaPreviamente": true,
     "esFavorita": true,
     "fechaVisionado": "2026-11-09T22:15:00.000Z",
-    "esDestacada": false,
+    "esDestacada": true,
     "fechaCreacion": "2026-11-10T19:30:00.000Z",
     "likes": [
       "usr-6"
