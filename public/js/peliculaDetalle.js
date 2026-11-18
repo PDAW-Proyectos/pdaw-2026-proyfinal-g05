@@ -46,6 +46,10 @@
       await this.#cargarPelicula(this.#peliculaId);
       this.#inicializarStatsActividad();
       this.#cargarActividadUsuario(this.#peliculaId);
+
+      window.addEventListener('movieclub:resena-guardada', () => {
+        this.#cargarActividadUsuario(this.#peliculaId);
+      });
     }
 
     #mostrarErrorNoEncontrada() {
