@@ -160,6 +160,40 @@ describe('PATCH /api/usuarios/perfil (Integration)', () => {
     expect(res.body.error).toMatch(/entre 2 y 28 caracteres/i);
   });
 
+  describe('GET /api/usuarios/:id/watchlist', () => {
+    test('rechaza con 401 si no hay sesión activa', async () => {
+      const res = await request(app).get('/api/usuarios/usr-1/watchlist');
+
+      expect(res.status).toBe(401);
+    });
+
+    test('devuelve el listado completo de películas pendientes en la watchlist del usuario autenticado', async () => {
+      mockUsuarios[0].watchlist = ['550', '680'];
+
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent.get('/api/usuarios/usr-1/watchlist');
+
+      expect(res.status).toBe(200);
+      expect(res.body.id).toBe('usr-1');
+      expect(res.body.watchlist).toEqual(['550', '680']);
+    });
+
+    test('rechaza con 403 si un usuario intenta consultar la watchlist de otro usuario', async () => {
+      const agent = request.agent(app);
+      await agent
+        .post('/api/auth/login')
+        .send({ email: 'maxi@movieclub.com', password: 'secret123' });
+
+      const res = await agent.get('/api/usuarios/usr-2/watchlist');
+
+      expect(res.status).toBe(403);
+    });
+  });
+
   describe('PATCH /api/usuarios/:id/watchlist', () => {
     test('rechaza con 401 si no hay sesión activa', async () => {
       const res = await request(app)

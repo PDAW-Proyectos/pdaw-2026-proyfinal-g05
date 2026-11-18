@@ -61,6 +61,27 @@ class UsuarioController {
     }
   }
 
+  async obtenerWatchlist(req, res, next) {
+    try {
+      const sessionUserId = req?.session?.userId;
+      if (!sessionUserId || typeof sessionUserId !== 'string' || sessionUserId.trim() === '') {
+        return res.status(401).json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      const { id } = req.params || {};
+      const watchlist = await this.#usuarioService.obtenerWatchlist(id, {
+        sessionUserId
+      });
+
+      return res.status(200).json({
+        id: String(id).trim(),
+        watchlist: Array.isArray(watchlist) ? watchlist : []
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async actualizarWatchlist(req, res, next) {
     try {
       const sessionUserId = req?.session?.userId;

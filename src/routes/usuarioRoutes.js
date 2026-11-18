@@ -18,6 +18,10 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
     controller.toggleFavorita(req, res, next)
   );
 
+  router.get('/:id/watchlist', requireAuth, (req, res, next) =>
+    controller.obtenerWatchlist(req, res, next)
+  );
+
   router.patch('/:id/watchlist', requireAuth, (req, res, next) =>
     controller.actualizarWatchlist(req, res, next)
   );
