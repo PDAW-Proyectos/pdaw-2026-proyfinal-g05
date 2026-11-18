@@ -82,6 +82,33 @@ describe('UsuarioService - login', () => {
     expect(usuario.email).toBe('tyler@teste.com');
   });
 
+  describe('obtenerWatchlist', () => {
+    test('devuelve el listado de películas en la watchlist del usuario', async () => {
+      const watchlist = await usuarioService.obtenerWatchlist('usr-1', {
+        sessionUserId: 'usr-1'
+      });
+
+      expect(watchlist).toEqual(['peli-1']);
+    });
+
+    test('lanza ForbiddenError si sessionUserId no coincide con targetUserId', async () => {
+      await expect(
+        usuarioService.obtenerWatchlist('usr-1', {
+          sessionUserId: 'usr-2'
+        })
+      ).rejects.toThrow(ForbiddenError);
+    });
+
+    test('lanza NotFoundError si el usuario no existe', async () => {
+      mockUsuarioRepository.leer.mockResolvedValue([]);
+      await expect(
+        usuarioService.obtenerWatchlist('usr-999', {
+          sessionUserId: 'usr-999'
+        })
+      ).rejects.toThrow(NotFoundError);
+    });
+  });
+
   describe('actualizarWatchlist', () => {
     test('agrega una película a la watchlist y guarda el usuario', async () => {
       const actualizado = await usuarioService.actualizarWatchlist('usr-1', {
