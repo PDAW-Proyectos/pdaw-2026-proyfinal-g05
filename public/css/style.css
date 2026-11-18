@@ -977,7 +977,7 @@ h4,
   background-position: center 25%;
   background-size: cover;
   background-repeat: no-repeat;
-  border-bottom: 1px solid var(--border-color);
+
   min-height: 320px;
   display: flex;
   align-items: center;
