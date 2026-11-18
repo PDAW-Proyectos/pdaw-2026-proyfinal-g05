@@ -24,7 +24,7 @@ function createApp({ config, services } = {}) {
       httpOnly: true,
       sameSite: 'lax',
       secure: config?.env === 'production',
-      maxAge: 1000 * 60 * 15
+      maxAge: 1000 * 60 * 60
      
     }
   }));
