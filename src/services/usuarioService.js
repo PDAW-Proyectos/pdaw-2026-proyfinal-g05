@@ -202,6 +202,31 @@ class UsuarioService {
     return existente;
   }
 
+  async obtenerWatchlist(targetUserId, { sessionUserId } = {}) {
+    const idSesion = sessionUserId !== undefined ? sessionUserId : targetUserId;
+    if (!idSesion || typeof idSesion !== 'string' || idSesion.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El id de usuario es obligatorio');
+    }
+
+    const targetLimpio = targetUserId.trim();
+    const sesionLimpia = idSesion.trim();
+
+    if (targetLimpio !== sesionLimpia) {
+      throw new ForbiddenError('No tienes permisos para consultar la watchlist de otro usuario');
+    }
+
+    const existente = await this.obtenerPorId(targetLimpio);
+    if (!existente) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    return Array.isArray(existente.watchlist) ? existente.watchlist : [];
+  }
+
   async actualizarWatchlist(targetUserId, { sessionUserId, peliculaId, idPelicula, accion } = {}) {
     const idSesion = sessionUserId !== undefined ? sessionUserId : targetUserId;
     if (!idSesion || typeof idSesion !== 'string' || idSesion.trim() === '') {

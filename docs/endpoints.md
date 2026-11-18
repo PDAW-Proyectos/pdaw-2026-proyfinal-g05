@@ -61,6 +61,12 @@ Gestión de perfiles, datos personales y privilegios de moderación dentro de la
 - `PATCH /api/usuarios/perfil`  
   Actualiza los campos permitidos (`nombre` y `@usuario`) del perfil del usuario logueado actualmente. Por motivos de seguridad e integridad, el campo `email` no se puede modificar mediante este endpoint.
 
+- `GET /api/usuarios/:id/watchlist`  
+  Devuelve el listado completo de películas pendientes en la watchlist del usuario autenticado (`{ id, watchlist }`). Valida que el usuario de la sesión activa coincida con el `:id` solicitado (prevención de IDOR / Control de Acceso Roto).
+
+- `PATCH /api/usuarios/:id/watchlist`  
+  Agrega o quita una película de la watchlist del usuario autenticado (`peliculaId` y `accion` opcional `"agregar"` | `"quitar"` | `"toggle"`).
+
 - `PATCH /api/usuarios/:id/rol`  
   Permite la moderación de roles sobre un usuario específico. Realiza la transición bidireccional entre los roles `"Espectador"` ↔ `"Critico"`, gestionando de manera asociada la propiedad `medioDePrensa`. Requiere privilegios de Moderador.
 
