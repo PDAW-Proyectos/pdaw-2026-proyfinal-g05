@@ -61,6 +61,9 @@ Gestión de perfiles, datos personales y privilegios de moderación dentro de la
 - `PATCH /api/usuarios/perfil`  
   Actualiza los campos permitidos (`nombre` y `@usuario`) del perfil del usuario logueado actualmente. Por motivos de seguridad e integridad, el campo `email` no se puede modificar mediante este endpoint.
 
+- `POST /api/usuarios/favoritas/:id`  
+  Alterna (agrega o remueve mediante comportamiento *toggle*) una película en la lista de favoritas del usuario autenticado en la sesión activa (`req.session.userId`). El parámetro de ruta `:id` (definido como `:peliculaId` en el enrutador) representa el identificador de la película en el catálogo. Requiere autenticación activa (`requireAuth`). Responde `200 OK` con los datos públicos del usuario y el array actualizado de `favoritas`. Si no hay sesión válida, responde `401 Unauthorized`.
+
 - `GET /api/usuarios/:id/watchlist`  
   Devuelve el listado completo de películas pendientes en la watchlist del usuario autenticado (`{ id, watchlist }`). Valida que el usuario de la sesión activa coincida con el `:id` solicitado (prevención de IDOR / Control de Acceso Roto).
 
