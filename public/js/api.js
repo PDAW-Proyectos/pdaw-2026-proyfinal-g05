@@ -260,10 +260,13 @@ const API = {
     return await response.json();
   },
 
-  async register({ nombre, email, password } = {}, { signal } = {}) {
+  async register({ nombre, email, password, confirmPassword } = {}, { signal } = {}) {
+    const body = confirmPassword !== undefined
+      ? { nombre, email, password, confirmPassword }
+      : { nombre, email, password };
     const response = await apiFetch('/api/auth/register', {
       method: 'POST',
-      body: { nombre, email, password },
+      body,
       signal
     });
 

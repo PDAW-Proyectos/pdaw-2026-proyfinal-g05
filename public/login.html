@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +10,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
 
   <div class="auth-split-wrapper">
-    
+
 
     <div class="auth-visual-panel d-none d-lg-flex">
       <div class="auth-visual-overlay"></div>
@@ -40,8 +42,8 @@
 
     <div class="auth-form-panel">
       <div class="auth-form-container">
-        
-   
+
+
         <div class="d-lg-none text-center mb-4">
           <a href="/" class="d-inline-flex align-items-center gap-2 text-decoration-none">
             <img src="/img/logoMovieClub.png" alt="MovieClub" height="34">
@@ -58,23 +60,27 @@
 
         <form id="form-login" novalidate>
           <div class="mb-3">
-            <label for="email" class="form-label text-secondary small text-uppercase fw-bold mb-1" style="letter-spacing: 0.06em;">
+            <label for="email" class="form-label text-secondary small text-uppercase fw-bold mb-1"
+              style="letter-spacing: 0.06em;">
               Correo Electrónico
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-envelope input-icon"></i>
-              <input type="email" class="form-control" id="email" name="email" required placeholder="nombre@ejemplo.com" autocomplete="email" aria-describedby="error-email">
+              <input type="email" class="form-control" id="email" name="email" required
+                placeholder="usuario@movieclub.com" autocomplete="email" aria-describedby="error-email">
             </div>
             <div id="error-email" class="invalid-feedback" role="alert"></div>
           </div>
 
           <div class="mb-3">
-            <label for="password" class="form-label text-secondary small text-uppercase fw-bold mb-1" style="letter-spacing: 0.06em;">
+            <label for="password" class="form-label text-secondary small text-uppercase fw-bold mb-1"
+              style="letter-spacing: 0.06em;">
               Contraseña
             </label>
             <div class="auth-input-wrapper">
               <i class="bi bi-lock input-icon"></i>
-              <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••" autocomplete="current-password" aria-describedby="error-password">
+              <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••"
+                autocomplete="current-password" aria-describedby="error-password">
               <button type="button" class="btn-toggle-password" aria-label="Mostrar u ocultar contraseña">
                 <i class="bi bi-eye"></i>
               </button>
@@ -82,7 +88,7 @@
             <div id="error-password" class="invalid-feedback" role="alert"></div>
           </div>
 
-         
+
 
           <button type="submit" class="btn btn-pink w-100 py-2.5">
             Entrar al Club
@@ -102,4 +108,5 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/js/login.js"></script>
 </body>
+
 </html>

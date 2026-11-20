@@ -137,6 +137,33 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
     expect(resNombreLargo.body.error).toMatch(/20 caracteres/i);
   });
 
+  test('retorna 400 si confirmPassword no coincide con password y 201 si coinciden', async () => {
+    const resDistintas = await request(app)
+      .post('/api/auth/register')
+      .send({
+        nombre: 'Lucas Safe',
+        email: 'lucas@movieclub.com',
+        password: 'password123',
+        confirmPassword: 'otraPassword'
+      });
+
+    expect(resDistintas.status).toBe(400);
+    expect(resDistintas.body.error).toBe('Las contraseñas no coinciden');
+
+    const resIguales = await request(app)
+      .post('/api/auth/register')
+      .send({
+        nombre: 'Lucas Safe',
+        email: 'lucas@movieclub.com',
+        password: 'password123',
+        confirmPassword: 'password123'
+      });
+
+    expect(resIguales.status).toBe(201);
+    expect(resIguales.body.nombre).toBe('Lucas Safe');
+    expect(resIguales.body.email).toBe('lucas@movieclub.com');
+  });
+
   test('GET /api/auth/me retorna 401 si no hay sesión y 200 con sesión activa', async () => {
     const resSinSesion = await request(app).get('/api/auth/me');
     expect(resSinSesion.status).toBe(401);

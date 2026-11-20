@@ -19,7 +19,7 @@ class UsuarioService {
     this.#usuarioRepository = repository;
   }
 
-  async registrar({ nombre, email, password, rol } = {}) {
+  async registrar({ nombre, email, password, confirmPassword, rol } = {}) {
     if (!nombre || typeof nombre !== 'string' || nombre.trim() === '') {
       throw new ValidationError('El nombre es obligatorio');
     }
@@ -34,6 +34,10 @@ class UsuarioService {
 
     if (!password || typeof password !== 'string' || password.length < 6) {
       throw new ValidationError('La contraseña debe tener al menos 6 caracteres');
+    }
+
+    if (confirmPassword !== undefined && confirmPassword !== password) {
+      throw new ValidationError('Las contraseñas no coinciden');
     }
 
     if (rol && String(rol).trim() !== 'Espectador') {
