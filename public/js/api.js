@@ -193,6 +193,9 @@ async function apiFetch(url, options = {}) {
   return response;
 }
 
+let usuarioActualCache = undefined;
+let usuarioActualPromise = null;
+
 const API = {
   getUserId() {
     try {
@@ -220,14 +223,22 @@ const API = {
     if (!usuario || typeof usuario !== 'object') {
       throw new Error('Datos de usuario inválidos');
     }
-    this.setUserId(usuario.id);
+    if (usuario.id) {
+      this.setUserId(usuario.id);
+    }
     const nombre = usuario.nombre || usuario.nombreUsuario || usuario.name || '';
-    localStorage.setItem('usuarioNombre', String(nombre).trim());
-    localStorage.setItem('usuario', JSON.stringify(usuario));
+    try {
+      localStorage.setItem('usuarioNombre', String(nombre).trim());
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('usuarioRol');
+    } catch (_) { }
+    usuarioActualCache = { ...usuario };
   },
 
   limpiarSesion() {
     this.clearUserId();
+    usuarioActualCache = null;
+    usuarioActualPromise = null;
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('usuarioNombre');
@@ -237,15 +248,62 @@ const API = {
   },
 
   getUsuario() {
-    try {
-      const data = localStorage.getItem('usuario');
-      if (!data) {
-        return null;
-      }
-      return JSON.parse(data);
-    } catch (e) {
+    return usuarioActualCache && typeof usuarioActualCache === 'object' ? usuarioActualCache : null;
+  },
+
+  actualizarUsuarioActualCache(usuario) {
+    if (usuario && typeof usuario === 'object') {
+      usuarioActualCache = { ...usuario };
+    }
+  },
+
+  async obtenerUsuarioActual({ force = false } = {}) {
+    if (!force && usuarioActualCache !== undefined) {
+      return usuarioActualCache;
+    }
+
+    if (!force && usuarioActualPromise) {
+      return await usuarioActualPromise;
+    }
+
+    if (typeof fetch !== 'function') {
       return null;
     }
+
+    usuarioActualPromise = (async () => {
+      try {
+        const resp = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        });
+
+        if (resp.status === 401) {
+          this.limpiarSesion();
+          return null;
+        }
+
+        if (!resp.ok) {
+          usuarioActualCache = null;
+          return null;
+        }
+
+        const usuario = await resp.json();
+        if (usuario && typeof usuario === 'object' && usuario.id) {
+          this.guardarSesion(usuario);
+          return usuarioActualCache;
+        }
+
+        usuarioActualCache = null;
+        return null;
+      } catch (_) {
+        return null;
+      } finally {
+        usuarioActualPromise = null;
+      }
+    })();
+
+    return await usuarioActualPromise;
   },
 
   fetch: apiFetch,

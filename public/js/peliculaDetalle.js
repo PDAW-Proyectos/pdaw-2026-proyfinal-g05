@@ -257,9 +257,19 @@
 
     async #cargarActividadUsuario(id) {
       try {
-        const raw = localStorage.getItem('usuario');
-        if (!raw) return;
-        const u = JSON.parse(raw);
+        let u = null;
+        if (typeof window.API !== 'undefined' && typeof window.API.obtenerUsuarioActual === 'function') {
+          u = await window.API.obtenerUsuarioActual({ force: true });
+        } else {
+          const meRes = await fetch('/api/auth/me', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' }
+          });
+          if (meRes.ok) {
+            u = await meRes.json();
+          }
+        }
         if (!u?.id) return;
 
         if (Array.isArray(u.favoritas) && u.favoritas.map(String).includes(String(id))) {

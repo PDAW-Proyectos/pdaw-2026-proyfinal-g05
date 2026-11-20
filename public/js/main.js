@@ -1,12 +1,11 @@
 'use strict';
 
 (() => {
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     try {
       sessionStorage.removeItem('cerrandoSesion');
     } catch (_) {}
 
-    const usuarioNombre = localStorage.getItem('usuarioNombre');
     const userNavItem = document.getElementById('user-nav-item');
     const userBoltItem = document.getElementById('user-bolt-item');
     const userNavName = document.getElementById('user-nav-name');
@@ -49,51 +48,34 @@
       }
     }
 
-    if (usuarioNombre && userNavItem && userNavName && btnLoginNav) {
-      userNavName.textContent = usuarioNombre.toUpperCase();
-      userNavItem.classList.remove('d-none');
-      if (userBoltItem) userBoltItem.classList.remove('d-none');
-      btnLoginNav.classList.add('d-none');
+    function aplicarEstadoNavbar(usuario) {
+      const nombre = usuario && usuario.nombre ? String(usuario.nombre).trim() : '';
+      if (usuario && nombre && userNavItem && userNavName && btnLoginNav) {
+        userNavName.textContent = nombre.toUpperCase();
+        userNavItem.classList.remove('d-none');
+        if (userBoltItem) userBoltItem.classList.remove('d-none');
+        btnLoginNav.classList.add('d-none');
 
-      try {
-        const storedUserRaw = localStorage.getItem('usuario');
-        const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
-        if (storedUser && esRolAdmin(storedUser.rol)) {
+        if (esRolAdmin(usuario.rol)) {
           inyectarLinkPanelAdmin();
+        } else {
+          removerLinkPanelAdmin();
         }
-      } catch (_) {}
-    } else {
-      if (userNavItem) userNavItem.classList.add('d-none');
-      if (userBoltItem) userBoltItem.classList.add('d-none');
-      if (btnLoginNav) btnLoginNav.classList.remove('d-none');
+      } else {
+        if (userNavItem) userNavItem.classList.add('d-none');
+        if (userBoltItem) userBoltItem.classList.add('d-none');
+        if (btnLoginNav) btnLoginNav.classList.remove('d-none');
+        removerLinkPanelAdmin();
+      }
     }
 
-    const authAbortController = new AbortController();
-    const userIdLocal = localStorage.getItem('userId');
-    if (userIdLocal || usuarioNombre) {
-      fetch('/api/auth/me', {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: { Accept: 'application/json' },
-        signal: authAbortController.signal
-      })
-        .then((resp) => (resp.ok ? resp.json() : null))
-        .then((usuario) => {
-          if (usuario && esRolAdmin(usuario.rol)) {
-            inyectarLinkPanelAdmin();
-          } else {
-            removerLinkPanelAdmin();
-          }
-        })
-        .catch(() => {});
-    }
+    aplicarEstadoNavbar(null);
 
     if (btnLogout) {
       btnLogout.addEventListener('click', async (e) => {
         if (e && typeof e.preventDefault === 'function') {
           e.preventDefault();
         }
-        authAbortController.abort();
         removerLinkPanelAdmin();
         try {
           sessionStorage.setItem('cerrandoSesion', 'true');
@@ -115,12 +97,33 @@
           await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
         } catch (_) {}
 
-        if (window.location && typeof window.location.pathname === 'string' && window.location.pathname.includes('perfil.html')) {
+        const pathname = window.location && typeof window.location.pathname === 'string'
+          ? window.location.pathname
+          : '';
+        if (pathname.includes('perfil.html') || pathname.includes('panel-admin.html')) {
           window.location.href = '/index.html';
         } else {
           window.location.reload();
         }
       });
     }
+
+    let usuarioServidor = null;
+    if (typeof window.API !== 'undefined' && typeof window.API.obtenerUsuarioActual === 'function') {
+      usuarioServidor = await window.API.obtenerUsuarioActual();
+    } else {
+      try {
+        const resp = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        });
+        if (resp.ok) {
+          usuarioServidor = await resp.json();
+        }
+      } catch (_) {}
+    }
+
+    aplicarEstadoNavbar(usuarioServidor);
   });
 })();

@@ -112,4 +112,28 @@ describe('T01.7 - apiFetch (Interceptor / función base)', () => {
       .rejects
       .toThrow('Correo o contraseña incorrectos');
   });
+
+  test('no persiste rol en localStorage y obtenerUsuarioActual lee siempre desde /api/auth/me', async () => {
+    API.limpiarSesion();
+    global.localStorage.setItem('usuario', JSON.stringify({ id: 'usr-fake', rol: 'Moderador' }));
+    global.localStorage.setItem('usuarioRol', 'Moderador');
+
+    expect(API.getUsuario()).toBeNull();
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'usr-2', nombre: 'Branco', rol: 'Espectador' })
+    });
+
+    const usuario = await API.obtenerUsuarioActual({ force: true });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/auth/me',
+      expect.objectContaining({ method: 'GET', credentials: 'same-origin' })
+    );
+    expect(usuario).toEqual({ id: 'usr-2', nombre: 'Branco', rol: 'Espectador' });
+    expect(mockStorage.usuario).toBeUndefined();
+    expect(mockStorage.usuarioRol).toBeUndefined();
+  });
 });

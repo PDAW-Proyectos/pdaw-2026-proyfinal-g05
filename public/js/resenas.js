@@ -45,6 +45,7 @@
     #btnConfirmarEliminar;
     #mensajeConfirmarEliminar;
     #resenaIdAEliminar = null;
+    #usuarioActual = null;
 
     constructor() {
       this.#contenedor = document.getElementById('contenedor-resenas');
@@ -326,6 +327,22 @@
       }
     }
 
+    async #obtenerUsuarioServidor() {
+      if (typeof window.API !== 'undefined' && typeof window.API.obtenerUsuarioActual === 'function') {
+        return await window.API.obtenerUsuarioActual();
+      }
+      try {
+        const resp = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        });
+        return resp.ok ? await resp.json() : null;
+      } catch {
+        return null;
+      }
+    }
+
     async cargarResenas(silencioso = false) {
       if (this.#abortController) {
         this.#abortController.abort();
@@ -338,14 +355,18 @@
 
       try {
         const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
-        const res = await fetchFn('/api/resenas?limite=50', {
-          signal: this.#abortController.signal
-        });
+        const [res, usuarioServidor] = await Promise.all([
+          fetchFn('/api/resenas?limite=50', {
+            signal: this.#abortController.signal
+          }),
+          this.#obtenerUsuarioServidor()
+        ]);
 
         if (!res.ok) {
           throw new Error('No se pudo obtener el feed de reseñas.');
         }
 
+        this.#usuarioActual = usuarioServidor;
         const data = await res.json();
         this.#todasLasResenas = Array.isArray(data) ? data : [];
         this.#ocultarCargando();
@@ -533,35 +554,10 @@
 
       const contenedorAccionesAutor = clone.querySelector('.resena-acciones-autor');
       if (contenedorAccionesAutor) {
-        const usuarioActivo = (() => {
-          try {
-            let parsedUser = null;
-            if (typeof window.API !== 'undefined' && typeof window.API.getUsuario === 'function') {
-              parsedUser = window.API.getUsuario();
-            }
-            if (!parsedUser) {
-              const rawUser = localStorage.getItem('usuario');
-              if (rawUser) {
-                parsedUser = JSON.parse(rawUser);
-              }
-            }
-            let id = parsedUser?.id ? String(parsedUser.id) : null;
-            if (!id && typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
-              const apiId = window.API.getUserId();
-              if (apiId) id = String(apiId);
-            }
-            if (!id) {
-              const directId = localStorage.getItem('userId');
-              if (directId) id = String(directId);
-            }
-            return {
-              id,
-              rol: parsedUser?.rol ? String(parsedUser.rol) : null
-            };
-          } catch {
-            return { id: null, rol: null };
-          }
-        })();
+        const usuarioActivo = {
+          id: this.#usuarioActual?.id ? String(this.#usuarioActual.id) : null,
+          rol: this.#usuarioActual?.rol ? String(this.#usuarioActual.rol) : null
+        };
 
         const esAutor = Boolean(
           usuarioActivo.id &&

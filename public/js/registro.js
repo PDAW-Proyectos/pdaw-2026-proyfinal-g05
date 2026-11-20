@@ -223,7 +223,8 @@
             localStorage.setItem('userId', String(data.id));
           }
           localStorage.setItem('usuarioNombre', nombreUsuario);
-          localStorage.setItem('usuario', JSON.stringify(data));
+          localStorage.removeItem('usuario');
+          localStorage.removeItem('usuarioRol');
         }
 
         window.location.assign('/');

@@ -130,9 +130,28 @@
       return;
     }
 
+    async function obtenerUsuarioServidor() {
+      if (typeof window.API !== 'undefined' && typeof window.API.obtenerUsuarioActual === 'function') {
+        return await window.API.obtenerUsuarioActual();
+      }
+      try {
+        const resp = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        });
+        return resp.ok ? await resp.json() : null;
+      } catch {
+        return null;
+      }
+    }
+
     async function cargarDetalleResena() {
       try {
-        const respuesta = await fetch(`/api/resenas/${encodeURIComponent(resenaId.trim())}`);
+        const [respuesta, usuarioServidor] = await Promise.all([
+          fetch(`/api/resenas/${encodeURIComponent(resenaId.trim())}`),
+          obtenerUsuarioServidor()
+        ]);
         if (!respuesta.ok) {
           const errData = await respuesta.json().catch(() => ({}));
           const detalle = errData.detail || errData.error || 'La reseña solicitada no existe o fue eliminada.';
@@ -230,35 +249,10 @@
 
         const panelAccionesAutor = document.getElementById('resena-acciones-autor-detalle');
         if (panelAccionesAutor) {
-          const usuarioActivo = (() => {
-            try {
-              let parsedUser = null;
-              if (typeof window.API !== 'undefined' && typeof window.API.getUsuario === 'function') {
-                parsedUser = window.API.getUsuario();
-              }
-              if (!parsedUser) {
-                const rawUser = localStorage.getItem('usuario');
-                if (rawUser) {
-                  parsedUser = JSON.parse(rawUser);
-                }
-              }
-              let id = parsedUser?.id ? String(parsedUser.id) : null;
-              if (!id && typeof window.API !== 'undefined' && typeof window.API.getUserId === 'function') {
-                const apiId = window.API.getUserId();
-                if (apiId) id = String(apiId);
-              }
-              if (!id) {
-                const directId = localStorage.getItem('userId');
-                if (directId) id = String(directId);
-              }
-              return {
-                id,
-                rol: parsedUser?.rol ? String(parsedUser.rol) : null
-              };
-            } catch {
-              return { id: null, rol: null };
-            }
-          })();
+          const usuarioActivo = {
+            id: usuarioServidor?.id ? String(usuarioServidor.id) : null,
+            rol: usuarioServidor?.rol ? String(usuarioServidor.rol) : null
+          };
 
           const esAutor = Boolean(
             usuarioActivo.id &&
