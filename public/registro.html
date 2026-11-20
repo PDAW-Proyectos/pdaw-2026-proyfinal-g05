@@ -92,10 +92,14 @@
             <div class="auth-input-wrapper">
               <i class="bi bi-lock input-icon"></i>
               <input type="password" class="form-control" id="password" name="password" required minlength="6"
-                placeholder="Mínimo 6 caracteres" autocomplete="new-password" aria-describedby="error-password">
+                placeholder="Mínimo 6 caracteres" autocomplete="new-password" aria-describedby="ayuda-password
+              error-password">
               <button type="button" class="btn-toggle-password" aria-label="Mostrar u ocultar contraseña">
                 <i class="bi bi-eye"></i>
               </button>
+            </div>
+            <div id="ayuda-password" class="form-text text-secondary small mt-1">
+              Por seguridad, usá al menos una mayúscula y un número.
             </div>
             <div id="error-password" class="invalid-feedback" role="alert"></div>
           </div>

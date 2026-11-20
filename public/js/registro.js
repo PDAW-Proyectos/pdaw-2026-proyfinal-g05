@@ -82,6 +82,40 @@
       return true;
     }
 
+    function validarPasswordReglas(password) {
+      if (!password || password.length < 6) {
+        return { valida: false, mensaje: 'La contraseña debe tener al menos 6 caracteres' };
+      }
+      if (!/[A-Z]/.test(password) || !/\d/.test(password)) {
+        return { valida: false, mensaje: 'La contraseña debe incluir al menos una mayúscula y un número' };
+      }
+      return { valida: true, mensaje: '' };
+    }
+
+    function validarPasswordEnTiempoReal(mostrarSiInvalida = false) {
+      const password = passwordInput ? passwordInput.value : '';
+      if (!password && !mostrarSiInvalida) {
+        limpiarErrorCampo(passwordInput, errorPassword);
+        return true;
+      }
+      const { valida, mensaje } = validarPasswordReglas(password);
+      if (valida) {
+        limpiarErrorCampo(passwordInput, errorPassword);
+        if (
+          alertaError &&
+          (alertaError.textContent === 'La contraseña debe tener al menos 6 caracteres' ||
+            alertaError.textContent === 'La contraseña debe incluir al menos una mayúscula y un número')
+        ) {
+          ocultarAlerta();
+        }
+        return true;
+      }
+      if (mostrarSiInvalida) {
+        mostrarErrorCampo(passwordInput, errorPassword, mensaje);
+      }
+      return false;
+    }
+
     function validarConfirmacionEnTiempoReal() {
       const password = passwordInput ? passwordInput.value : '';
       const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
@@ -103,10 +137,14 @@
 
     if (passwordInput) {
       passwordInput.addEventListener('input', () => {
-        if (passwordInput.value.length >= 6) {
-          limpiarErrorCampo(passwordInput, errorPassword);
-        }
+        const yaTeniaError = passwordInput.classList.contains('is-invalid');
+        validarPasswordEnTiempoReal(yaTeniaError);
         validarConfirmacionEnTiempoReal();
+      });
+      passwordInput.addEventListener('blur', () => {
+        if (passwordInput.value) {
+          validarPasswordEnTiempoReal(true);
+        }
       });
     }
 
@@ -162,11 +200,11 @@
         return;
       }
 
-      if (!password || password.length < 6) {
-        const msg = 'La contraseña debe tener al menos 6 caracteres';
-        mostrarErrorCampo(passwordInput, errorPassword, msg);
+      const checkPassword = validarPasswordReglas(password);
+      if (!checkPassword.valida) {
+        mostrarErrorCampo(passwordInput, errorPassword, checkPassword.mensaje);
         if (passwordInput) passwordInput.focus();
-        mostrarAlerta(msg);
+        mostrarAlerta(checkPassword.mensaje);
         return;
       }
 

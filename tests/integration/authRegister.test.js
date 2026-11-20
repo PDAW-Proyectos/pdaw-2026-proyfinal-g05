@@ -42,7 +42,7 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Tyler Durden',
         email: 'tyler@soap.com',
-        password: 'password123'
+        password: 'Password123'
       });
 
     expect(res.status).toBe(201);
@@ -57,8 +57,8 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
     expect(cookies[0]).toMatch(/connect\.sid/);
 
     expect(mockUsuarios.length).toBe(1);
-    expect(mockUsuarios[0].passwordHash).not.toBe('password123');
-    const esValido = await bcrypt.compare('password123', mockUsuarios[0].passwordHash);
+    expect(mockUsuarios[0].passwordHash).not.toBe('Password123');
+    const esValido = await bcrypt.compare('Password123', mockUsuarios[0].passwordHash);
     expect(esValido).toBe(true);
   });
 
@@ -79,7 +79,7 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Otro Tyler',
         email: 'TYLER@SOAP.COM',
-        password: 'password123'
+        password: 'Password123'
       });
 
     expect(res.status).toBe(409);
@@ -92,7 +92,7 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Hacker',
         email: 'hacker@evil.com',
-        password: 'password123',
+        password: 'Password123',
         rol: 'Moderador'
       });
 
@@ -103,22 +103,22 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Hacker',
         email: 'hacker2@evil.com',
-        password: 'password123',
+        password: 'Password123',
         rol: 'Critico'
       });
 
     expect(resCritico.status).toBe(400);
   });
 
-  test('retorna 400 si falta el nombre, email o contraseña corta', async () => {
+  test('retorna 400 si falta el nombre, email o contraseña inválida', async () => {
     const resSinNombre = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'a@b.com', password: 'password123' });
+      .send({ email: 'a@b.com', password: 'Password123' });
     expect(resSinNombre.status).toBe(400);
 
     const resSinEmail = await request(app)
       .post('/api/auth/register')
-      .send({ nombre: 'Test', password: 'password123' });
+      .send({ nombre: 'Test', password: 'Password123' });
     expect(resSinEmail.status).toBe(400);
 
     const resPasswordCorta = await request(app)
@@ -126,12 +126,24 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({ nombre: 'Test', email: 'a@b.com', password: '123' });
     expect(resPasswordCorta.status).toBe(400);
 
+    const resSinMayuscula = await request(app)
+      .post('/api/auth/register')
+      .send({ nombre: 'Test', email: 'a@b.com', password: 'password123' });
+    expect(resSinMayuscula.status).toBe(400);
+    expect(resSinMayuscula.body.error).toMatch(/mayúscula y un número/i);
+
+    const resSinNumero = await request(app)
+      .post('/api/auth/register')
+      .send({ nombre: 'Test', email: 'a@b.com', password: 'PasswordABC' });
+    expect(resSinNumero.status).toBe(400);
+    expect(resSinNumero.body.error).toMatch(/mayúscula y un número/i);
+
     const resNombreLargo = await request(app)
       .post('/api/auth/register')
       .send({
         nombre: 'NombreMuyLargoQueSuperaVeinte',
         email: 'larguito@club.com',
-        password: 'password123'
+        password: 'Password123'
       });
     expect(resNombreLargo.status).toBe(400);
     expect(resNombreLargo.body.error).toMatch(/20 caracteres/i);
@@ -143,8 +155,8 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Lucas Safe',
         email: 'lucas@movieclub.com',
-        password: 'password123',
-        confirmPassword: 'otraPassword'
+        password: 'Password123',
+        confirmPassword: 'OtraPassword123'
       });
 
     expect(resDistintas.status).toBe(400);
@@ -155,8 +167,8 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Lucas Safe',
         email: 'lucas@movieclub.com',
-        password: 'password123',
-        confirmPassword: 'password123'
+        password: 'Password123',
+        confirmPassword: 'Password123'
       });
 
     expect(resIguales.status).toBe(201);
@@ -174,7 +186,7 @@ describe('POST /api/auth/register y GET /api/auth/me (Integration)', () => {
       .send({
         nombre: 'Marla Singer',
         email: 'marla@club.com',
-        password: 'password123'
+        password: 'Password123'
       });
 
     const resConSesion = await agent.get('/api/auth/me');

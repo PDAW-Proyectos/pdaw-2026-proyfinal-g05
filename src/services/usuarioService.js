@@ -63,6 +63,10 @@ class UsuarioService {
       throw new ValidationError('La contraseña debe tener al menos 6 caracteres');
     }
 
+    if (!/[A-Z]/.test(password) || !/\d/.test(password)) {
+      throw new ValidationError('La contraseña debe incluir al menos una mayúscula y un número');
+    }
+
     if (confirmPassword !== undefined && confirmPassword !== password) {
       throw new ValidationError('Las contraseñas no coinciden');
     }
