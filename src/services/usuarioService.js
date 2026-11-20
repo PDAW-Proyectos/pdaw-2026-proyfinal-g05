@@ -1,7 +1,9 @@
+const { EventEmitter } = require('node:events');
 const bcrypt = require('bcryptjs');
 const { Usuario, Espectador, Moderador } = require('../models/Usuario');
 const {
   ValidationError,
+  BusinessRuleError,
   UnauthorizedError,
   ForbiddenError,
   ConflictError,
@@ -10,6 +12,7 @@ const {
 
 class UsuarioService {
   #usuarioRepository;
+  #eventEmitter;
 
   constructor(options = {}) {
     const repository = options?.usuarioRepository || options;
@@ -17,6 +20,30 @@ class UsuarioService {
       throw new Error('usuarioRepository es requerido');
     }
     this.#usuarioRepository = repository;
+    this.#eventEmitter = options?.eventEmitter instanceof EventEmitter
+      ? options.eventEmitter
+      : new EventEmitter();
+  }
+
+  on(evento, listener) {
+    this.#eventEmitter.on(evento, listener);
+    return this;
+  }
+
+  async #verificarModerador(moderadorId) {
+    if (!moderadorId || typeof moderadorId !== 'string' || moderadorId.trim() === '') {
+      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+    }
+
+    const moderador = await this.obtenerPorId(moderadorId.trim());
+    if (
+      !moderador ||
+      (!moderador.puedeModerar?.() && !(moderador instanceof Moderador) && moderador.rol !== 'Moderador')
+    ) {
+      throw new ForbiddenError('Acceso denegado: permisos insuficientes para realizar esta acción');
+    }
+
+    return moderador;
   }
 
   async registrar({ nombre, email, password, confirmPassword, rol } = {}) {
@@ -294,18 +321,105 @@ class UsuarioService {
     return existente;
   }
 
-  async cambiarRol(moderadorId, targetUserId, nuevoRol, { medioDePrensa } = {}) {
-    if (!moderadorId || typeof moderadorId !== 'string' || moderadorId.trim() === '') {
-      throw new UnauthorizedError('Acceso no autorizado: se requiere iniciar sesión');
+  async listarUsuarios(solicitanteId, { pagina = 1, limite = 10, busqueda = '', rol = 'todos' } = {}) {
+    await this.#verificarModerador(solicitanteId);
+
+    let registros = [];
+    if (typeof this.#usuarioRepository.leer === 'function') {
+      registros = await this.#usuarioRepository.leer();
     }
 
-    const moderador = await this.obtenerPorId(moderadorId.trim());
-    if (
-      !moderador ||
-      (!moderador.puedeModerar?.() && !(moderador instanceof Moderador) && moderador.rol !== 'Moderador')
-    ) {
-      throw new ForbiddenError('Acceso denegado: permisos insuficientes para realizar esta acción');
+    let usuarios = registros.map((u) => {
+      const instancia = u instanceof Usuario ? u : Usuario.fromJSON(u);
+      return typeof instancia.paraExponer === 'function' ? instancia.paraExponer() : instancia.toJSON();
+    });
+
+    if (typeof rol === 'string' && rol.trim() !== '' && rol.trim() !== 'todos') {
+      const rolFiltro = rol.trim();
+      usuarios = usuarios.filter((u) => u.rol === rolFiltro);
     }
+
+    if (typeof busqueda === 'string' && busqueda.trim() !== '') {
+      const termino = busqueda.trim().toLowerCase();
+      usuarios = usuarios.filter((u) => {
+        const nombre = String(u.nombre || '').toLowerCase();
+        const email = String(u.email || '').toLowerCase();
+        const handle = String(u.usuario || u.id || '').toLowerCase();
+        return nombre.includes(termino) || email.includes(termino) || handle.includes(termino);
+      });
+    }
+
+    usuarios.sort((a, b) => {
+      const fechaA = new Date(a.fechaRegistro || 0).getTime();
+      const fechaB = new Date(b.fechaRegistro || 0).getTime();
+      return fechaB - fechaA;
+    });
+
+    const paginaNum = Math.max(1, Number.parseInt(pagina, 10) || 1);
+    const limiteNum = Math.min(100, Math.max(1, Number.parseInt(limite, 10) || 10));
+    const total = usuarios.length;
+    const totalPaginas = Math.max(1, Math.ceil(total / limiteNum));
+    const inicio = (paginaNum - 1) * limiteNum;
+    const paginados = usuarios.slice(inicio, inicio + limiteNum);
+
+    return {
+      usuarios: paginados,
+      total,
+      pagina: paginaNum,
+      limite: limiteNum,
+      totalPaginas
+    };
+  }
+
+  async eliminarUsuario(moderadorId, targetUserId, { eliminarResenas = false } = {}) {
+    const moderador = await this.#verificarModerador(moderadorId);
+
+    if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
+      throw new ValidationError('El ID del usuario es requerido');
+    }
+
+    const targetLimpio = targetUserId.trim();
+
+    if (targetLimpio === moderador.id) {
+      throw new BusinessRuleError('No puedes eliminar tu propia cuenta de administrador');
+    }
+
+    const targetUser = await this.obtenerPorId(targetLimpio);
+    if (!targetUser) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    if (targetUser.rol === 'Moderador' || targetUser instanceof Moderador || targetUser.puedeModerar?.()) {
+      throw new ForbiddenError('No está permitido eliminar cuentas con rol de Moderador');
+    }
+
+    if (typeof this.#usuarioRepository.eliminar === 'function') {
+      await this.#usuarioRepository.eliminar(targetLimpio);
+    } else if (
+      typeof this.#usuarioRepository.leer === 'function' &&
+      typeof this.#usuarioRepository.guardar === 'function'
+    ) {
+      const actuales = await this.#usuarioRepository.leer();
+      const restantes = actuales.filter((u) => u.id !== targetLimpio);
+      await this.#usuarioRepository.guardar(restantes);
+    }
+
+    const payload = {
+      id: targetLimpio,
+      email: targetUser.email,
+      eliminadoPor: moderador.id,
+      eliminarResenas: Boolean(eliminarResenas),
+      fecha: new Date().toISOString()
+    };
+
+    const listeners = this.#eventEmitter.rawListeners('usuario:eliminado');
+    await Promise.all(listeners.map((fn) => fn(payload)));
+
+    return true;
+  }
+
+  async cambiarRol(moderadorId, targetUserId, nuevoRol, { medioDePrensa } = {}) {
+    const moderador = await this.#verificarModerador(moderadorId);
 
     if (!targetUserId || typeof targetUserId !== 'string' || targetUserId.trim() === '') {
       throw new ValidationError('El ID del usuario es requerido');

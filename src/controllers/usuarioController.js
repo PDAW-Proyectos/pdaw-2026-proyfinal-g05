@@ -8,6 +8,48 @@ class UsuarioController {
     this.#usuarioService = usuarioService;
   }
 
+  async listar(req, res, next) {
+    try {
+      const solicitanteId = req?.session?.userId;
+      if (!solicitanteId || typeof solicitanteId !== 'string' || solicitanteId.trim() === '') {
+        return res.status(401).json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      const { pagina, limite, busqueda, rol } = req.query || {};
+      const resultado = await this.#usuarioService.listarUsuarios(solicitanteId, {
+        pagina,
+        limite,
+        busqueda,
+        rol
+      });
+
+      return res.status(200).json(resultado);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async eliminar(req, res, next) {
+    try {
+      const moderadorId = req?.session?.userId;
+      if (!moderadorId || typeof moderadorId !== 'string' || moderadorId.trim() === '') {
+        return res.status(401).json({ error: 'Acceso no autorizado: se requiere iniciar sesión' });
+      }
+
+      const { id } = req.params || {};
+      const eliminarResenas =
+        req.query?.eliminarResenas === 'true' ||
+        req.body?.eliminarResenas === true ||
+        req.body?.eliminarResenas === 'true';
+
+      await this.#usuarioService.eliminarUsuario(moderadorId, id, { eliminarResenas });
+
+      return res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async actualizarPerfil(req, res, next) {
     try {
       const userId = req?.session?.userId;

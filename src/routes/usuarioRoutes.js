@@ -10,6 +10,10 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
 
   const controller = usuarioController || new UsuarioController({ usuarioService });
 
+  router.get('/', requireAuth, (req, res, next) =>
+    controller.listar(req, res, next)
+  );
+
   router.patch('/perfil', requireAuth, (req, res, next) =>
     controller.actualizarPerfil(req, res, next)
   );
@@ -28,6 +32,10 @@ function createUsuarioRoutes({ usuarioService, usuarioController } = {}) {
 
   router.patch('/:id/rol', requireAuth, (req, res, next) =>
     controller.cambiarRol(req, res, next)
+  );
+
+  router.delete('/:id', requireAuth, (req, res, next) =>
+    controller.eliminar(req, res, next)
   );
 
   return router;
