@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Admin | MovieClub</title>
+  <title>Panel Mod | MovieClub</title>
   <link rel="icon" type="image/png" href="/img/logoMovieClub.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,21 +60,21 @@
 
   <main class="container-xl px-4 px-md-5 py-5 flex-grow-1">
 
-    <div id="admin-estado-cargando" class="text-center py-5 my-5">
+    <div id="mod-estado-cargando" class="text-center py-5 my-5">
       <div class="spinner-border text-pink mb-3" role="status" style="width: 3rem; height: 3rem;">
         <span class="visually-hidden">Verificando permisos...</span>
       </div>
-      <p class="text-secondary text-uppercase fw-semibold small mb-0">Verificando acceso administrativo...</p>
+      <p class="text-secondary text-uppercase fw-semibold small mb-0">Verificando permisos de moderación...</p>
     </div>
 
-    <div id="admin-estado-no-auth" class="d-none py-5 my-4">
+    <div id="mod-estado-no-auth" class="d-none py-5 my-4">
       <div class="resena-panel-box mx-auto text-center p-4 p-md-5" style="max-width: 540px;">
         <i class="bi bi-person-lock text-pink display-4 d-block mb-3" aria-hidden="true"></i>
         <h1 class="h3 text-white text-uppercase fw-bold mb-2" style="font-family: var(--font-display);">
           ACCESO PRIVADO AL CLUB
         </h1>
         <p class="text-secondary mb-4">
-          Iniciá sesión con una cuenta de administrador para acceder al panel de gestión.
+          Iniciá sesión con una cuenta de moderador para acceder al panel de moderación.
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
           <a href="/login.html" class="btn btn-pink px-4 py-2 text-uppercase fw-bold">Iniciar Sesión</a>
@@ -83,14 +83,14 @@
       </div>
     </div>
 
-    <div id="admin-estado-denegado" class="d-none py-5 my-4">
+    <div id="mod-estado-denegado" class="d-none py-5 my-4">
       <div class="resena-panel-box mx-auto text-center p-4 p-md-5" style="max-width: 540px;">
         <i class="bi bi-shield-lock text-pink display-4 d-block mb-3" aria-hidden="true"></i>
         <h1 class="h3 text-white text-uppercase fw-bold mb-2" style="font-family: var(--font-display);">
           ACCESO DENEGADO
         </h1>
         <p class="text-secondary mb-4">
-          Esta sección es exclusiva para administradores del club. Los roles Espectador y Crítico no tienen permisos para acceder.
+          Esta sección es exclusiva para moderadores del club. Los roles Espectador y Crítico no tienen permisos para acceder.
         </p>
         <div class="d-flex justify-content-center gap-3 flex-wrap">
           <a href="/perfil.html" class="btn btn-pink px-4 py-2 text-uppercase fw-bold">Ir a Mi Perfil</a>
@@ -99,13 +99,13 @@
       </div>
     </div>
 
-    <div id="admin-contenido" class="d-none">
+    <div id="mod-contenido" class="d-none">
       <div class="mb-4">
         <div class="text-pink text-uppercase fw-bold small mb-1" style="letter-spacing: 0.15em;">
-          ADMINISTRACIÓN · MODERACIÓN DEL CLUB
+          MODERACIÓN DEL CLUB · GESTIÓN
         </div>
         <h1 class="display-4 fw-bold text-uppercase text-white mb-2" style="font-family: var(--font-display);">
-          PANEL ADMIN
+          PANEL MOD
         </h1>
         <p class="text-secondary mb-0 fs-6">
           Gestión de miembros y herramientas de moderación de MovieClub.
@@ -113,33 +113,33 @@
       </div>
 
       <div class="d-flex flex-wrap gap-2 border-top border-bottom border-secondary border-opacity-25 py-3 mb-4"
-        role="tablist" aria-label="Secciones del panel de administración">
-        <button type="button" class="btn filter-chip-btn active admin-tab-btn" data-tab="usuarios" role="tab"
+        role="tablist" aria-label="Secciones del panel de moderación">
+        <button type="button" class="btn filter-chip-btn active mod-tab-btn" data-tab="usuarios" role="tab"
           aria-selected="true">
-          <i class="bi bi-people-fill me-1" aria-hidden="true"></i> Usuarios (<span id="admin-count-usuarios">0</span>)
+          <i class="bi bi-people-fill me-1" aria-hidden="true"></i> Usuarios (<span id="mod-count-usuarios">0</span>)
         </button>
       </div>
 
       <section id="tab-usuarios" role="tabpanel" aria-label="Gestión de usuarios">
-        <div id="admin-usuarios-feedback" class="alert d-none mb-3 py-2 px-3 rounded-0 border-0 small" role="alert"
+        <div id="mod-usuarios-feedback" class="alert d-none mb-3 py-2 px-3 rounded-0 border-0 small" role="alert"
           aria-live="polite"></div>
 
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
           <div class="flex-grow-1" style="max-width: 420px;">
-            <label for="admin-buscar-usuario" class="visually-hidden">Buscar usuario</label>
+            <label for="mod-buscar-usuario" class="visually-hidden">Buscar usuario</label>
             <div class="input-group input-group-sm">
               <span class="input-group-text bg-dark border-subtle-custom text-secondary">
                 <i class="bi bi-search" aria-hidden="true"></i>
               </span>
-              <input type="text" id="admin-buscar-usuario" class="form-control bg-dark text-white border-subtle-custom"
+              <input type="text" id="mod-buscar-usuario" class="form-control bg-dark text-white border-subtle-custom"
                 placeholder="Buscar por nombre, @usuario o correo..." autocomplete="off">
             </div>
           </div>
 
           <div class="d-flex align-items-center gap-2">
-            <label for="admin-filtro-rol" class="text-secondary small text-uppercase fw-bold mb-0"
+            <label for="mod-filtro-rol" class="text-secondary small text-uppercase fw-bold mb-0"
               style="letter-spacing: 0.08em;">Rol</label>
-            <select id="admin-filtro-rol" class="form-select form-select-sm filter-select-fightclub"
+            <select id="mod-filtro-rol" class="form-select form-select-sm filter-select-fightclub"
               aria-label="Filtrar usuarios por rol">
               <option value="todos" selected>Todos los roles</option>
               <option value="Espectador">Espectador</option>
@@ -149,21 +149,21 @@
           </div>
         </div>
 
-        <div id="admin-usuarios-cargando" class="text-center py-5 d-none">
+        <div id="mod-usuarios-cargando" class="text-center py-5 d-none">
           <div class="spinner-border text-pink mb-3" role="status" style="width: 2.5rem; height: 2.5rem;">
             <span class="visually-hidden">Cargando usuarios...</span>
           </div>
           <p class="text-secondary small text-uppercase fw-semibold mb-0">Cargando miembros del club...</p>
         </div>
 
-        <div id="admin-usuarios-error" class="alert alert-dark border border-danger text-light d-none my-3" role="alert">
+        <div id="mod-usuarios-error" class="alert alert-dark border border-danger text-light d-none my-3" role="alert">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-exclamation-triangle-fill text-danger fs-5" aria-hidden="true"></i>
-            <span id="admin-usuarios-mensaje-error" class="small"></span>
+            <span id="mod-usuarios-mensaje-error" class="small"></span>
           </div>
         </div>
 
-        <div id="admin-usuarios-vacio" class="resena-panel-box text-center py-5 d-none">
+        <div id="mod-usuarios-vacio" class="resena-panel-box text-center py-5 d-none">
           <i class="bi bi-people text-secondary display-4 d-block mb-3 opacity-50" aria-hidden="true"></i>
           <h2 class="h5 text-white text-uppercase fw-bold mb-2" style="font-family: var(--font-display);">
             No se encontraron usuarios
@@ -173,7 +173,7 @@
           </p>
         </div>
 
-        <div id="admin-usuarios-tabla-wrap" class="resena-panel-box p-0 overflow-hidden d-none">
+        <div id="mod-usuarios-tabla-wrap" class="resena-panel-box p-0 overflow-hidden d-none">
           <div class="table-responsive">
             <table class="table table-dark table-hover align-middle mb-0">
               <thead>
@@ -185,12 +185,12 @@
                   <th scope="col" class="px-4 py-3 text-end">Acciones</th>
                 </tr>
               </thead>
-              <tbody id="admin-tbody-usuarios"></tbody>
+              <tbody id="mod-tbody-usuarios"></tbody>
             </table>
           </div>
         </div>
 
-        <div id="admin-paginacion-usuarios" class="d-flex justify-content-center align-items-center gap-2 mt-4"></div>
+        <div id="mod-paginacion-usuarios" class="d-flex justify-content-center align-items-center gap-2 mt-4"></div>
       </section>
     </div>
 
@@ -385,17 +385,17 @@
     <tr style="border-color: var(--border-color);">
       <td class="px-4 py-3">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-          <span class="fw-bold admin-usuario-nombre"></span>
-          <span class="badge bg-dark border border-pink text-pink small admin-usuario-badge-yo d-none">VOS</span>
+          <span class="fw-bold mod-usuario-nombre"></span>
+          <span class="badge bg-dark border border-pink text-pink small mod-usuario-badge-yo d-none">VOS</span>
         </div>
-        <div class="text-secondary small admin-usuario-handle"></div>
+        <div class="text-secondary small mod-usuario-handle"></div>
       </td>
-      <td class="px-3 py-3 text-secondary small admin-usuario-email text-break"></td>
+      <td class="px-3 py-3 text-secondary small mod-usuario-email text-break"></td>
       <td class="px-3 py-3">
-        <span class="badge bg-dark border small text-uppercase admin-usuario-rol-badge"></span>
-        <div class="text-secondary small mt-1 admin-usuario-prensa d-none" style="font-size: 0.75rem;"></div>
+        <span class="badge bg-dark border small text-uppercase mod-usuario-rol-badge"></span>
+        <div class="text-secondary small mt-1 mod-usuario-prensa d-none" style="font-size: 0.75rem;"></div>
       </td>
-      <td class="px-3 py-3 text-secondary small text-nowrap admin-usuario-fecha"></td>
+      <td class="px-3 py-3 text-secondary small text-nowrap mod-usuario-fecha"></td>
       <td class="px-4 py-3 text-end text-nowrap">
         <button type="button" class="btn btn-outline-danger btn-sm px-2.5 py-1 small fw-bold text-uppercase btn-eliminar-usuario">
           <i class="bi bi-trash me-1" aria-hidden="true"></i>Eliminar
@@ -424,6 +424,6 @@
   <script src="/js/api.js"></script>
   <script src="/js/buscador.js"></script>
   <script src="/js/main.js"></script>
-  <script src="/js/panelAdmin.js"></script>
+  <script src="/js/panelMod.js"></script>
 </body>
 </html>

@@ -12,27 +12,27 @@
     const btnLoginNav = document.getElementById('btn-login-nav');
     const btnLogout = document.getElementById('btn-logout');
 
-    function esRolAdmin(rol) {
+    function esRolMod(rol) {
       return String(rol || '').trim() === 'Moderador';
     }
 
-    function inyectarLinkPanelAdmin() {
+    function inyectarLinkPanelMod() {
       const navList = document.querySelector('#navContent .navbar-nav');
-      if (!navList || document.getElementById('nav-panel-admin')) return;
+      if (!navList || document.getElementById('nav-panel-mod')) return;
 
       const li = document.createElement('li');
       li.className = 'nav-item';
-      li.id = 'nav-panel-admin';
+      li.id = 'nav-panel-mod';
 
       const link = document.createElement('a');
       link.className = 'nav-link';
-      link.href = '/panel-admin.html';
-      link.textContent = 'Panel Admin';
+      link.href = '/panel-mod.html';
+      link.textContent = 'Panel Mod';
 
       const rutaActual = (window.location && typeof window.location.pathname === 'string')
         ? window.location.pathname
         : '';
-      if (rutaActual.includes('panel-admin.html')) {
+      if (rutaActual.includes('panel-mod.html')) {
         link.classList.add('active', 'text-white');
         link.setAttribute('aria-current', 'page');
       }
@@ -41,8 +41,8 @@
       navList.appendChild(li);
     }
 
-    function removerLinkPanelAdmin() {
-      const item = document.getElementById('nav-panel-admin');
+    function removerLinkPanelMod() {
+      const item = document.getElementById('nav-panel-mod');
       if (item && item.parentNode) {
         item.parentNode.removeChild(item);
       }
@@ -56,16 +56,16 @@
         if (userBoltItem) userBoltItem.classList.remove('d-none');
         btnLoginNav.classList.add('d-none');
 
-        if (esRolAdmin(usuario.rol)) {
-          inyectarLinkPanelAdmin();
+        if (esRolMod(usuario.rol)) {
+          inyectarLinkPanelMod();
         } else {
-          removerLinkPanelAdmin();
+          removerLinkPanelMod();
         }
       } else {
         if (userNavItem) userNavItem.classList.add('d-none');
         if (userBoltItem) userBoltItem.classList.add('d-none');
         if (btnLoginNav) btnLoginNav.classList.remove('d-none');
-        removerLinkPanelAdmin();
+        removerLinkPanelMod();
       }
     }
 
@@ -76,7 +76,7 @@
         if (e && typeof e.preventDefault === 'function') {
           e.preventDefault();
         }
-        removerLinkPanelAdmin();
+        removerLinkPanelMod();
         try {
           sessionStorage.setItem('cerrandoSesion', 'true');
         } catch (_) {}
@@ -100,7 +100,7 @@
         const pathname = window.location && typeof window.location.pathname === 'string'
           ? window.location.pathname
           : '';
-        if (pathname.includes('perfil.html') || pathname.includes('panel-admin.html')) {
+        if (pathname.includes('perfil.html') || pathname.includes('panel-mod.html')) {
           window.location.href = '/index.html';
         } else {
           window.location.reload();

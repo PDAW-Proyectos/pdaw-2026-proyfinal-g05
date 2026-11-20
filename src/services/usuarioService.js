@@ -381,7 +381,7 @@ class UsuarioService {
     const targetLimpio = targetUserId.trim();
 
     if (targetLimpio === moderador.id) {
-      throw new BusinessRuleError('No puedes eliminar tu propia cuenta de administrador');
+      throw new BusinessRuleError('No puedes eliminar tu propia cuenta de moderador');
     }
 
     const targetUser = await this.obtenerPorId(targetLimpio);

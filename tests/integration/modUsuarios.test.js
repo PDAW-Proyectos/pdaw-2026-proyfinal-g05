@@ -4,7 +4,7 @@ const { createApp } = require('../../src/app');
 const UsuarioService = require('../../src/services/usuarioService');
 const ResenaService = require('../../src/services/resenaService');
 
-describe('Panel Admin Usuarios: GET /api/usuarios y DELETE /api/usuarios/:id (Integration)', () => {
+describe('Panel Mod Usuarios: GET /api/usuarios y DELETE /api/usuarios/:id (Integration)', () => {
   let app;
   let mockUsuarios;
   let mockUsuarioRepository;

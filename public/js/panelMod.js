@@ -22,7 +22,7 @@
     return raw ? `@${raw}` : '';
   }
 
-  class PanelAdminUI {
+  class PanelModUI {
     #estadoCargando;
     #estadoNoAuth;
     #estadoDenegado;
@@ -65,25 +65,25 @@
     #deleteAbortController = null;
 
     constructor() {
-      this.#estadoCargando = document.getElementById('admin-estado-cargando');
-      this.#estadoNoAuth = document.getElementById('admin-estado-no-auth');
-      this.#estadoDenegado = document.getElementById('admin-estado-denegado');
-      this.#contenido = document.getElementById('admin-contenido');
+      this.#estadoCargando = document.getElementById('mod-estado-cargando');
+      this.#estadoNoAuth = document.getElementById('mod-estado-no-auth');
+      this.#estadoDenegado = document.getElementById('mod-estado-denegado');
+      this.#contenido = document.getElementById('mod-contenido');
 
-      this.#tabButtons = document.querySelectorAll('.admin-tab-btn');
+      this.#tabButtons = document.querySelectorAll('.mod-tab-btn');
       this.#tabUsuarios = document.getElementById('tab-usuarios');
-      this.#countUsuarios = document.getElementById('admin-count-usuarios');
-      this.#feedbackUsuarios = document.getElementById('admin-usuarios-feedback');
-      this.#inputBuscarUsuario = document.getElementById('admin-buscar-usuario');
-      this.#filtroRol = document.getElementById('admin-filtro-rol');
+      this.#countUsuarios = document.getElementById('mod-count-usuarios');
+      this.#feedbackUsuarios = document.getElementById('mod-usuarios-feedback');
+      this.#inputBuscarUsuario = document.getElementById('mod-buscar-usuario');
+      this.#filtroRol = document.getElementById('mod-filtro-rol');
 
-      this.#usuariosCargando = document.getElementById('admin-usuarios-cargando');
-      this.#usuariosError = document.getElementById('admin-usuarios-error');
-      this.#usuariosMensajeError = document.getElementById('admin-usuarios-mensaje-error');
-      this.#usuariosVacio = document.getElementById('admin-usuarios-vacio');
-      this.#usuariosTablaWrap = document.getElementById('admin-usuarios-tabla-wrap');
-      this.#tbodyUsuarios = document.getElementById('admin-tbody-usuarios');
-      this.#paginacionUsuarios = document.getElementById('admin-paginacion-usuarios');
+      this.#usuariosCargando = document.getElementById('mod-usuarios-cargando');
+      this.#usuariosError = document.getElementById('mod-usuarios-error');
+      this.#usuariosMensajeError = document.getElementById('mod-usuarios-mensaje-error');
+      this.#usuariosVacio = document.getElementById('mod-usuarios-vacio');
+      this.#usuariosTablaWrap = document.getElementById('mod-usuarios-tabla-wrap');
+      this.#tbodyUsuarios = document.getElementById('mod-tbody-usuarios');
+      this.#paginacionUsuarios = document.getElementById('mod-paginacion-usuarios');
       this.#templateFilaUsuario = document.getElementById('template-fila-usuario');
 
       this.#modalConfirmarElem = document.getElementById('modal-confirmar-eliminar-usuario');
@@ -338,29 +338,29 @@
         const esModerador = rolLower === 'moderador';
         const esCritico = rolLower === 'critico';
 
-        const nombreElem = clone.querySelector('.admin-usuario-nombre');
+        const nombreElem = clone.querySelector('.mod-usuario-nombre');
         if (nombreElem) {
           nombreElem.textContent = u.nombre || 'Miembro';
           nombreElem.classList.toggle('text-pink', esModerador);
           nombreElem.classList.toggle('text-white', !esModerador);
         }
 
-        const badgeYo = clone.querySelector('.admin-usuario-badge-yo');
+        const badgeYo = clone.querySelector('.mod-usuario-badge-yo');
         if (badgeYo) {
           badgeYo.classList.toggle('d-none', !esMismoUsuario);
         }
 
-        const handleElem = clone.querySelector('.admin-usuario-handle');
+        const handleElem = clone.querySelector('.mod-usuario-handle');
         if (handleElem) {
           handleElem.textContent = obtenerHandleUsuario(u);
         }
 
-        const emailElem = clone.querySelector('.admin-usuario-email');
+        const emailElem = clone.querySelector('.mod-usuario-email');
         if (emailElem) {
           emailElem.textContent = u.email || '—';
         }
 
-        const rolBadge = clone.querySelector('.admin-usuario-rol-badge');
+        const rolBadge = clone.querySelector('.mod-usuario-rol-badge');
         if (rolBadge) {
           rolBadge.textContent = rolTexto.toUpperCase();
           rolBadge.classList.toggle('border-pink', esModerador || esCritico);
@@ -369,7 +369,7 @@
           rolBadge.classList.toggle('text-secondary', !esModerador && !esCritico);
         }
 
-        const prensaElem = clone.querySelector('.admin-usuario-prensa');
+        const prensaElem = clone.querySelector('.mod-usuario-prensa');
         if (prensaElem) {
           if (esCritico && u.medioDePrensa) {
             prensaElem.textContent = u.medioDePrensa;
@@ -379,7 +379,7 @@
           }
         }
 
-        const fechaElem = clone.querySelector('.admin-usuario-fecha');
+        const fechaElem = clone.querySelector('.mod-usuario-fecha');
         if (fechaElem) {
           fechaElem.textContent = formatearFecha(u.fechaRegistro);
         }
@@ -547,7 +547,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const panelAdmin = new PanelAdminUI();
-    panelAdmin.init();
+    const panelMod = new PanelModUI();
+    panelMod.init();
   });
 })();
