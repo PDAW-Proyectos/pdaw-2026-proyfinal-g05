@@ -32,6 +32,12 @@ function createContainer({ config }) {
   services.peliculasController = peliculasController;
   services.peliculasRoutes = createPeliculasRoutes({ peliculasController });
 
+  services.usuarioService.on('usuario:eliminado', async ({ id, eliminarResenas }) => {
+    if (eliminarResenas && id) {
+      await services.resenaService.eliminarPorAutor(id);
+    }
+  });
+
   return {
     repos,
     services

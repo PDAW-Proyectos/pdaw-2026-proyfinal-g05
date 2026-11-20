@@ -825,17 +825,8 @@
           };
         }
 
-        try {
-          const rawUser = localStorage.getItem('usuario');
-          if (rawUser) {
-            const parsed = JSON.parse(rawUser);
-            if (parsed && typeof parsed === 'object') {
-              parsed.watchlist = this.#usuario.watchlist;
-              parsed.favoritas = this.#usuario.favoritas;
-              localStorage.setItem('usuario', JSON.stringify(parsed));
-            }
-          }
-        } catch {
+        if (typeof window.API !== 'undefined' && typeof window.API.actualizarUsuarioActualCache === 'function') {
+          window.API.actualizarUsuarioActualCache(this.#usuario);
         }
 
         if (this.#modalConfirmarWatchlistInstance) {

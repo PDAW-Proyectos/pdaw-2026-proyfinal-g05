@@ -326,6 +326,30 @@ class ResenaService {
     return true;
   }
 
+  async eliminarPorAutor(autorId) {
+    if (!autorId || typeof autorId !== 'string' || autorId.trim() === '') {
+      return 0;
+    }
+
+    const autorLimpio = autorId.trim();
+    if (
+      typeof this.#resenaRepository.leer !== 'function' ||
+      typeof this.#resenaRepository.guardar !== 'function'
+    ) {
+      return 0;
+    }
+
+    const todas = await this.#resenaRepository.leer();
+    const restantes = todas.filter((r) => String(r.autorId || '').trim() !== autorLimpio);
+    const eliminadas = todas.length - restantes.length;
+
+    if (eliminadas > 0) {
+      await this.#resenaRepository.guardar(restantes);
+    }
+
+    return eliminadas;
+  }
+
   async listar({ peliculaId, autorId, limite } = {}) {
     let todas = [];
     if (typeof this.#resenaRepository.leer === 'function') {

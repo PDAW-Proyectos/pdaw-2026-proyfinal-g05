@@ -58,6 +58,7 @@
     #ultimoTextoBuscado = '';
     #debounceTimer = null;
     #abortController = null;
+    #usuarioActual = null;
 
     constructor() {
       this.#contenedor = document.getElementById('grid-peliculas');
@@ -83,7 +84,44 @@
       }
 
       this.#configurarListeners();
-      await this.#cargarPaginaAPI(1);
+      await Promise.all([
+        this.#sincronizarUsuarioServidor(),
+        this.#cargarPaginaAPI(1)
+      ]);
+      this.#sincronizarBotonesConUsuario();
+    }
+
+    async #sincronizarUsuarioServidor() {
+      if (typeof window.API !== 'undefined' && typeof window.API.obtenerUsuarioActual === 'function') {
+        this.#usuarioActual = await window.API.obtenerUsuarioActual();
+        return this.#usuarioActual;
+      }
+      try {
+        const res = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json' }
+        });
+        this.#usuarioActual = res.ok ? await res.json() : null;
+      } catch {
+        this.#usuarioActual = null;
+      }
+      return this.#usuarioActual;
+    }
+
+    #sincronizarBotonesConUsuario() {
+      if (!this.#contenedor || !this.#usuarioActual) return;
+      const favoritasSet = this.#obtenerFavoritasUsuarioLocal();
+      const watchlistSet = this.#obtenerWatchlistUsuarioLocal();
+
+      this.#contenedor.querySelectorAll('.btn-card-favorita').forEach((btnFav) => {
+        const peliId = String(btnFav.dataset.peliculaId || '');
+        this.#actualizarEstadoVisualBotonFav(btnFav, favoritasSet.has(peliId));
+      });
+      this.#contenedor.querySelectorAll('.btn-card-watchlist').forEach((btnWatch) => {
+        const peliId = String(btnWatch.dataset.peliculaId || '');
+        this.#actualizarEstadoVisualBotonWatchlist(btnWatch, watchlistSet.has(peliId));
+      });
     }
 
     async #cargarPaginaAPI(pagina = 1, forzarReset = false) {
@@ -330,27 +368,15 @@
     }
 
     #obtenerFavoritasUsuarioLocal() {
-      try {
-        const raw = localStorage.getItem('usuario');
-        if (!raw) return new Set();
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.favoritas)) {
-          return new Set(parsed.favoritas.map((id) => String(id).trim()));
-        }
-      } catch {
+      if (this.#usuarioActual && Array.isArray(this.#usuarioActual.favoritas)) {
+        return new Set(this.#usuarioActual.favoritas.map((id) => String(id).trim()));
       }
       return new Set();
     }
 
     #obtenerWatchlistUsuarioLocal() {
-      try {
-        const raw = localStorage.getItem('usuario');
-        if (!raw) return new Set();
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.watchlist)) {
-          return new Set(parsed.watchlist.map((id) => String(id).trim()));
-        }
-      } catch {
+      if (this.#usuarioActual && Array.isArray(this.#usuarioActual.watchlist)) {
+        return new Set(this.#usuarioActual.watchlist.map((id) => String(id).trim()));
       }
       return new Set();
     }
@@ -385,8 +411,10 @@
       const peliculaId = btnFav.dataset.peliculaId;
       if (!peliculaId) return;
 
-      const rawUser = localStorage.getItem('usuario');
-      if (!rawUser) {
+      if (!this.#usuarioActual) {
+        await this.#sincronizarUsuarioServidor();
+      }
+      if (!this.#usuarioActual?.id) {
         window.location.href = '/login.html';
         return;
       }
@@ -406,8 +434,10 @@
     }
 
     async #ejecutarCambioFavorita(btnFav, peliculaId, nuevoEstado) {
-      const rawUser = localStorage.getItem('usuario');
-      if (!rawUser) {
+      if (!this.#usuarioActual) {
+        await this.#sincronizarUsuarioServidor();
+      }
+      if (!this.#usuarioActual?.id) {
         window.location.href = '/login.html';
         return;
       }
@@ -440,13 +470,9 @@
         const quedoFavorita = favsServer.includes(String(peliculaId));
         this.#actualizarEstadoVisualBotonFav(btnFav, quedoFavorita);
 
-        try {
-          const parsed = JSON.parse(rawUser);
-          if (parsed && typeof parsed === 'object') {
-            parsed.favoritas = favsServer;
-            localStorage.setItem('usuario', JSON.stringify(parsed));
-          }
-        } catch {
+        this.#usuarioActual = { ...this.#usuarioActual, favoritas: favsServer };
+        if (typeof window.API !== 'undefined' && typeof window.API.actualizarUsuarioActualCache === 'function') {
+          window.API.actualizarUsuarioActualCache(this.#usuarioActual);
         }
       } catch {
         this.#actualizarEstadoVisualBotonFav(btnFav, estadoPrevio);
@@ -457,8 +483,10 @@
       const peliculaId = btnWatch.dataset.peliculaId;
       if (!peliculaId) return;
 
-      const rawUser = localStorage.getItem('usuario');
-      if (!rawUser) {
+      if (!this.#usuarioActual) {
+        await this.#sincronizarUsuarioServidor();
+      }
+      if (!this.#usuarioActual?.id) {
         window.location.href = '/login.html';
         return;
       }
@@ -478,22 +506,10 @@
     }
 
     async #ejecutarCambioWatchlist(btnWatch, peliculaId, nuevoEstado) {
-      const rawUser = localStorage.getItem('usuario');
-      if (!rawUser) {
-        window.location.href = '/login.html';
-        return;
+      if (!this.#usuarioActual) {
+        await this.#sincronizarUsuarioServidor();
       }
-
-      let userId = null;
-      try {
-        const parsed = JSON.parse(rawUser);
-        userId = parsed?.id ? String(parsed.id).trim() : null;
-      } catch {
-      }
-
-      if (!userId) {
-        userId = localStorage.getItem('userId');
-      }
+      const userId = this.#usuarioActual?.id ? String(this.#usuarioActual.id).trim() : null;
 
       if (!userId) {
         window.location.href = '/login.html';
@@ -535,13 +551,9 @@
         const quedoEnWatchlist = watchlistServer.includes(String(peliculaId));
         this.#actualizarEstadoVisualBotonWatchlist(btnWatch, quedoEnWatchlist);
 
-        try {
-          const parsed = JSON.parse(rawUser);
-          if (parsed && typeof parsed === 'object') {
-            parsed.watchlist = watchlistServer;
-            localStorage.setItem('usuario', JSON.stringify(parsed));
-          }
-        } catch {
+        this.#usuarioActual = { ...this.#usuarioActual, watchlist: watchlistServer };
+        if (typeof window.API !== 'undefined' && typeof window.API.actualizarUsuarioActualCache === 'function') {
+          window.API.actualizarUsuarioActualCache(this.#usuarioActual);
         }
       } catch {
         this.#actualizarEstadoVisualBotonWatchlist(btnWatch, estadoPrevio);

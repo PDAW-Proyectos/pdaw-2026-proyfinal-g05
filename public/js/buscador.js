@@ -474,14 +474,14 @@
 
       if (cleanId) {
         try {
-          const storedUserRaw = localStorage.getItem('usuario');
-          if (storedUserRaw) {
-            const parsedUser = JSON.parse(storedUserRaw);
-            if (parsedUser && Array.isArray(parsedUser.favoritas)) {
-              const yaEsFavorita = parsedUser.favoritas.map(String).includes(cleanId);
-              if (yaEsFavorita) {
-                fijarFavorita(true);
-              }
+          const parsedUser =
+            typeof window.API !== 'undefined' && typeof window.API.getUsuario === 'function'
+              ? window.API.getUsuario()
+              : null;
+          if (parsedUser && Array.isArray(parsedUser.favoritas)) {
+            const yaEsFavorita = parsedUser.favoritas.map(String).includes(cleanId);
+            if (yaEsFavorita) {
+              fijarFavorita(true);
             }
           }
         } catch (_) {}
@@ -716,23 +716,20 @@
             return;
           }
 
-          if (esFavorita && peliculaId) {
-            try {
-              const storedUserRaw = localStorage.getItem('usuario');
-              if (storedUserRaw) {
-                const parsedUser = JSON.parse(storedUserRaw);
-                if (parsedUser && typeof parsedUser === 'object') {
-                  const favs = Array.isArray(parsedUser.favoritas)
-                    ? parsedUser.favoritas.map(String)
-                    : [];
-                  if (!favs.includes(peliculaId)) {
-                    favs.push(peliculaId);
-                  }
-                  parsedUser.favoritas = favs;
-                  localStorage.setItem('usuario', JSON.stringify(parsedUser));
-                }
+          if (esFavorita && peliculaId && typeof window.API !== 'undefined') {
+            const usuarioMem = typeof window.API.getUsuario === 'function' ? window.API.getUsuario() : null;
+            if (usuarioMem && typeof window.API.actualizarUsuarioActualCache === 'function') {
+              const favs = Array.isArray(usuarioMem.favoritas)
+                ? usuarioMem.favoritas.map(String)
+                : [];
+              if (!favs.includes(peliculaId)) {
+                favs.push(peliculaId);
               }
-            } catch (_) {}
+              window.API.actualizarUsuarioActualCache({
+                ...usuarioMem,
+                favoritas: favs
+              });
+            }
           }
 
           mostrarFeedbackResena(

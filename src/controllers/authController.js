@@ -10,8 +10,8 @@ class AuthController {
 
   async register(req, res, next) {
     try {
-      const { nombre, email, password, rol } = req.body || {};
-      const usuario = await this.#usuarioService.registrar({ nombre, email, password, rol });
+      const { nombre, email, password, confirmPassword, rol } = req.body || {};
+      const usuario = await this.#usuarioService.registrar({ nombre, email, password, confirmPassword, rol });
 
       if (req.session && typeof req.session.regenerate === 'function') {
         req.session.regenerate((err) => {

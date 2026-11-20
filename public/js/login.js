@@ -69,7 +69,8 @@
           localStorage.setItem('userId', String(data.id));
         }
         localStorage.setItem('usuarioNombre', nombre);
-        localStorage.setItem('usuario', JSON.stringify(data));
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('usuarioRol');
 
         window.location.assign('/');
       } catch (err) {
